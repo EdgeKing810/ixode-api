@@ -21,8 +21,10 @@ mod io;
 mod mappings;
 mod project;
 mod structures;
-mod tests;
 mod user;
+
+#[path = "tests/tests.rs"]
+mod tests;
 
 const MAPPINGS_PATH: &str = "data/mappings.txt";
 const TMP_PASSWORD: &str = "Test123*";
