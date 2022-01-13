@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::io::{fetch_file, save_file};
+use crate::components::io::{fetch_file, save_file};
 
 #[derive(Default, Debug, Clone)]
 pub struct Mapping {

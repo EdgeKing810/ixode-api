@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::{
+use crate::components::{
     io::remove_file,
     project::{fetch_all_projects, save_all_projects, Project},
 };

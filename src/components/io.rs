@@ -1,4 +1,4 @@
-use crate::encryption::EncryptionKey;
+use crate::components::encryption::EncryptionKey;
 use std::{fs, fs::File, io::prelude::*, io::BufReader};
 
 pub fn fetch_file(path: String, encryption_key: &String) -> String {

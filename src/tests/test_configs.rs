@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::{
+use crate::components::{
     config::{fetch_all_configs, save_all_configs, Config},
     io::remove_file,
 };

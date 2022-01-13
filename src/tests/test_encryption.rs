@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::{
+use crate::components::{
     encryption::{fetch_encryption_key, save_encryption_key, EncryptionKey},
     io::remove_file,
 };

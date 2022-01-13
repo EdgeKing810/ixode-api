@@ -1,6 +1,6 @@
-use crate::custom_structures::CustomStructure;
-use crate::io::{fetch_file, save_file};
-use crate::structures::{try_add_structure, Structure};
+use crate::components::custom_structures::CustomStructure;
+use crate::components::io::{fetch_file, save_file};
+use crate::components::structures::{try_add_structure, Structure};
 // use crate::encryption::{EncryptionKey};
 
 #[derive(Default, Debug, Clone)]

@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::{
+use crate::components::{
     io::remove_file,
     mappings::{fetch_all_mappings, save_all_mappings, Mapping},
 };

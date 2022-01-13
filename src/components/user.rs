@@ -1,5 +1,5 @@
-use crate::encryption::EncryptionKey;
-use crate::io::{fetch_file, save_file};
+use crate::components::encryption::EncryptionKey;
+use crate::components::io::{fetch_file, save_file};
 use argon2::{self, Config};
 use regex::Regex;
 

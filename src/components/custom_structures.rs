@@ -1,4 +1,4 @@
-use crate::structures::{try_add_structure, Structure};
+use crate::components::structures::{try_add_structure, Structure};
 // use crate::encryption::EncryptionKey;
 
 #[derive(Default, Debug, Clone)]

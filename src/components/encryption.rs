@@ -1,4 +1,4 @@
-use crate::io::{fetch_file, save_file};
+use crate::components::io::{fetch_file, save_file};
 use magic_crypt::MagicCryptTrait;
 
 #[derive(Default, Clone, Debug)]

@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::{
+use crate::components::{
     collection::{fetch_all_collections, save_all_collections, Collection},
     custom_structures::CustomStructure,
     io::remove_file,
