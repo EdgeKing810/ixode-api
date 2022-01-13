@@ -1,5 +1,6 @@
-use crate::components::encryption::EncryptionKey;
 use crate::components::io::{fetch_file, save_file};
+use uuid::Uuid;
+
 use argon2::{self, Config};
 use regex::Regex;
 
@@ -113,13 +114,13 @@ impl User {
         password: &str,
         role_numeric: u32,
     ) -> Result<(), String> {
-        let id = EncryptionKey::generate_uuid(8);
+        let id = Uuid::new_v4();
         let uid = id.to_string();
 
         let mut has_error: bool = false;
         let mut latest_error: String = String::new();
 
-        let salt = EncryptionKey::generate_uuid(25);
+        let salt = Uuid::new_v4();
         let config = Config::default();
 
         let new_user = User {
@@ -400,7 +401,7 @@ impl User {
 
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
-                let salt = EncryptionKey::generate_uuid(25);
+                let salt = Uuid::new_v4();
                 let config = Config::default();
 
                 found_user = Some(user.clone());
