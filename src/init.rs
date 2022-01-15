@@ -8,17 +8,21 @@ use crate::components::structures::Structure;
 use crate::components::user::{fetch_all_users, save_all_users, User};
 use crate::utils::get_encryption_key;
 
-const MAPPINGS_PATH: &str = "data/mappings.txt";
 const TMP_PASSWORD: &str = "Test123*";
 
 pub fn initialize() {
+    dotenv::dotenv().expect("Failed to read .env file");
+
     let all_mappings = initialize_mappings();
     let all_users: Vec<User> = initialize_users(&all_mappings);
     let all_projects: Vec<Project> = initialize_projects(&all_mappings);
     let _all_configs: Vec<Config> = initialize_configs(&all_mappings);
     let all_collections: Vec<Collection> = initialize_collections(&all_mappings);
 
-    println!("{:#?}", User::login(&all_users, "EdgeKing810", "Test123*"));
+    println!(
+        "{:#?}",
+        User::login_username(&all_users, "EdgeKing810", "Test123*")
+    );
 
     println!("Projects: {:#?}", all_projects);
 
@@ -26,7 +30,16 @@ pub fn initialize() {
 }
 
 fn initialize_mappings() -> Vec<Mapping> {
-    let mut fetched_mappings = fetch_all_mappings(MAPPINGS_PATH, &String::new());
+    let mappings_path = format!(
+        "{}{}",
+        match std::env::var("CURRENT_PATH") {
+            Ok(path) => path,
+            _ => "/tmp".to_string(),
+        },
+        "/data/mappings.txt"
+    );
+
+    let mut fetched_mappings = fetch_all_mappings(&mappings_path, &String::new());
 
     if !Mapping::exist(&fetched_mappings, "users") {
         let user_mapping = Mapping::create(&mut fetched_mappings, "users", "data/users.txt");
@@ -69,7 +82,7 @@ fn initialize_mappings() -> Vec<Mapping> {
         }
     }
 
-    save_all_mappings(&fetched_mappings, MAPPINGS_PATH, &String::from(""));
+    save_all_mappings(&fetched_mappings, &mappings_path, &String::from(""));
     fetched_mappings
 }
 

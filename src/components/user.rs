@@ -1,10 +1,12 @@
 use crate::components::io::{fetch_file, save_file};
+
+use rocket::serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use argon2::{self, Config};
 use regex::Regex;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Role {
     ROOT,
     ADMIN,
@@ -17,7 +19,7 @@ impl Default for Role {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct User {
     pub id: String,
     first_name: String,
@@ -191,11 +193,46 @@ impl User {
         Ok(())
     }
 
-    pub fn login(all_users: &Vec<User>, auth: &str, password: &str) -> Result<User, String> {
+    pub fn login_username(
+        all_users: &Vec<User>,
+        auth: &str,
+        password: &str,
+    ) -> Result<User, String> {
         let mut found_user: Option<User> = None;
 
         for user in all_users.iter() {
-            if user.email == auth.to_string() || user.username == auth.to_string() {
+            if user.username == auth.to_string() {
+                found_user = Some(user.clone());
+                break;
+            }
+        }
+
+        if let None = found_user {
+            return Err(String::from("Error: User not found"));
+        }
+
+        let correct_password = match argon2::verify_encoded(
+            &found_user.clone().unwrap().password,
+            password.as_bytes(),
+        ) {
+            Ok(b) => b,
+            Err(e) => {
+                return Err(e.to_string());
+            }
+        };
+
+        if !correct_password {
+            return Err(String::from("Error: Password mismatch"));
+        }
+
+        Ok(found_user.unwrap())
+    }
+
+    pub fn login_email(all_users: &Vec<User>, auth: &str, password: &str) -> Result<User, String> {
+        let mut found_user: Option<User> = None;
+
+        for user in all_users.iter() {
+            if user.email == auth.to_string() {
                 found_user = Some(user.clone());
                 break;
             }

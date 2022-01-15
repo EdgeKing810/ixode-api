@@ -194,12 +194,12 @@ pub fn save_all_mappings(mappings: &Vec<Mapping>, path: &str, encryption_key: &S
 }
 
 pub fn get_file_name(id: &str, mappings: &Vec<Mapping>) -> Result<String, String> {
-    let mut path = String::new();
+    let mut local_path = String::new();
     let mut found = false;
     for mapping in mappings {
         if mapping.id == id {
             found = true;
-            path = mapping.file_name.clone();
+            local_path = mapping.file_name.clone();
             break;
         }
     }
@@ -208,5 +208,10 @@ pub fn get_file_name(id: &str, mappings: &Vec<Mapping>) -> Result<String, String
         return Err(String::from("Error: No mapping with this id"));
     }
 
-    Ok(path)
+    let current_path = match std::env::var("CURRENT_PATH") {
+        Ok(path) => path,
+        _ => "/tmp".to_string(),
+    };
+
+    Ok(format!("{}/{}", current_path, local_path))
 }

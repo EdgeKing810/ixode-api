@@ -2,10 +2,16 @@
 #[macro_use]
 extern crate magic_crypt;
 extern crate argon2;
+extern crate dotenv;
 extern crate rocket;
 
 mod init;
 mod utils;
+
+#[path = "catchers.rs"]
+mod custom_catchers;
+#[path = "middlewares/middlewares.rs"]
+mod middlewares;
 
 #[path = "components/components.rs"]
 mod components;
@@ -16,7 +22,7 @@ mod tests;
 
 use init::initialize;
 
-use rocket::{launch, routes};
+use rocket::{catchers, launch, routes};
 
 #[launch]
 fn rocket() -> _ {
@@ -25,4 +31,13 @@ fn rocket() -> _ {
     rocket::build()
         .mount("/hello", routes![routes::test::world])
         .mount("/wave", routes![routes::test::wave])
+        .mount("/", routes![routes::test::login])
+        .register(
+            "/",
+            catchers![
+                custom_catchers::bad_request,
+                custom_catchers::malformed_request,
+                custom_catchers::unauthorized
+            ],
+        )
 }

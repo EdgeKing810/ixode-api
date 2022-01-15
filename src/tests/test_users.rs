@@ -199,7 +199,13 @@ fn test_users() {
     );
     assert_eq!(test_user2, Ok(()));
 
-    let login_test_user2 = User::login(&all_users, "te_st", "Test123*&^()[]{}*-_");
+    let incorrect_login_test_user2 = User::login_username(&all_users, "te_st", "Test123*");
+    assert_eq!(
+        incorrect_login_test_user2,
+        Err(String::from("Error: Password mismatch"))
+    );
+
+    let login_test_user2 = User::login_username(&all_users, "te_st", "Test123*&^()[]{}*-_");
 
     if let Ok(successful_login) = login_test_user2 {
         let test_user2 = User::update_name(&mut all_users, &successful_login.id, "Test", "Tester");

@@ -1,0 +1,20 @@
+{
+  "name": "kinesis-db",
+  "version": "1.0.0",
+  "description": "This is a custom database being developped that will be a crucial component in an upcoming, even bigger project.",
+  "main": "req-test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@repo.kinesis.games:rust/kinesis-db.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0"
+  },
+  "type": "module"
+}
