@@ -51,6 +51,16 @@ impl User {
         }
     }
 
+    pub fn get(all_users: &Vec<User>, uid: &str) -> Result<User, String> {
+        for user in all_users.iter() {
+            if user.id.to_lowercase() == uid.to_lowercase() {
+                return Ok(user.clone());
+            }
+        }
+
+        Err(String::from("User not found"))
+    }
+
     pub fn exist(all_users: &Vec<User>, id: &str) -> bool {
         let mut found = false;
         for user in all_users.iter() {

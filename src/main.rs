@@ -31,7 +31,7 @@ fn rocket() -> _ {
     rocket::build()
         .mount("/hello", routes![routes::test::world])
         .mount("/wave", routes![routes::test::wave])
-        .mount("/", routes![routes::test::login])
+        .mount("/", routes![routes::test::login, routes::test::verify])
         .register(
             "/",
             catchers![

@@ -26,6 +26,16 @@ impl Config {
         found
     }
 
+    pub fn get_value(all_configs: &Vec<Config>, name: &str) -> String {
+        for config in all_configs.iter() {
+            if config.name.to_lowercase() == name.to_lowercase() {
+                return config.value.clone();
+            }
+        }
+
+        String::from("")
+    }
+
     pub fn create(all_configs: &mut Vec<Config>, name: &str, value: &str) -> Result<(), String> {
         if !String::from(name)
             .chars()

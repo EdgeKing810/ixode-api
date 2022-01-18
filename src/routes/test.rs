@@ -4,7 +4,7 @@ use rocket::serde::{Deserialize, Serialize};
 use rocket::{get, post};
 
 use crate::components::user::User;
-use crate::middlewares::token::Token;
+use crate::middlewares::token::{create_jwt, verify_jwt, Token};
 use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_users};
 
 #[get("/<name>/<age>")]
@@ -25,11 +25,9 @@ pub struct LoginInput {
 }
 
 #[post("/login", format = "json", data = "<data>")]
-pub fn login(data: Json<LoginInput>, token: Token) -> Value {
+pub fn login(data: Json<LoginInput>) -> Value {
     let auth_data = &data.auth_data;
     let password = &data.password;
-
-    println!("{} {} {}", auth_data, password, token);
 
     let mappings = auto_fetch_all_mappings();
     let users = match auto_fetch_all_users(&mappings) {
@@ -68,5 +66,26 @@ pub fn login(data: Json<LoginInput>, token: Token) -> Value {
         _ => return json!({"status": "401", "message": "Error: Incorrect Password"}),
     };
 
-    json!({"status": "200", "message": "Works!", "user": user})
+    let jwt = match create_jwt(&mappings, user.id.clone()) {
+        Ok(token) => token,
+        Err(e) => return json!({"status": "500", "message": e}),
+    };
+
+    json!({"status": "200", "message": "Works!", "user": user, "jwt": jwt})
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct UIDInput {
+    uid: String,
+}
+
+#[post("/verify", format = "json", data = "<data>")]
+pub async fn verify(data: Json<UIDInput>, token: Token) -> Value {
+    let uid = &data.uid;
+
+    return match verify_jwt(uid.clone(), token.0).await {
+        Ok(msg) => json!({"status": "200", "message": msg}),
+        Err(info) => json!({"status": info.0, "message": info.1}),
+    };
 }
