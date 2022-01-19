@@ -8,10 +8,21 @@ use crate::components::structures::Structure;
 use crate::components::user::{fetch_all_users, save_all_users, User};
 use crate::utils::get_encryption_key;
 
-const TMP_PASSWORD: &str = "Test123*";
+use core::panic;
+use std::fs;
 
 pub fn initialize() {
-    dotenv::dotenv().expect("Failed to read .env file");
+    match dotenv::dotenv() {
+        Err(_) => {
+            match fs::copy(".env.template", ".env") {
+                Ok(_) => dotenv::dotenv().expect("Failed to read .env file"),
+                Err(_) => {
+                    panic!("Failed to create .env file from template");
+                }
+            };
+        }
+        _ => {}
+    }
 
     let all_mappings = initialize_mappings();
     let all_users: Vec<User> = initialize_users(&all_mappings);
@@ -95,9 +106,14 @@ fn initialize_users(mappings: &Vec<Mapping>) -> Vec<User> {
         return all_users;
     }
 
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     all_users = fetch_all_users(
         all_users_path.clone().unwrap(),
-        &get_encryption_key(&mappings, TMP_PASSWORD),
+        &get_encryption_key(&mappings, &pass),
     );
 
     if !User::exist_username(&all_users, "EdgeKing810") {
@@ -115,10 +131,15 @@ fn initialize_users(mappings: &Vec<Mapping>) -> Vec<User> {
         }
     }
 
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     save_all_users(
         &all_users,
         all_users_path.unwrap(),
-        &get_encryption_key(&mappings, TMP_PASSWORD),
+        &get_encryption_key(&mappings, &pass),
     );
 
     all_users
@@ -133,9 +154,14 @@ fn initialize_projects(mappings: &Vec<Mapping>) -> Vec<Project> {
         return all_projects;
     }
 
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     all_projects = fetch_all_projects(
         all_projects_path.clone().unwrap(),
-        &get_encryption_key(&mappings, TMP_PASSWORD),
+        &get_encryption_key(&mappings, &pass),
     );
 
     if !Project::exist(&all_projects, "konnect") {
@@ -151,10 +177,15 @@ fn initialize_projects(mappings: &Vec<Mapping>) -> Vec<Project> {
         }
     }
 
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     save_all_projects(
         &all_projects,
         all_projects_path.unwrap(),
-        &get_encryption_key(&mappings, TMP_PASSWORD),
+        &get_encryption_key(&mappings, &pass),
     );
 
     all_projects
@@ -169,9 +200,14 @@ fn initialize_configs(mappings: &Vec<Mapping>) -> Vec<Config> {
         return all_configs;
     }
 
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     all_configs = fetch_all_configs(
         all_configs_path.clone().unwrap(),
-        &get_encryption_key(&mappings, TMP_PASSWORD),
+        &get_encryption_key(&mappings, &pass),
     );
 
     let config_keys_template: Vec<&str> = vec![
@@ -206,10 +242,16 @@ fn initialize_configs(mappings: &Vec<Mapping>) -> Vec<Config> {
             }
         }
     }
+
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     save_all_configs(
         &all_configs,
         all_configs_path.unwrap(),
-        &get_encryption_key(&mappings, TMP_PASSWORD),
+        &get_encryption_key(&mappings, &pass),
     );
 
     all_configs
