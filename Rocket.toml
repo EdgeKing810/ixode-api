@@ -1,0 +1,13 @@
+[default]
+address = "0.0.0.0"
+port = 8000
+ident = "kinesis-api"
+log_level = "normal"
+temp_dir = "/tmp"
+cli_colors = true
+
+[default.limits]
+forms = "64 kB"
+json = "5 MiB"
+msgpack = "5 MiB"
+"file/jpg" = "20 MiB"

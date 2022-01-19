@@ -1,17 +1,9 @@
 image: docker:19.03.12
 
 stages:
-  - run
   - test
-
-run:
-  stage: run
-  image: rust:latest
-  before_script:
-    - rustc -V
-    - cargo --version
-  script:
-    - cargo run
+  - build
+  - deploy
 
 test:
   stage: test
@@ -21,3 +13,34 @@ test:
     - cargo --version
   script:
     - cargo test
+
+docker-build:
+  image: docker:19.03.12
+  stage: build
+  services:
+    - docker:19.03.12-dind
+  before_script:
+    - docker info
+    - echo $CI_BUILD_TOKEN | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
+    - docker build --pull -t "${CI_REGISTRY_IMAGE}:latest" -f Dockerfile .
+    - docker push "${CI_REGISTRY_IMAGE}:latest"
+
+deployment:
+  stage: deploy
+  image: node:latest
+  variables:
+    PROJECT_ID: kinesis-api
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - eval $(ssh-agent -s)
+    - echo "$K8S_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan repo.kinesis.games >> ~/.ssh/known_hosts
+    - ssh-keyscan k8s.konnect.dev >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - scp deployment.yml root@k8s.konnect.dev:/tmp/deployment-${PROJECT_ID}.yml
+    - ssh root@k8s.konnect.dev "kubectl apply -f /tmp/deployment-${PROJECT_ID}.yml && kubectl rollout restart deployment ${PROJECT_ID}-web"
