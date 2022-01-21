@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Kinesis API - {{ title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap" rel="stylesheet">
+  </head>
+  <body style="background-color: #2C73D2; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; overflow:hidden;">
+    <img src="https://api.konnect.dev/api/v2/public/67c42989-4c2f-4041-a943-9e8c4e9c6430-wave-hello.gif" alt="hand-waving-gif" />
+    <p>Hello, {{ age }} years old named {{ name }}!</p>
+  </body>
+
+  <style>
+    p {
+      font-size: 3rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: #FF9671;
+      font-family: 'Mochiy Pop P One', sans-serif;
+      text-align: center;
+      animation: zoomup 2s ease infinite;
+      animation-delay: calc(200ms * var(--i));
+      display: inline-block;
+    }
+
+    img {
+      width: 25%;
+    }
+
+    @keyframes zoomup {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.2) translateY(-50px);
+        filter: blur(1px);
+        opacity: 0;
+      }
+    }
+  </style>
+</html>

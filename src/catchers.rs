@@ -1,7 +1,11 @@
+use std::collections::HashMap;
+
 use rocket::{
     catch,
     serde::json::{json, Value},
+    Request,
 };
+use rocket_dyn_templates::Template;
 
 #[catch(401)]
 pub fn unauthorized() -> Value {
@@ -17,6 +21,14 @@ pub fn bad_request() -> Value {
         "status": "400",
         "message": "Error: Not enough information supplied"
     })
+}
+
+#[catch(404)]
+pub fn not_found(req: &Request<'_>) -> Template {
+    let mut context = HashMap::new();
+    context.insert("uri", req.uri());
+
+    Template::render("error/404", context)
 }
 
 #[catch(422)]

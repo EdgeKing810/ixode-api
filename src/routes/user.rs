@@ -1,7 +1,7 @@
 use regex::Regex;
+use rocket::post;
 use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
-use rocket::{post};
 
 use crate::components::user::User;
 use crate::middlewares::token::{create_jwt, verify_jwt, Token};

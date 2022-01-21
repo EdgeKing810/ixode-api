@@ -1,0 +1,5 @@
+{% extends "base" %}
+
+{% block content %}
+    <p>Try going to <a href="/wave/John%20Doe/18">/wave/name/age</a></p>
+{% endblock content %}

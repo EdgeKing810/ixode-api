@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>404 Not Found - Kinesis API</title>
+</head>
+
+<body align="center">
+	<div role="main" align="center">
+		<h1>404: Not Found</h1>
+		<p>The requested resource could not be found.</p>
+        <p>The page at {{ uri }} does not exist!</p>
+		<hr />
+	</div>
+	<div role="contentinfo" align="center">
+		<small>Kinesis API</small>
+	</div>
+</body>

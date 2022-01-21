@@ -23,6 +23,7 @@ mod tests;
 use init::initialize;
 
 use rocket::{catchers, launch, routes};
+use rocket_dyn_templates::Template;
 
 #[launch]
 fn rocket() -> _ {
@@ -31,13 +32,16 @@ fn rocket() -> _ {
     rocket::build()
         .mount("/hello", routes![routes::test::world])
         .mount("/wave", routes![routes::test::wave])
+        .mount("/", routes![routes::test::hello])
         .mount("/user", routes![routes::user::login, routes::user::verify])
         .register(
             "/",
             catchers![
                 custom_catchers::bad_request,
                 custom_catchers::malformed_request,
-                custom_catchers::unauthorized
+                custom_catchers::not_found,
+                custom_catchers::unauthorized,
             ],
         )
+        .attach(Template::fairing())
 }
