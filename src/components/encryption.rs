@@ -5,29 +5,36 @@ use magic_crypt::MagicCryptTrait;
 pub struct EncryptionKey(pub String);
 
 impl EncryptionKey {
-    pub fn generate_uuid(length: usize) -> String {
+    pub fn generate_block(length: usize) -> String {
         let charset = String::from("abcdefghijklmnopqrstuvwxyz0123456789");
 
         let mut uuid: String = String::new();
 
-        for _ in 0..5 {
-            for _ in 0..length {
-                let index: f64 = fastrand::f64();
-                let mut index_int: usize = (index * charset.len() as f64).round() as usize;
+        for _ in 0..length {
+            let index: f64 = fastrand::f64();
+            let mut index_int: usize = (index * charset.len() as f64).round() as usize;
 
-                if index_int >= charset.len() {
-                    index_int -= charset.len() - 1;
-                }
-
-                let mut chosen_char = charset.as_bytes()[index_int] as char;
-
-                if fastrand::bool() && chosen_char.is_alphabetic() {
-                    chosen_char = chosen_char.to_uppercase().collect::<Vec<_>>()[0];
-                }
-
-                uuid.push(chosen_char);
+            if index_int >= charset.len() {
+                index_int -= charset.len() - 1;
             }
-            uuid.push('-')
+
+            let mut chosen_char = charset.as_bytes()[index_int] as char;
+
+            if fastrand::bool() && chosen_char.is_alphabetic() {
+                chosen_char = chosen_char.to_uppercase().collect::<Vec<_>>()[0];
+            }
+
+            uuid.push(chosen_char);
+        }
+
+        uuid
+    }
+
+    pub fn generate_uuid(length: usize) -> String {
+        let mut uuid: String = String::new();
+
+        for _ in 0..5 {
+            uuid = format!("{}{}{}", uuid, EncryptionKey::generate_block(length), "-");
         }
 
         let random_f: f64 = fastrand::f64();

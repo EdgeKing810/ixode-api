@@ -3,13 +3,13 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>404 Not Found - Kinesis API</title>
+	<title>500 Internal Server Error - Kinesis API</title>
 </head>
 
 <body align="center">
 	<div role="main" align="center">
-		<h1>404: Not Found</h1>
-		<p>The requested resource could not be found.</p>
+		<h1>500: Internal Server Error</h1>
+		<p>The server encountered an internal error while processing this request.</p>
 		<p>{{ uri }}</p>
 		<hr />
 	</div>

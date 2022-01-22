@@ -27,7 +27,7 @@ pub struct User {
     username: String,
     email: String,
     password: String,
-    role: Role,
+    pub role: Role,
 }
 
 impl User {
@@ -105,7 +105,7 @@ impl User {
         email: &str,
         password: &str,
         role_numeric: u32,
-    ) -> Result<(), String> {
+    ) -> Result<String, String> {
         return User::create(
             all_users,
             first_name,
@@ -125,7 +125,7 @@ impl User {
         email: &str,
         password: &str,
         role_numeric: u32,
-    ) -> Result<(), String> {
+    ) -> Result<String, String> {
         let id = Uuid::new_v4();
         let uid = id.to_string();
 
@@ -200,7 +200,7 @@ impl User {
             return Err(latest_error);
         }
 
-        Ok(())
+        Ok(uid)
     }
 
     pub fn login_username(

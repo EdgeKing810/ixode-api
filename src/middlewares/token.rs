@@ -75,24 +75,18 @@ pub fn create_jwt(mappings: &Vec<Mapping>, uid: String) -> Result<String, String
     };
 }
 
-pub async fn verify_jwt(uid: String, token: String) -> Result<String, (String, String)> {
+pub async fn verify_jwt(uid: String, token: String) -> Result<String, (usize, String)> {
     let mappings = auto_fetch_all_mappings();
     let secret = get_config_value(&mappings, "TOKEN_KEY", "secret");
     let users = match auto_fetch_all_users(&mappings) {
         Ok(u) => u,
         _ => {
-            return Err((
-                "500".to_string(),
-                String::from("Error: Failed fetching users"),
-            ));
+            return Err((500, String::from("Error: Failed fetching users")));
         }
     };
 
     if !User::exist(&users, &uid) {
-        return Err((
-            "404".to_string(),
-            String::from("Error: Account with this uid not found"),
-        ));
+        return Err((404, String::from("Error: Account with this uid not found")));
     }
 
     let mut proper_token = "";
@@ -108,14 +102,14 @@ pub async fn verify_jwt(uid: String, token: String) -> Result<String, (String, S
         Ok(dec) => dec,
         Err(e) => {
             return Err((
-                "500".to_string(),
+                500,
                 format!("{} ({})", String::from("Error: Failed decoding JWT"), e),
             ));
         }
     };
 
     if decoded.claims.uid != uid {
-        return Err(("403".to_string(), String::from("Error: Incorrect UID")));
+        return Err((403, String::from("Error: Incorrect UID")));
     }
 
     Ok(String::from("Successfully Authenticated!"))

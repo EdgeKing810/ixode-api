@@ -212,6 +212,8 @@ fn initialize_configs(mappings: &Vec<Mapping>) -> Vec<Config> {
 
     let config_keys_template: Vec<&str> = vec![
         "ENV",
+        "PROJECT_NAME",
+        "FRONT_URL",
         "API_URL",
         "API_PORT",
         "API_PRE",

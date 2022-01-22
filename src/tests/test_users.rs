@@ -21,7 +21,7 @@ fn test_users() {
         "Test123*",
         0,
     );
-    assert_eq!(test_user, Ok(()));
+    assert_eq!(test_user.is_ok(), true);
 
     let test_user2 = User::create(
         &mut all_users,
@@ -197,7 +197,7 @@ fn test_users() {
         "Test123*&^()[]{}*-_",
         0,
     );
-    assert_eq!(test_user2, Ok(()));
+    assert_eq!(test_user2.is_ok(), true);
 
     let incorrect_login_test_user2 = User::login_username(&all_users, "te_st", "Test123*");
     assert_eq!(

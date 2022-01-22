@@ -3,13 +3,13 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>404 Not Found - Kinesis API</title>
+	<title>422 Wrongly Formed Request - Kinesis API</title>
 </head>
 
 <body align="center">
 	<div role="main" align="center">
-		<h1>404: Not Found</h1>
-		<p>The requested resource could not be found.</p>
+		<h1>401: Wrongly Formed Request</h1>
+		<p>The request was well-formed but was unable to be followed due to semantic errors.</p>
 		<p>{{ uri }}</p>
 		<hr />
 	</div>
