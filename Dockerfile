@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . /app/
 
 RUN apt update && \
-    apt install -y pkg-config openssl
+    apt install -y pkg-config openssl libssl-dev
 
 RUN rustc -V
 RUN cargo --version
