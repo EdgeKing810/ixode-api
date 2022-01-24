@@ -40,15 +40,19 @@ fn rocket() -> _ {
         )
         .mount(
             fpath("/user"),
-            routes![routes::user::login, routes::user::verify],
+            routes![
+                routes::user::login,
+                routes::user::verify,
+                routes::user::update
+            ],
         )
         .register(
             "/",
             catchers![
                 custom_catchers::bad_request,
-                custom_catchers::malformed_request,
-                custom_catchers::not_found,
                 custom_catchers::unauthorized,
+                custom_catchers::not_found,
+                custom_catchers::malformed_request,
                 custom_catchers::internal_server_error
             ],
         )

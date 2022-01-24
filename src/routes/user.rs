@@ -209,3 +209,37 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum Change {
+    FIRSTNAME,
+    LASTNAME,
+    USERNAME,
+    EMAIL,
+    PASSWORD,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ChangeInput {
+    uid: String,
+    change: Change,
+    data: String,
+}
+
+#[post("/update", format = "json", data = "<data>")]
+pub async fn update(data: Json<ChangeInput>, token: Token) -> Value {
+    let uid = &data.uid;
+    let change = &data.change;
+
+    println!("{:?}", change);
+
+    println!("{}", change.clone() == Change::FIRSTNAME);
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    json!({"status": 200, "message": "Works!"})
+}

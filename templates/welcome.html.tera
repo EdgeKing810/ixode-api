@@ -31,7 +31,7 @@
         Welcome to
         <a href="{{ api_url }}" class="px-1 rounded-lg bg-gray-700"
           >{{ project_name }}</a
-        >'s API 🤩!
+        > 🤩!
       </div>
       <div class="w-full flex justify-center mb-2 px-6">
         <img
