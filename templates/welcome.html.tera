@@ -29,9 +29,9 @@
         style="color: #998ae3"
       >
         Welcome to
-        <a href="{{ api_url }}" class="px-1 rounded-lg bg-gray-700"
+        <a href="{{ front_url }}" class="px-1 rounded-lg bg-gray-700"
           >{{ project_name }}</a
-        > 🤩!
+        >{{ last_part }}🤩!
       </div>
       <div class="w-full flex justify-center mb-2 px-6">
         <img

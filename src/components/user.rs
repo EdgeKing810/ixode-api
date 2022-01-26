@@ -562,6 +562,23 @@ impl User {
         Ok(())
     }
 
+    pub fn remove_passwords(all_users: &mut Vec<User>) {
+        let updated_users: Vec<User> = all_users
+            .iter_mut()
+            .map(|user| User {
+                id: user.id.clone(),
+                first_name: user.first_name.clone(),
+                last_name: user.last_name.clone(),
+                username: user.username.clone(),
+                email: user.email.clone(),
+                password: String::from(""),
+                role: user.role.clone(),
+            })
+            .collect::<Vec<User>>();
+
+        *all_users = updated_users;
+    }
+
     pub fn to_string(user: User) -> String {
         let number_role: u32 = match user.role {
             Role::ROOT => 0,

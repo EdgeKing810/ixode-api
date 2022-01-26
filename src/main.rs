@@ -45,7 +45,9 @@ fn rocket() -> _ {
                 routes::user::verify,
                 routes::user::update,
                 routes::user::update_role,
-                routes::user::delete
+                routes::user::delete,
+                routes::user::fetch_all,
+                routes::user::fetch_one,
             ],
         )
         .register(
@@ -66,19 +68,28 @@ fn welcome() -> Template {
     let mappings = auto_fetch_all_mappings();
 
     let project_name = get_config_value(&mappings, "PROJECT_NAME", "Kinesis API");
-    let api_url = get_config_value(&mappings, "API_URL", "https://api.kinesis.games");
+    let display_last_part = get_config_value(&mappings, "PROJECT_IS_API", "n");
+    let front_url = get_config_value(&mappings, "API_URL", "https://www.kinesis.world");
     let logo_url = get_config_value(
         &mappings,
         "LOGO_URL",
         "https://api.konnect.dev/api/v2/public/logo.png",
     );
-    let documentation_url = get_config_value(&mappings, "DOCS_URL", "https://docs.kinesis.api");
+    let documentation_url = get_config_value(&mappings, "DOCS_URL", "https://docs.kinesis.world");
 
     let mut context = HashMap::new();
     context.insert("project_name", project_name);
-    context.insert("api_url", api_url);
+    context.insert("front_url", front_url);
     context.insert("logo_url", logo_url);
     context.insert("documentation_url", documentation_url);
+    context.insert(
+        "last_part",
+        if display_last_part == "n" {
+            " ".to_string()
+        } else {
+            "'s API".to_string()
+        },
+    );
 
     Template::render("welcome", context)
 }

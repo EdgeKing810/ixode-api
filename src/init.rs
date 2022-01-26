@@ -234,6 +234,7 @@ fn initialize_configs(mappings: &Vec<Mapping>) -> Vec<Config> {
         "UPLOAD_SIZE",
         "SHOULD_INITIALIZE",
         "CORS_WHITELIST",
+        "PROJECT_IS_API",
     ];
 
     for key in config_keys_template {

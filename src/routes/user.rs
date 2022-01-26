@@ -117,7 +117,7 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
 
     let current_user = User::get(&users, uid).unwrap();
     if current_user.role != Role::ROOT {
-        return json!({"status": 401, "message": "Error: Not enough privileges to carry out this operation"});
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
     }
 
     let target_first_name = &data.target_first_name;
@@ -202,7 +202,7 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
 
     match auto_save_all_users(&mappings, &users) {
         Ok(_) => {
-            return json!({"status": 200, "message": "User registered successfully", "uid": new_user_uid})
+            return json!({"status": 200, "message": "User registered successfully!", "uid": new_user_uid})
         }
         Err(e) => {
             json!({"status": 500, "message": e})
@@ -260,7 +260,7 @@ pub async fn update(data: Json<ChangeInput>, token: Token) -> Value {
     }
 
     return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => json!({"status": 200, "message": "User updated successfully"}),
+        Ok(_) => json!({"status": 200, "message": "User updated successfully!"}),
         Err(e) => json!({"status": 500, "message": e}),
     };
 }
@@ -270,7 +270,7 @@ pub async fn update(data: Json<ChangeInput>, token: Token) -> Value {
 pub struct RoleInput {
     uid: String,
     target_uid: String,
-    role: Role
+    role: Role,
 }
 
 #[post("/update/role", format = "json", data = "<data>")]
@@ -294,12 +294,14 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
 
     let current_user = User::get(&users, uid).unwrap();
     if current_user.role != Role::ROOT {
-        return json!({"status": 401, "message": "Error: Not enough privileges to carry out this operation"});
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
     }
 
     let target_user = match User::get(&users, target_uid) {
         Ok(u) => u,
-        Err(e) => return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
+        Err(e) => {
+            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
+        }
     };
     if target_user.role == Role::ROOT {
         return json!({"status": 403, "message": "Error: Cannot change the ROLE of this User"});
@@ -312,12 +314,12 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
     };
 
     match User::update_role(&mut users, target_uid, role_numeric) {
-        Err(e) => {return json!({"error": 500, "message": e})},
+        Err(e) => return json!({"error": 500, "message": e}),
         _ => {}
     }
 
     return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => json!({"status": 200, "message": "User role updated successfully"}),
+        Ok(_) => json!({"status": 200, "message": "User role updated successfully!"}),
         Err(e) => json!({"status": 500, "message": e}),
     };
 }
@@ -326,7 +328,7 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
 #[serde(crate = "rocket::serde")]
 pub struct DeleteInput {
     uid: String,
-    target_uid: String
+    target_uid: String,
 }
 
 #[post("/delete", format = "json", data = "<data>")]
@@ -349,24 +351,115 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
 
     let current_user = User::get(&users, uid).unwrap();
     if current_user.role != Role::ROOT {
-        return json!({"status": 401, "message": "Error: Not enough privileges to carry out this operation"});
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
     }
 
     let target_user = match User::get(&users, target_uid) {
         Ok(u) => u,
-        Err(e) => return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
+        Err(e) => {
+            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
+        }
     };
     if target_user.role == Role::ROOT {
         return json!({"status": 403, "message": "Error: Cannot delete this User"});
     }
 
     match User::delete(&mut users, target_uid) {
-        Err(e) => {return json!({"error": 500, "message": e})},
+        Err(e) => return json!({"error": 500, "message": e}),
         _ => {}
     }
 
     return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => json!({"status": 200, "message": "User deleted successfully"}),
+        Ok(_) => json!({"status": 200, "message": "User deleted successfully!"}),
+        Err(e) => json!({"status": 500, "message": e}),
+    };
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct NormalInput {
+    uid: String,
+}
+
+#[post("/fetch", format = "json", data = "<data>")]
+pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
+    let uid = &data.uid;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+    if current_user.role != Role::ROOT {
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
+    }
+
+    let mut clean_users = users.clone();
+    User::remove_passwords(&mut clean_users);
+    let amount = clean_users.len();
+
+    return match auto_save_all_users(&mappings, &users) {
+        Ok(_) => {
+            json!({"status": 200, "message": "Users fetched successfully!", "users": clean_users, "amount": amount})
+        }
+        Err(e) => json!({"status": 500, "message": e}),
+    };
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct UserFetchInput {
+    uid: String,
+    target_uid: String,
+}
+
+#[post("/fetch/one", format = "json", data = "<data>")]
+pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
+    let uid = &data.uid;
+    let target_uid = &data.uid;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+    if current_user.role != Role::ROOT && uid != target_uid {
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
+    }
+
+    let target_user = match User::get(&users, target_uid) {
+        Ok(u) => u,
+        Err(e) => {
+            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
+        }
+    };
+
+    let mut clean_users = Vec::<User>::new();
+    clean_users.push(target_user);
+    User::remove_passwords(&mut clean_users);
+
+    return match auto_save_all_users(&mappings, &users) {
+        Ok(_) => {
+            json!({"status": 200, "message": "Users fetched successfully!", "user": clean_users[0]})
+        }
         Err(e) => json!({"status": 500, "message": e}),
     };
 }
