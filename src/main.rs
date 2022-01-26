@@ -43,7 +43,9 @@ fn rocket() -> _ {
             routes![
                 routes::user::login,
                 routes::user::verify,
-                routes::user::update
+                routes::user::update,
+                routes::user::update_role,
+                routes::user::delete
             ],
         )
         .register(

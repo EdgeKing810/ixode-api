@@ -47,9 +47,9 @@ impl Display for Token {
 }
 
 pub fn create_jwt(mappings: &Vec<Mapping>, uid: String) -> Result<String, String> {
-    let expire = match get_config_value(mappings, "JWT_EXPIRE", "60").parse::<i64>() {
+    let expire = match get_config_value(mappings, "JWT_EXPIRE", "900").parse::<i64>() {
         Ok(val) => val,
-        _ => 60,
+        _ => 900,
     };
     let secret = get_config_value(mappings, "TOKEN_KEY", "secret");
 

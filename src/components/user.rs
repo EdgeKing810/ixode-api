@@ -262,11 +262,10 @@ impl User {
         Ok(found_user.unwrap())
     }
 
-    pub fn update_name(
+    pub fn update_first_name(
         all_users: &mut Vec<User>,
         id: &String,
         first_name: &str,
-        last_name: &str,
     ) -> Result<(), String> {
         let mut found_user: Option<User> = None;
 
@@ -288,6 +287,28 @@ impl User {
                 "Error: first_name contains too many characters",
             ));
         }
+
+        for user in all_users.iter_mut() {
+            if user.id == id.to_string() {
+                found_user = Some(user.clone());
+                user.first_name = first_name.trim().to_string();
+                break;
+            }
+        }
+
+        if let None = found_user {
+            return Err(String::from("Error: User not found"));
+        }
+
+        Ok(())
+    }
+
+    pub fn update_last_name(
+        all_users: &mut Vec<User>,
+        id: &String,
+        last_name: &str,
+    ) -> Result<(), String> {
+        let mut found_user: Option<User> = None;
 
         if !String::from(last_name)
             .chars()
@@ -311,7 +332,6 @@ impl User {
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
                 found_user = Some(user.clone());
-                user.first_name = first_name.trim().to_string();
                 user.last_name = last_name.trim().to_string();
                 break;
             }
@@ -322,6 +342,21 @@ impl User {
         }
 
         Ok(())
+    }
+
+    pub fn update_name(
+        all_users: &mut Vec<User>,
+        id: &String,
+        first_name: &str,
+        last_name: &str,
+    ) -> Result<(), String> {
+        return match User::update_first_name(all_users, id, first_name) {
+            Ok(()) => match User::update_last_name(all_users, id, last_name) {
+                Ok(()) => Ok(()),
+                Err(e) => Err(e),
+            },
+            Err(e) => Err(e),
+        };
     }
 
     pub fn update_username(
