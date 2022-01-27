@@ -24,7 +24,11 @@ use std::collections::HashMap;
 
 use init::initialize;
 
-use rocket::{catchers, get, launch, routes};
+use rocket::{
+    catchers,
+    fs::{relative, FileServer},
+    get, launch, routes,
+};
 use rocket_dyn_templates::Template;
 use utils::{auto_fetch_all_mappings, get_config_value};
 
@@ -34,6 +38,7 @@ fn rocket() -> _ {
 
     rocket::build()
         .mount("/", routes![welcome])
+        .mount("/public", FileServer::from(relative!("public")))
         .mount(
             fpath("/tmp"),
             routes![routes::test::world, routes::test::wave],
@@ -67,30 +72,19 @@ fn rocket() -> _ {
 fn welcome() -> Template {
     let mappings = auto_fetch_all_mappings();
 
-    let project_name = get_config_value(&mappings, "PROJECT_NAME", "Kinesis API");
-    let display_last_part = get_config_value(&mappings, "PROJECT_IS_API", "n");
-    let front_url = get_config_value(&mappings, "API_URL", "https://www.kinesis.world");
+    let front_url = get_config_value(&mappings, "FRONT_URL", "https://www.kinesis.world");
     let logo_url = get_config_value(
         &mappings,
         "LOGO_URL",
-        "https://api.konnect.dev/api/v2/public/logo.png",
+        "http://127.0.0.1:8000/public/banner_purple.png",
     );
     let documentation_url = get_config_value(&mappings, "DOCS_URL", "https://docs.kinesis.world");
 
     let mut context = HashMap::new();
-    context.insert("project_name", project_name);
     context.insert("front_url", front_url);
     context.insert("logo_url", logo_url);
     context.insert("documentation_url", documentation_url);
-    context.insert(
-        "last_part",
-        if display_last_part == "n" {
-            " ".to_string()
-        } else {
-            "'s API".to_string()
-        },
-    );
-
+    
     Template::render("welcome", context)
 }
 
