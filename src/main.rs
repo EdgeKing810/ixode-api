@@ -72,6 +72,7 @@ fn rocket() -> _ {
 fn welcome() -> Template {
     let mappings = auto_fetch_all_mappings();
 
+    let project_name = get_config_value(&mappings, "PROJECT_NAME", "Kinesis API");
     let front_url = get_config_value(&mappings, "FRONT_URL", "https://www.kinesis.world");
     let logo_url = get_config_value(
         &mappings,
@@ -81,10 +82,11 @@ fn welcome() -> Template {
     let documentation_url = get_config_value(&mappings, "DOCS_URL", "https://docs.kinesis.world");
 
     let mut context = HashMap::new();
+    context.insert("project_name", project_name);
     context.insert("front_url", front_url);
     context.insert("logo_url", logo_url);
     context.insert("documentation_url", documentation_url);
-    
+
     Template::render("welcome", context)
 }
 
