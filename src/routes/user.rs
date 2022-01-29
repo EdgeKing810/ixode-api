@@ -107,7 +107,7 @@ pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
     clean_users.push(target_user);
     User::remove_passwords(&mut clean_users);
 
-    return json!({"status": 200, "message": "Users fetched successfully!", "user": clean_users[0]});
+    return json!({"status": 200, "message": "User fetched successfully!", "user": clean_users[0]});
 }
 
 #[derive(Serialize, Deserialize)]

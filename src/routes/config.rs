@@ -107,7 +107,7 @@ pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
 
     let value = Config::get_value(&all_configs, key);
 
-    return json!({"status": 200, "message": "Users fetched successfully!", "value": value});
+    return json!({"status": 200, "message": "Config fetched successfully!", "value": value});
 }
 
 #[derive(Serialize, Deserialize)]
@@ -267,7 +267,7 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
     }
 
     match auto_save_all_configs(&mappings, &all_configs) {
-        Ok(_) => return json!({"status": 200, "message": "Config saved successfully!"}),
+        Ok(_) => return json!({"status": 200, "message": "Config deleted successfully!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }
