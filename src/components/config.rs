@@ -1,6 +1,7 @@
 use crate::components::io::{fetch_file, save_file};
+use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Config {
     pub name: String,
     pub value: String,

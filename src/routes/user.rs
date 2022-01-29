@@ -407,12 +407,7 @@ pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
     User::remove_passwords(&mut clean_users);
     let amount = clean_users.len();
 
-    return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => {
-            json!({"status": 200, "message": "Users fetched successfully!", "users": clean_users, "amount": amount})
-        }
-        Err(e) => json!({"status": 500, "message": e}),
-    };
+    return json!({"status": 200, "message": "Users fetched successfully!", "users": clean_users, "amount": amount});
 }
 
 #[derive(Serialize, Deserialize)]
@@ -456,10 +451,5 @@ pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
     clean_users.push(target_user);
     User::remove_passwords(&mut clean_users);
 
-    return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => {
-            json!({"status": 200, "message": "Users fetched successfully!", "user": clean_users[0]})
-        }
-        Err(e) => json!({"status": 500, "message": e}),
-    };
+    return json!({"status": 200, "message": "Users fetched successfully!", "user": clean_users[0]});
 }

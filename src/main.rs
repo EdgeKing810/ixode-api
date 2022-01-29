@@ -55,6 +55,16 @@ fn rocket() -> _ {
                 routes::user::fetch_one,
             ],
         )
+        .mount(
+            fpath("/config"),
+            routes![
+                routes::config::add,
+                routes::config::update,
+                routes::config::delete,
+                routes::config::fetch_all,
+                routes::config::fetch_one,
+            ],
+        )
         .register(
             "/",
             catchers![

@@ -1,5 +1,5 @@
 use crate::components::collection::{fetch_all_collections, save_all_collections, Collection};
-use crate::components::config::{fetch_all_configs, Config};
+use crate::components::config::{fetch_all_configs, save_all_configs, Config};
 use crate::components::io::{fetch_file, remove_file, save_file};
 use crate::components::mappings::{fetch_all_mappings, get_file_name, save_all_mappings, Mapping};
 use crate::components::project::{fetch_all_projects, save_all_projects, Project};
@@ -94,7 +94,7 @@ pub fn auto_save_all_users(mappings: &Vec<Mapping>, users: &Vec<User>) -> Result
     Ok(())
 }
 
-fn auto_fetch_all_configs(mappings: &Vec<Mapping>) -> Result<Vec<Config>, String> {
+pub fn auto_fetch_all_configs(mappings: &Vec<Mapping>) -> Result<Vec<Config>, String> {
     let all_configs_path = get_file_name("configs", mappings);
 
     let tmp_password = match std::env::var("TMP_PASSWORD") {
@@ -112,6 +112,23 @@ fn auto_fetch_all_configs(mappings: &Vec<Mapping>) -> Result<Vec<Config>, String
     );
 
     Ok(all_configs)
+}
+
+pub fn auto_save_all_configs(mappings: &Vec<Mapping>, configs: &Vec<Config>) -> Result<(), String> {
+    let all_configs_path = match get_file_name("configs", mappings) {
+        Ok(path) => path,
+        Err(e) => return Err(e),
+    };
+
+    let tmp_password = match std::env::var("TMP_PASSWORD") {
+        Ok(pass) => pass,
+        _ => "password".to_string(),
+    };
+
+    let encryption_key = get_encryption_key(mappings, &tmp_password);
+    save_all_configs(configs, all_configs_path, &encryption_key);
+
+    Ok(())
 }
 
 pub fn auto_fetch_all_projects(mappings: &Vec<Mapping>) -> Result<Vec<Project>, String> {
@@ -211,17 +228,16 @@ pub fn get_config_value(mappings: &Vec<Mapping>, id: &str, default: &str) -> Str
     val
 }
 
-pub fn set_config_value(mappings: &Vec<Mapping>, id: &str, value: &str) -> Result<(), String> {
-    let mut all_configs = match auto_fetch_all_configs(mappings) {
-        Ok(configs) => configs,
-        _ => return Err("Could not fetch configs".to_string()),
-    };
-
+pub fn set_config_value(
+    all_configs: &mut Vec<Config>,
+    id: &str,
+    value: &str,
+) -> Result<(), String> {
     if !Config::exist(&all_configs, id) {
         return Err("Config does not exist".to_string());
     }
 
-    match Config::update_value(&mut all_configs, id, value) {
+    match Config::update_value(all_configs, id, value) {
         Ok(_) => return Ok(()),
         Err(e) => return Err(e),
     }
