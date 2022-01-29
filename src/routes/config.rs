@@ -4,6 +4,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::config::Config;
 use crate::components::user::{Role, User};
+use crate::middlewares::paginate::paginate_configs;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
     auto_fetch_all_configs, auto_fetch_all_mappings, auto_fetch_all_users, auto_save_all_configs,
@@ -15,9 +16,23 @@ pub struct NormalInput {
     uid: String,
 }
 
-#[post("/fetch", format = "json", data = "<data>")]
-pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
+#[post("/fetch?<limit>&<offset>", format = "json", data = "<data>")]
+pub async fn fetch_all(
+    data: Json<NormalInput>,
+    token: Token,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Value {
     let uid = &data.uid;
+
+    let passed_limit = match limit {
+        Some(x) => x,
+        None => 0,
+    };
+    let passed_offset = match offset {
+        Some(x) => x,
+        None => 0,
+    };
 
     match verify_jwt(uid.clone(), token.0).await {
         Err(info) => return json!({"status": info.0, "message": info.1}),
@@ -44,8 +59,9 @@ pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
         }
     };
     let amount = all_configs.len();
+    let processed_configs = paginate_configs(all_configs, passed_limit, passed_offset);
 
-    return json!({"status": 200, "message": "Configs fetched successfully!", "configs": all_configs, "amount": amount});
+    return json!({"status": 200, "message": "Configs fetched successfully!", "configs": processed_configs, "amount": amount});
 }
 
 #[derive(Serialize, Deserialize)]

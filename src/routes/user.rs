@@ -8,6 +8,7 @@ use lettre::{Message, SmtpTransport, Transport};
 
 use crate::components::encryption::EncryptionKey;
 use crate::components::user::{Role, User};
+use crate::middlewares::paginate::paginate_users;
 use crate::middlewares::token::{create_jwt, verify_jwt, Token};
 use crate::utils::{
     auto_fetch_all_mappings, auto_fetch_all_users, auto_fetch_file, auto_save_all_users,
@@ -20,9 +21,23 @@ pub struct NormalInput {
     uid: String,
 }
 
-#[post("/fetch", format = "json", data = "<data>")]
-pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
+#[post("/fetch?<limit>&<offset>", format = "json", data = "<data>")]
+pub async fn fetch_all(
+    data: Json<NormalInput>,
+    token: Token,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Value {
     let uid = &data.uid;
+
+    let passed_limit = match limit {
+        Some(x) => x,
+        None => 0,
+    };
+    let passed_offset = match offset {
+        Some(x) => x,
+        None => 0,
+    };
 
     match verify_jwt(uid.clone(), token.0).await {
         Err(info) => return json!({"status": info.0, "message": info.1}),
@@ -46,7 +61,9 @@ pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
     User::remove_passwords(&mut clean_users);
     let amount = clean_users.len();
 
-    return json!({"status": 200, "message": "Users fetched successfully!", "users": clean_users, "amount": amount});
+    let processed_users = paginate_users(clean_users, passed_limit, passed_offset);
+
+    return json!({"status": 200, "message": "Users fetched successfully!", "users": processed_users, "amount": amount});
 }
 
 #[derive(Serialize, Deserialize)]
