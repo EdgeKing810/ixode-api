@@ -11,6 +11,91 @@ use crate::utils::{
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
+pub struct NormalInput {
+    uid: String,
+}
+
+#[post("/fetch", format = "json", data = "<data>")]
+pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
+    let uid = &data.uid;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+    if current_user.role != Role::ROOT {
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
+    }
+
+    let all_configs = match auto_fetch_all_configs(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching configs"});
+        }
+    };
+    let amount = all_configs.len();
+
+    return json!({"status": 200, "message": "Configs fetched successfully!", "configs": all_configs, "amount": amount});
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct UserFetchInput {
+    uid: String,
+    key: String,
+}
+
+#[post("/fetch/one", format = "json", data = "<data>")]
+pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
+    let uid = &data.uid;
+    let key = &data.key;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+    if current_user.role != Role::ROOT {
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
+    }
+
+    let all_configs = match auto_fetch_all_configs(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching configs"});
+        }
+    };
+
+    if !Config::exist(&all_configs, key) {
+        return json!({"status": 404, "message": "Error: No Config with this Key found"});
+    }
+
+    let value = Config::get_value(&all_configs, key);
+
+    return json!({"status": 200, "message": "Users fetched successfully!", "value": value});
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct AddInput {
     uid: String,
     key: String,
@@ -171,89 +256,4 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
             json!({"status": 500, "message": e})
         }
     }
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
-pub struct NormalInput {
-    uid: String,
-}
-
-#[post("/fetch", format = "json", data = "<data>")]
-pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
-    let uid = &data.uid;
-
-    match verify_jwt(uid.clone(), token.0).await {
-        Err(info) => return json!({"status": info.0, "message": info.1}),
-        _ => {}
-    };
-
-    let mappings = auto_fetch_all_mappings();
-    let users = match auto_fetch_all_users(&mappings) {
-        Ok(u) => u,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching users"});
-        }
-    };
-
-    let current_user = User::get(&users, uid).unwrap();
-    if current_user.role != Role::ROOT {
-        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
-    }
-
-    let all_configs = match auto_fetch_all_configs(&mappings) {
-        Ok(u) => u,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching configs"});
-        }
-    };
-    let amount = all_configs.len();
-
-    return json!({"status": 200, "message": "Configs fetched successfully!", "configs": all_configs, "amount": amount});
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
-pub struct UserFetchInput {
-    uid: String,
-    key: String,
-}
-
-#[post("/fetch/one", format = "json", data = "<data>")]
-pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
-    let uid = &data.uid;
-    let key = &data.key;
-
-    match verify_jwt(uid.clone(), token.0).await {
-        Err(info) => return json!({"status": info.0, "message": info.1}),
-        _ => {}
-    };
-
-    let mappings = auto_fetch_all_mappings();
-    let users = match auto_fetch_all_users(&mappings) {
-        Ok(u) => u,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching users"});
-        }
-    };
-
-    let current_user = User::get(&users, uid).unwrap();
-    if current_user.role != Role::ROOT {
-        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
-    }
-
-    let all_configs = match auto_fetch_all_configs(&mappings) {
-        Ok(u) => u,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching configs"});
-        }
-    };
-
-    if !Config::exist(&all_configs, key) {
-        return json!({"status": 404, "message": "Error: No Config with this Key found"});
-    }
-
-    let value = Config::get_value(&all_configs, key);
-
-    return json!({"status": 200, "message": "Users fetched successfully!", "value": value});
 }

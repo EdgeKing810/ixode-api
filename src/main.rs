@@ -46,23 +46,23 @@ fn rocket() -> _ {
         .mount(
             fpath("/user"),
             routes![
+                routes::user::fetch_all,
+                routes::user::fetch_one,
                 routes::user::login,
                 routes::user::verify,
                 routes::user::update,
                 routes::user::update_role,
                 routes::user::delete,
-                routes::user::fetch_all,
-                routes::user::fetch_one,
             ],
         )
         .mount(
             fpath("/config"),
             routes![
+                routes::config::fetch_all,
+                routes::config::fetch_one,
                 routes::config::add,
                 routes::config::update,
                 routes::config::delete,
-                routes::config::fetch_all,
-                routes::config::fetch_one,
             ],
         )
         .register(

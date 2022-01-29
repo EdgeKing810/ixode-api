@@ -16,6 +16,85 @@ use crate::utils::{
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
+pub struct NormalInput {
+    uid: String,
+}
+
+#[post("/fetch", format = "json", data = "<data>")]
+pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
+    let uid = &data.uid;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+    if current_user.role != Role::ROOT {
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
+    }
+
+    let mut clean_users = users.clone();
+    User::remove_passwords(&mut clean_users);
+    let amount = clean_users.len();
+
+    return json!({"status": 200, "message": "Users fetched successfully!", "users": clean_users, "amount": amount});
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct UserFetchInput {
+    uid: String,
+    target_uid: String,
+}
+
+#[post("/fetch/one", format = "json", data = "<data>")]
+pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
+    let uid = &data.uid;
+    let target_uid = &data.uid;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+    if current_user.role != Role::ROOT && uid != target_uid {
+        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
+    }
+
+    let target_user = match User::get(&users, target_uid) {
+        Ok(u) => u,
+        Err(e) => {
+            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
+        }
+    };
+
+    let mut clean_users = Vec::<User>::new();
+    clean_users.push(target_user);
+    User::remove_passwords(&mut clean_users);
+
+    return json!({"status": 200, "message": "Users fetched successfully!", "user": clean_users[0]});
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct LoginInput {
     auth_data: String,
     password: String,
@@ -373,83 +452,4 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
         Ok(_) => json!({"status": 200, "message": "User deleted successfully!"}),
         Err(e) => json!({"status": 500, "message": e}),
     };
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
-pub struct NormalInput {
-    uid: String,
-}
-
-#[post("/fetch", format = "json", data = "<data>")]
-pub async fn fetch_all(data: Json<NormalInput>, token: Token) -> Value {
-    let uid = &data.uid;
-
-    match verify_jwt(uid.clone(), token.0).await {
-        Err(info) => return json!({"status": info.0, "message": info.1}),
-        _ => {}
-    };
-
-    let mappings = auto_fetch_all_mappings();
-    let users = match auto_fetch_all_users(&mappings) {
-        Ok(u) => u,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching users"});
-        }
-    };
-
-    let current_user = User::get(&users, uid).unwrap();
-    if current_user.role != Role::ROOT {
-        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
-    }
-
-    let mut clean_users = users.clone();
-    User::remove_passwords(&mut clean_users);
-    let amount = clean_users.len();
-
-    return json!({"status": 200, "message": "Users fetched successfully!", "users": clean_users, "amount": amount});
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(crate = "rocket::serde")]
-pub struct UserFetchInput {
-    uid: String,
-    target_uid: String,
-}
-
-#[post("/fetch/one", format = "json", data = "<data>")]
-pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
-    let uid = &data.uid;
-    let target_uid = &data.uid;
-
-    match verify_jwt(uid.clone(), token.0).await {
-        Err(info) => return json!({"status": info.0, "message": info.1}),
-        _ => {}
-    };
-
-    let mappings = auto_fetch_all_mappings();
-    let users = match auto_fetch_all_users(&mappings) {
-        Ok(u) => u,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching users"});
-        }
-    };
-
-    let current_user = User::get(&users, uid).unwrap();
-    if current_user.role != Role::ROOT && uid != target_uid {
-        return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
-    }
-
-    let target_user = match User::get(&users, target_uid) {
-        Ok(u) => u,
-        Err(e) => {
-            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
-        }
-    };
-
-    let mut clean_users = Vec::<User>::new();
-    clean_users.push(target_user);
-    User::remove_passwords(&mut clean_users);
-
-    return json!({"status": 200, "message": "Users fetched successfully!", "user": clean_users[0]});
 }
