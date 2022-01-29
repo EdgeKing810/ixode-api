@@ -6,15 +6,23 @@ pub struct Project {
     name: String,
     description: String,
     api_path: String,
+    members: Vec<String>,
 }
 
 impl Project {
-    fn create_no_check(id: &str, name: &str, description: &str, api_path: &str) -> Project {
+    fn create_no_check(
+        id: &str,
+        name: &str,
+        description: &str,
+        api_path: &str,
+        members: Vec<String>,
+    ) -> Project {
         Project {
             id: String::from(id),
             name: String::from(name),
             description: String::from(description),
             api_path: String::from(api_path),
+            members: members,
         }
     }
 
@@ -36,6 +44,7 @@ impl Project {
         name: &str,
         description: &str,
         api_path: &str,
+        members: Vec<String>,
     ) -> Result<(), String> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
@@ -48,6 +57,7 @@ impl Project {
             name: "".to_string(),
             description: "".to_string(),
             api_path: "".to_string(),
+            members: vec![],
         };
         all_projects.push(new_project);
 
@@ -80,6 +90,15 @@ impl Project {
         if !has_error {
             let api_path_update = Self::update_api_path(all_projects, &new_id, api_path);
             if let Err(e) = api_path_update {
+                has_error = true;
+                println!("Error: {}", e);
+                latest_error = e;
+            }
+        }
+
+        if !has_error {
+            let members_update = Self::update_members(all_projects, &new_id, members);
+            if let Err(e) = members_update {
                 has_error = true;
                 println!("Error: {}", e);
                 latest_error = e;
@@ -261,6 +280,141 @@ impl Project {
         Ok(())
     }
 
+    pub fn update_members(
+        all_projects: &mut Vec<Project>,
+        id: &String,
+        members: Vec<String>,
+    ) -> Result<(), String> {
+        let mut has_error = false;
+        let mut last_error = String::new();
+
+        for member in members.clone() {
+            if let Err(e) = Project::add_member(all_projects, id, &member) {
+                has_error = true;
+                last_error = e;
+                break;
+            }
+        }
+
+        return match has_error {
+            false => Ok(()),
+            true => Err(last_error),
+        };
+    }
+
+    pub fn add_member(
+        all_projects: &mut Vec<Project>,
+        id: &String,
+        member: &str,
+    ) -> Result<(), String> {
+        let mut found_project: Option<Project> = None;
+        let mut all_members = Vec::<String>::new();
+
+        if !member
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-')
+        {
+            return Err(String::from(
+                "Error: One or more Member IDs contain an invalid character",
+            ));
+        }
+
+        if String::from(member.trim()).len() < 1 {
+            return Err(String::from(
+                "Error: One or more Member IDs do not contain enough characters",
+            ));
+        } else if String::from(member.trim()).len() > 50 {
+            return Err(String::from(
+                "Error: One or more Member IDs contain too many characters",
+            ));
+        }
+
+        for project in all_projects.iter_mut() {
+            if project.id == *id {
+                found_project = Some(project.clone());
+                all_members = project.members.clone();
+                break;
+            }
+        }
+
+        if let None = found_project {
+            return Err(String::from("Error: Project not found"));
+        }
+
+        if let Some(pro) = found_project {
+            for m in pro.members.iter() {
+                if member.to_lowercase() == m.to_lowercase() {
+                    return Err(String::from(
+                        "Error: List of Member IDs contains duplicate(s)",
+                    ));
+                }
+            }
+        }
+
+        all_members.push(member.to_lowercase());
+
+        for project in all_projects.iter_mut() {
+            if project.id == *id {
+                project.members = all_members;
+                break;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn remove_member(
+        all_projects: &mut Vec<Project>,
+        id: &String,
+        member: &str,
+    ) -> Result<(), String> {
+        let mut found_project: Option<Project> = None;
+        let mut found_member = false;
+        let mut all_members = Vec::<String>::new();
+        let mut filtered_members = Vec::<String>::new();
+
+        for project in all_projects.iter_mut() {
+            if project.id == *id {
+                found_project = Some(project.clone());
+                all_members = project.members.clone();
+                break;
+            }
+        }
+
+        if let None = found_project {
+            return Err(String::from("Error: Project not found"));
+        }
+
+        if let Some(pro) = found_project {
+            for m in pro.members.iter() {
+                if member.to_lowercase() == m.to_lowercase() {
+                    found_member = true;
+                    break;
+                }
+            }
+        }
+
+        if !found_member {
+            return Err(String::from("Error: No Member with this Member ID found"));
+        }
+
+        for m in all_members {
+            if member.to_lowercase() != m.to_lowercase() {
+                filtered_members.push(m);
+                break;
+            }
+        }
+
+        for project in all_projects.iter_mut() {
+            if project.id == *id {
+                project.members = filtered_members;
+                break;
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn delete(all_projects: &mut Vec<Project>, id: &String) -> Result<(), String> {
         let mut found_project: Option<Project> = None;
 
@@ -283,6 +437,7 @@ impl Project {
                 name: project.name.clone(),
                 description: project.description.clone(),
                 api_path: project.api_path.clone(),
+                members: project.members.clone(),
             })
             .collect::<Vec<Project>>();
 
@@ -292,20 +447,32 @@ impl Project {
     }
 
     pub fn to_string(project: Project) -> String {
+        let mut members_string = String::new();
+        for member in project.members {
+            members_string = format!("{}|{}", members_string, member);
+        }
+
         format!(
-            "{};{};{};{}",
-            project.id, project.name, project.description, project.api_path
+            "{};{};{};{};{}",
+            project.id, project.name, project.description, project.api_path, members_string
         )
     }
 
     pub fn from_string(project_str: &str) -> Project {
         let current_project = project_str.split(";").collect::<Vec<&str>>();
+        let members = current_project[4].split("|").collect::<Vec<&str>>();
+        let mut final_members = Vec::<String>::new();
+
+        for member in members {
+            final_members.push(member.to_string());
+        }
 
         Project::create_no_check(
             current_project[0],
             current_project[1],
             current_project[2],
             current_project[3],
+            final_members,
         )
     }
 }

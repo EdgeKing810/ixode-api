@@ -9,7 +9,7 @@ Ok(
         last_name: "Takoordyal",
         username: "EdgeKing810",
         email: "kishan@konnect.dev",
-        password: "$argon2i$v=19$m=4096,t=3,p=1$NWlJNnpaWFphOVhaYnBlcjhMckJ4ODV4bS10MmlLTnhXaDFoR1cwOTFpTmxRb21RMTA0LVNpdGZOQXJqY1Y4OHhnQ3VkZGZWYW9BM0ktYm1XMmhYaDlXMUZQNGpQVVpWN2NiY2lTWi1RcDlwREYyNDFCekhieGIyek1DWTRCMTh2LTEwMzY$UZNl+3H22scjvBFSNX4jKM2DvMHgnHFzmJ1SuyLoi3A",
+        password: "$argon2i$v=19$m=4096,t=3,p=1$HvZNP8AnRBq+BpgvcRkLjQ$/6YLke4shp7lJqqd+cHELiYjhS6x4xOkbG5s2yIi3jY",
         role: ROOT,
     },
 )
@@ -19,6 +19,9 @@ Projects: [
         name: "Konnect - Social Media",
         description: "A next-gen social media.",
         api_path: "/api/v2/konnect",
+        members: [
+            "",
+        ],
     },
 ]
 Collections: [
@@ -139,3 +142,51 @@ Collections: [
         ],
     },
 ]
+Configured for debug.
+   >> address: 0.0.0.0
+   >> port: 8000
+   >> workers: 12
+   >> ident: Kinesis API
+   >> keep-alive: 5s
+   >> limits: bytes = 8KiB, data-form = 2MiB, file = 1MiB, file/jpg = 20MiB, form = 32KiB, forms = 64kB, json = 5MiB, msgpack = 5MiB, string = 8KiB
+   >> tls: disabled
+   >> temp dir: /tmp
+   >> log level: normal
+   >> cli colors: true
+   >> shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
+Routes:
+   >> (welcome) GET /
+   >> (world) GET /tmp/hello/world
+   >> (wave) GET /tmp/wave/<name>/<age>
+   >> (fetch_all) POST /user/fetch?<limit>&<offset> application/json
+   >> (login) POST /user/login application/json
+   >> (verify) POST /user/verify application/json
+   >> (update) POST /user/update application/json
+   >> (delete) POST /user/delete application/json
+   >> (fetch_one) POST /user/fetch/one application/json
+   >> (update_role) POST /user/update/role application/json
+   >> (add) POST /config/add application/json
+   >> (fetch_all) POST /config/fetch?<limit>&<offset> application/json
+   >> (update) POST /config/update application/json
+   >> (delete) POST /config/delete application/json
+   >> (FileServer: public/) GET /public/<path..> [10]
+   >> (fetch_one) POST /config/fetch/one application/json
+Catchers:
+   >> (bad_request) 400
+   >> (unauthorized) 401
+   >> (not_found) 404
+   >> (malformed_request) 422
+   >> (internal_server_error) 500
+Fairings:
+   >> Shield (liftoff, response, singleton)
+   >> Templating (ignite, liftoff, request)
+Shield:
+   >> X-Content-Type-Options: nosniff
+   >> Permissions-Policy: interest-cohort=()
+   >> X-Frame-Options: SAMEORIGIN
+Templating:
+   >> directory: templates
+   >> engines: ["tera"]
+Rocket has launched from http://0.0.0.0:8000
+Warning: Received SIGINT. Requesting shutdown.
+Received shutdown request. Waiting for pending I/O...

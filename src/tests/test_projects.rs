@@ -18,6 +18,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project.",
         "/api/v1/projects",
+        vec![],
     );
     assert_eq!(test_project, Ok(()));
 
@@ -27,6 +28,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project.",
         "/api/v1/projects",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -39,6 +41,7 @@ fn test_projects() {
         "Test *** Project",
         "This is a test project.",
         "/api/v1/projects",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -51,6 +54,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project.",
         "/api/v1/projects-",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -65,6 +69,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project.",
         "/api/v1/Projects",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -79,6 +84,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project.",
         "/api/v1/projects",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -91,6 +97,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project.",
         "/api/v1/projects",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -103,6 +110,7 @@ fn test_projects() {
         "Test Project",
         "This is a test project;",
         "/api/v1/projects2",
+        vec![],
     );
     assert_eq!(
         test_project2,
@@ -115,10 +123,51 @@ fn test_projects() {
         &mut all_projects,
         "test2",
         "Test Project",
+        "This is a test project.",
+        "/api/v1/projects2",
+        vec![String::from("test;")],
+    );
+    assert_eq!(
+        test_project2,
+        Err(String::from(
+            "Error: One or more Member IDs contain an invalid character"
+        ))
+    );
+
+    let test_project2 = Project::create(
+        &mut all_projects,
+        "test2",
+        "Test Project",
+        "This is a test project.",
+        "/api/v1/projects2",
+        vec![String::from("test-1"), String::from("test-1")],
+    );
+    assert_eq!(
+        test_project2,
+        Err(String::from(
+            "Error: List of Member IDs contains duplicate(s)"
+        ))
+    );
+
+    let test_project2 = Project::create(
+        &mut all_projects,
+        "test2",
+        "Test Project",
         "This is a new test project.",
         "/api/v1/projects2",
+        vec![String::from("test-1-2-3"), String::from("test-4-5-6")],
     );
     assert_eq!(test_project2, Ok(()));
+
+    let try_remove_member = Project::remove_member(&mut all_projects, &"test2".to_string(), "test");
+    assert_eq!(
+        try_remove_member,
+        Err(String::from("Error: No Member with this Member ID found"))
+    );
+
+    let try_remove_member =
+        Project::remove_member(&mut all_projects, &"test2".to_string(), "test-4-5-6");
+    assert_eq!(try_remove_member, Ok(()));
 
     let test2_id = String::from("test2");
 

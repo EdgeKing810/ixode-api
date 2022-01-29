@@ -171,6 +171,7 @@ fn initialize_projects(mappings: &Vec<Mapping>) -> Vec<Project> {
             "Konnect - Social Media",
             "A next-gen social media.",
             "/api/v2/konnect",
+            vec![],
         );
         if let Err(e) = create_project {
             println!("{}", e);
