@@ -185,13 +185,19 @@ pub async fn verify(data: Json<UIDInput>, token: Token) -> Value {
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
+pub struct UserCreateInput {
+    first_name: String,
+    last_name: String,
+    username: String,
+    email: String,
+    role_numeric: u32,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct RegisterInput {
     uid: String,
-    target_first_name: String,
-    target_last_name: String,
-    target_username: String,
-    target_email: String,
-    target_role_numeric: u32,
+    user: UserCreateInput,
 }
 
 #[post("/register", format = "json", data = "<data>")]
@@ -216,30 +222,30 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not enough privileges to carry out this operation"});
     }
 
-    let target_first_name = &data.target_first_name;
-    let target_last_name = &data.target_last_name;
-    let target_username = &data.target_username;
-    let target_email = &data.target_email;
-    let target_role_numeric = &data.target_role_numeric;
+    let first_name = &data.user.first_name;
+    let last_name = &data.user.last_name;
+    let username = &data.user.username;
+    let email = &data.user.email;
+    let role_numeric = &data.user.role_numeric;
 
     let password = EncryptionKey::generate_block(25);
 
-    if User::exist_username(&mut users, target_username) {
+    if User::exist_username(&mut users, username) {
         return json!({"status": 403, "message": "Error: Username is already in use"});
     }
 
-    if User::exist_email(&mut users, target_email) {
+    if User::exist_email(&mut users, email) {
         return json!({"status": 403, "message": "Error: Email Address is already in use"});
     }
 
     let new_user_uid = match User::create(
         &mut users,
-        target_first_name,
-        target_last_name,
-        target_username,
-        target_email,
+        first_name,
+        last_name,
+        username,
+        email,
         &password,
-        target_role_numeric.clone(),
+        role_numeric.clone(),
     ) {
         Ok(uid) => uid,
         Err(e) => return json!({"status": 400, "message": e}),
@@ -259,25 +265,22 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
     let email_template = auto_fetch_file("templates/email/welcome.html", &mappings)
         .split("{name}")
         .fold(String::new(), |a, b| {
-            a + &format!("{} {}", target_first_name, target_last_name) + b
+            a + &format!("{} {}", first_name, last_name) + b
         })
         .split("{site_url}")
         .fold(String::new(), |a, b| a + &project_url + b)
         .split("{site_name}")
         .fold(String::new(), |a, b| a + &project_name + b)
         .split("{username}")
-        .fold(String::new(), |a, b| a + target_username + b)
+        .fold(String::new(), |a, b| a + username + b)
         .split("{password}")
         .fold(String::new(), |a, b| a + &password + b);
 
     let email = Message::builder()
         .from(format!("Hello <{}>", smtp_username).parse().unwrap())
-        .to(format!(
-            "{} {} <{}>",
-            target_first_name, target_last_name, target_email
-        )
-        .parse()
-        .unwrap())
+        .to(format!("{} {} <{}>", first_name, last_name, email)
+            .parse()
+            .unwrap())
         .subject(format!("Welcome to {}", project_name))
         .body(email_template)
         .unwrap();
@@ -406,7 +409,8 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
     let role_numeric: u32 = match role.clone() {
         Role::ROOT => 0,
         Role::ADMIN => 1,
-        _ => 2,
+        Role::AUTHOR => 2,
+        _ => 3,
     };
 
     match User::update_role(&mut users, target_uid, role_numeric) {

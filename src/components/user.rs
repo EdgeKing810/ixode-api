@@ -11,11 +11,12 @@ pub enum Role {
     ROOT,
     ADMIN,
     AUTHOR,
+    VIEWER,
 }
 
 impl Default for Role {
     fn default() -> Self {
-        Role::AUTHOR
+        Role::VIEWER
     }
 }
 
@@ -511,7 +512,8 @@ impl User {
         let role = match role_numeric {
             0 => Role::ROOT,
             1 => Role::ADMIN,
-            _ => Role::AUTHOR,
+            2 => Role::AUTHOR,
+            _ => Role::VIEWER,
         };
 
         for user in all_users.iter_mut() {
@@ -583,7 +585,8 @@ impl User {
         let number_role: u32 = match user.role {
             Role::ROOT => 0,
             Role::ADMIN => 1,
-            _ => 2,
+            Role::AUTHOR => 2,
+            _ => 3,
         };
 
         format!(
@@ -614,7 +617,8 @@ impl User {
         let role = match parsed_role {
             0 => Role::ROOT,
             1 => Role::ADMIN,
-            _ => Role::AUTHOR,
+            2 => Role::AUTHOR,
+            _ => Role::VIEWER,
         };
 
         User::create_no_check(
