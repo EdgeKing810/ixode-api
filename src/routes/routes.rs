@@ -6,3 +6,6 @@ pub mod user;
 
 #[path = "config.rs"]
 pub mod config;
+
+#[path = "project.rs"]
+pub mod project;

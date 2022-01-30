@@ -61,18 +61,18 @@ pub async fn fetch_all(
     let amount = all_configs.len();
     let processed_configs = paginate_configs(all_configs, passed_limit, passed_offset);
 
-    return json!({"status": 200, "message": "Configs fetched successfully!", "configs": processed_configs, "amount": amount});
+    return json!({"status": 200, "message": "Configs successfully fetched!", "configs": processed_configs, "amount": amount});
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct UserFetchInput {
+pub struct ConfigFetchInput {
     uid: String,
     key: String,
 }
 
 #[post("/fetch/one", format = "json", data = "<data>")]
-pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
+pub async fn fetch_one(data: Json<ConfigFetchInput>, token: Token) -> Value {
     let uid = &data.uid;
     let key = &data.key;
 
@@ -107,19 +107,19 @@ pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
 
     let value = Config::get_value(&all_configs, key);
 
-    return json!({"status": 200, "message": "Config fetched successfully!", "value": value});
+    return json!({"status": 200, "message": "Config successfully fetched!", "value": value});
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct AddInput {
+pub struct AddConfigInput {
     uid: String,
     key: String,
     value: String,
 }
 
 #[post("/add", format = "json", data = "<data>")]
-pub async fn add(data: Json<AddInput>, token: Token) -> Value {
+pub async fn add(data: Json<AddConfigInput>, token: Token) -> Value {
     let uid = &data.uid;
     let key = &data.key;
     let value = &data.value;
@@ -161,7 +161,7 @@ pub async fn add(data: Json<AddInput>, token: Token) -> Value {
     }
 
     match auto_save_all_configs(&mappings, &all_configs) {
-        Ok(_) => return json!({"status": 200, "message": "Config saved successfully!"}),
+        Ok(_) => return json!({"status": 200, "message": "Config successfully created!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }
@@ -169,7 +169,7 @@ pub async fn add(data: Json<AddInput>, token: Token) -> Value {
 }
 
 #[post("/update", format = "json", data = "<data>")]
-pub async fn update(data: Json<AddInput>, token: Token) -> Value {
+pub async fn update(data: Json<AddConfigInput>, token: Token) -> Value {
     let uid = &data.uid;
     let key = &data.key;
     let value = &data.value;
@@ -211,7 +211,7 @@ pub async fn update(data: Json<AddInput>, token: Token) -> Value {
     }
 
     match auto_save_all_configs(&mappings, &all_configs) {
-        Ok(_) => return json!({"status": 200, "message": "Config saved successfully!"}),
+        Ok(_) => return json!({"status": 200, "message": "Config successfully updated!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }
@@ -220,13 +220,13 @@ pub async fn update(data: Json<AddInput>, token: Token) -> Value {
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
-pub struct DeleteInput {
+pub struct DeleteConfigInput {
     uid: String,
     key: String,
 }
 
 #[post("/delete", format = "json", data = "<data>")]
-pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
+pub async fn delete(data: Json<DeleteConfigInput>, token: Token) -> Value {
     let uid = &data.uid;
     let key = &data.key;
 
@@ -267,7 +267,7 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
     }
 
     match auto_save_all_configs(&mappings, &all_configs) {
-        Ok(_) => return json!({"status": 200, "message": "Config deleted successfully!"}),
+        Ok(_) => return json!({"status": 200, "message": "Config successfully deleted!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }

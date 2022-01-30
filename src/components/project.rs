@@ -1,12 +1,13 @@
 use crate::components::io::{fetch_file, save_file};
+use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
-    id: String,
+    pub id: String,
     name: String,
     description: String,
     api_path: String,
-    members: Vec<String>,
+    pub members: Vec<String>,
 }
 
 impl Project {
@@ -17,12 +18,15 @@ impl Project {
         api_path: &str,
         members: Vec<String>,
     ) -> Project {
+        let mut final_members = members.clone();
+        final_members.retain(|x| x.trim().len() > 0);
+
         Project {
             id: String::from(id),
             name: String::from(name),
             description: String::from(description),
             api_path: String::from(api_path),
-            members: members,
+            members: final_members,
         }
     }
 
@@ -36,6 +40,16 @@ impl Project {
         }
 
         found
+    }
+
+    pub fn get(all_projects: &Vec<Project>, project_id: &str) -> Result<Project, String> {
+        for project in all_projects.iter() {
+            if project.id.to_lowercase() == project_id.to_lowercase() {
+                return Ok(project.clone());
+            }
+        }
+
+        Err(String::from("Project not found"))
     }
 
     pub fn create(
@@ -289,6 +303,10 @@ impl Project {
         let mut last_error = String::new();
 
         for member in members.clone() {
+            if member.trim().len() == 0 {
+                continue;
+            }
+
             if let Err(e) = Project::add_member(all_projects, id, &member) {
                 has_error = true;
                 last_error = e;
@@ -351,7 +369,7 @@ impl Project {
             }
         }
 
-        all_members.push(member.to_lowercase());
+        all_members.push(member.trim().to_lowercase());
 
         for project in all_projects.iter_mut() {
             if project.id == *id {

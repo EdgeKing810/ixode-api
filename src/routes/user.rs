@@ -63,7 +63,7 @@ pub async fn fetch_all(
 
     let processed_users = paginate_users(clean_users, passed_limit, passed_offset);
 
-    return json!({"status": 200, "message": "Users fetched successfully!", "users": processed_users, "amount": amount});
+    return json!({"status": 200, "message": "Users successfully fetched!", "users": processed_users, "amount": amount});
 }
 
 #[derive(Serialize, Deserialize)]
@@ -107,7 +107,7 @@ pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
     clean_users.push(target_user);
     User::remove_passwords(&mut clean_users);
 
-    return json!({"status": 200, "message": "User fetched successfully!", "user": clean_users[0]});
+    return json!({"status": 200, "message": "User successfully fetched!", "user": clean_users[0]});
 }
 
 #[derive(Serialize, Deserialize)]
@@ -292,13 +292,13 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
 
     // Send the email
     match mailer.send(&email) {
-        Ok(_) => println!("Email sent successfully!"),
+        Ok(_) => println!("Email successfully sent!"),
         Err(e) => panic!("Could not send email: {:?}", e),
     }
 
     match auto_save_all_users(&mappings, &users) {
         Ok(_) => {
-            return json!({"status": 200, "message": "User registered successfully!", "uid": new_user_uid})
+            return json!({"status": 200, "message": "User successfully registered!", "uid": new_user_uid})
         }
         Err(e) => {
             json!({"status": 500, "message": e})
@@ -356,7 +356,7 @@ pub async fn update(data: Json<ChangeInput>, token: Token) -> Value {
     }
 
     return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => json!({"status": 200, "message": "User updated successfully!"}),
+        Ok(_) => json!({"status": 200, "message": "User successfully updated!"}),
         Err(e) => json!({"status": 500, "message": e}),
     };
 }
@@ -415,7 +415,7 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
     }
 
     return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => json!({"status": 200, "message": "User role updated successfully!"}),
+        Ok(_) => json!({"status": 200, "message": "User role successfully updated!"}),
         Err(e) => json!({"status": 500, "message": e}),
     };
 }
@@ -466,7 +466,7 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
     }
 
     return match auto_save_all_users(&mappings, &users) {
-        Ok(_) => json!({"status": 200, "message": "User deleted successfully!"}),
+        Ok(_) => json!({"status": 200, "message": "User successfully deleted!"}),
         Err(e) => json!({"status": 500, "message": e}),
     };
 }

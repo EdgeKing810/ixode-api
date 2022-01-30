@@ -65,6 +65,18 @@ fn rocket() -> _ {
                 routes::config::delete,
             ],
         )
+        .mount(
+            fpath("/project"),
+            routes![
+                routes::project::fetch_all,
+                routes::project::fetch_one,
+                routes::project::create,
+                routes::project::update,
+                routes::project::delete,
+                routes::project::add_member,
+                routes::project::remove_member,
+            ],
+        )
         .register(
             "/",
             catchers![
