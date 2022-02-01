@@ -2,15 +2,16 @@ use crate::components::custom_structures::CustomStructure;
 use crate::components::io::{fetch_file, save_file};
 use crate::components::structures::{try_add_structure, Structure};
 // use crate::encryption::{EncryptionKey};
+use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Collection {
     id: String,
     project_id: String,
     name: String,
     description: String,
-    structures: Vec<Structure>,
-    custom_structures: Vec<CustomStructure>,
+    pub structures: Vec<Structure>,
+    pub custom_structures: Vec<CustomStructure>,
 }
 
 impl Collection {
@@ -104,6 +105,33 @@ impl Collection {
         }
 
         found
+    }
+
+    pub fn get_all(all_collections: &Vec<Collection>, project_id: &str) -> Vec<Collection> {
+        let mut new_collections = Vec::<Collection>::new();
+        for collection in all_collections.iter() {
+            if collection.project_id.to_lowercase() == project_id.to_lowercase() {
+                new_collections.push(collection.clone());
+            }
+        }
+
+        new_collections
+    }
+
+    pub fn get(
+        all_collections: &Vec<Collection>,
+        project_id: &str,
+        id: &str,
+    ) -> Result<Collection, String> {
+        for collection in all_collections.iter() {
+            if collection.id.to_lowercase() == id.to_lowercase()
+                && collection.project_id.to_lowercase() == project_id.to_lowercase()
+            {
+                return Ok(collection.clone());
+            }
+        }
+
+        Err(String::from("Collection not found"))
     }
 
     pub fn update_id(
@@ -295,6 +323,7 @@ impl Collection {
     pub fn update_structure(
         all_collections: &mut Vec<Collection>,
         id: &String,
+        structure_id: &String,
         structure: Structure,
     ) -> Result<(), String> {
         let mut found_collection: Option<Collection> = None;
@@ -307,7 +336,7 @@ impl Collection {
                 let mut current_structures = collection.structures.clone();
 
                 for current_structure in current_structures.iter_mut() {
-                    if current_structure.id == structure.id {
+                    if current_structure.id == *structure_id {
                         *current_structure = structure.clone();
                         found_structure = true;
                     }
@@ -359,6 +388,7 @@ impl Collection {
     pub fn update_custom_structure(
         all_collections: &mut Vec<Collection>,
         id: &String,
+        custom_structure_id: &String,
         custom_structure: CustomStructure,
     ) -> Result<(), String> {
         let mut found_collection: Option<Collection> = None;
@@ -371,7 +401,7 @@ impl Collection {
                 let mut current_custom_structures = collection.custom_structures.clone();
 
                 for current_custom_structure in current_custom_structures.iter_mut() {
-                    if current_custom_structure.id == custom_structure.id {
+                    if current_custom_structure.id == *custom_structure_id {
                         *current_custom_structure = custom_structure.clone();
                         found_structure = true;
                     }
@@ -530,6 +560,23 @@ impl Collection {
         *all_collections = updated_collections;
 
         Ok(())
+    }
+
+    pub fn delete_by_project(all_collections: &mut Vec<Collection>, project_id: &String) {
+        let updated_collections: Vec<Collection> = all_collections
+            .iter_mut()
+            .filter(|collection| collection.project_id != *project_id)
+            .map(|collection| Collection {
+                id: collection.id.clone(),
+                project_id: collection.project_id.clone(),
+                name: collection.name.clone(),
+                description: collection.description.clone(),
+                structures: collection.structures.clone(),
+                custom_structures: collection.custom_structures.clone(),
+            })
+            .collect::<Vec<Collection>>();
+
+        *all_collections = updated_collections;
     }
 
     pub fn to_string(collection: Collection) -> String {

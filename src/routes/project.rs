@@ -2,12 +2,14 @@ use rocket::post;
 use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::components::collection::Collection;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate_projects;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_projects,
+    auto_fetch_all_collections, auto_fetch_all_mappings, auto_fetch_all_projects,
+    auto_fetch_all_users, auto_save_all_collections, auto_save_all_projects,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -392,6 +394,20 @@ pub async fn delete(data: Json<DeleteProjectInput>, token: Token) -> Value {
     }
 
     match Project::delete(&mut all_projects, project_id) {
+        Err(e) => return json!({"status": 500, "message": e}),
+        _ => {}
+    }
+
+    let mut all_collections = match auto_fetch_all_collections(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching collections"});
+        }
+    };
+
+    Collection::delete_by_project(&mut all_collections, project_id);
+
+    match auto_save_all_collections(&mappings, &all_collections) {
         Err(e) => return json!({"status": 500, "message": e}),
         _ => {}
     }

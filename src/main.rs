@@ -77,6 +77,32 @@ fn rocket() -> _ {
                 routes::project::remove_member,
             ],
         )
+        .mount(
+            fpath("/collection"),
+            routes![
+                routes::collection::fetch,
+                routes::collection::fetch_one,
+                routes::collection::create,
+                routes::collection::update,
+                routes::collection::delete,
+            ],
+        )
+        .mount(
+            fpath("/structure"),
+            routes![
+                routes::structure::add,
+                routes::structure::update,
+                routes::structure::delete,
+            ],
+        )
+        .mount(
+            fpath("/custom_structure"),
+            routes![
+                routes::custom_structure::add,
+                routes::custom_structure::update,
+                routes::custom_structure::delete,
+            ],
+        )
         .register(
             "/",
             catchers![

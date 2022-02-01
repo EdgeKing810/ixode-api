@@ -1,6 +1,7 @@
+use rocket::serde::{Deserialize, Serialize};
 // use crate::encryption::EncryptionKey;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Type {
     TEXT,
     EMAIL,
@@ -22,7 +23,7 @@ impl Default for Type {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Structure {
     pub id: String,
     name: String,

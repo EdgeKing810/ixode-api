@@ -1,7 +1,8 @@
 use crate::components::structures::{try_add_structure, Structure};
+use rocket::serde::{Deserialize, Serialize};
 // use crate::encryption::EncryptionKey;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CustomStructure {
     pub id: String,
     name: String,
