@@ -4,7 +4,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::config::Config;
 use crate::components::user::{Role, User};
-use crate::middlewares::paginate::paginate_configs;
+use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
     auto_fetch_all_configs, auto_fetch_all_mappings, auto_fetch_all_users, auto_save_all_configs,
@@ -59,7 +59,7 @@ pub async fn fetch_all(
         }
     };
     let amount = all_configs.len();
-    let processed_configs = paginate_configs(all_configs, passed_limit, passed_offset);
+    let processed_configs = paginate(all_configs, passed_limit, passed_offset);
 
     return json!({"status": 200, "message": "Configs successfully fetched!", "configs": processed_configs, "amount": amount});
 }

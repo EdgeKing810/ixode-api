@@ -8,7 +8,7 @@ use lettre::{Message, SmtpTransport, Transport};
 
 use crate::components::encryption::EncryptionKey;
 use crate::components::user::{Role, User};
-use crate::middlewares::paginate::paginate_users;
+use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{create_jwt, verify_jwt, Token};
 use crate::utils::{
     auto_fetch_all_mappings, auto_fetch_all_users, auto_fetch_file, auto_save_all_users,
@@ -61,7 +61,7 @@ pub async fn fetch_all(
     User::remove_passwords(&mut clean_users);
     let amount = clean_users.len();
 
-    let processed_users = paginate_users(clean_users, passed_limit, passed_offset);
+    let processed_users = paginate(clean_users, passed_limit, passed_offset);
 
     return json!({"status": 200, "message": "Users successfully fetched!", "users": processed_users, "amount": amount});
 }

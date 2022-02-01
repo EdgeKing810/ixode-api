@@ -5,7 +5,7 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::collection::Collection;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};
-use crate::middlewares::paginate::paginate_projects;
+use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
     auto_fetch_all_collections, auto_fetch_all_mappings, auto_fetch_all_projects,
@@ -80,7 +80,7 @@ pub async fn fetch_all(
     }
 
     let amount = allowed_projects.len();
-    let processed_projects = paginate_projects(allowed_projects, passed_limit, passed_offset);
+    let processed_projects = paginate(allowed_projects, passed_limit, passed_offset);
 
     return json!({"status": 200, "message": "Projects successfully fetched!", "projects": processed_projects, "amount": amount});
 }
