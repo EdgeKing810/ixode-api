@@ -32,7 +32,10 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from("Error: new_id contains an invalid character"))
+        Err((
+            400,
+            String::from("Error: new_id contains an invalid character")
+        ))
     );
 
     let test_project2 = Project::create(
@@ -45,7 +48,10 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from("Error: name contains an invalid character"))
+        Err((
+            400,
+            String::from("Error: name contains an invalid character")
+        ))
     );
 
     let test_project2 = Project::create(
@@ -58,8 +64,9 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from(
-            "Error: api_path contains an invalid character"
+        Err((
+            400,
+            String::from("Error: api_path contains an invalid character")
         ))
     );
 
@@ -73,8 +80,9 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from(
-            "Error: api_path should not contain uppercase alphabetical character(s)"
+        Err((
+            400,
+            String::from("Error: api_path should not contain uppercase alphabetical character(s)")
         ))
     );
 
@@ -88,7 +96,7 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from("Error: id is already in use"))
+        Err((403, String::from("Error: id is already in use")))
     );
 
     let test_project2 = Project::create(
@@ -101,7 +109,7 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from("Error: api_path is already in use"))
+        Err((403, String::from("Error: api_path is already in use")))
     );
 
     let test_project2 = Project::create(
@@ -114,8 +122,9 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from(
-            "Error: description contains an invalid character"
+        Err((
+            400,
+            String::from("Error: description contains an invalid character")
         ))
     );
 
@@ -129,8 +138,9 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from(
-            "Error: One or more Member IDs contain an invalid character"
+        Err((
+            400,
+            String::from("Error: One or more Member IDs contain an invalid character")
         ))
     );
 
@@ -144,8 +154,9 @@ fn test_projects() {
     );
     assert_eq!(
         test_project2,
-        Err(String::from(
-            "Error: List of Member IDs contains duplicate(s)"
+        Err((
+            400,
+            String::from("Error: List of Member IDs contains duplicate(s)")
         ))
     );
 
@@ -162,7 +173,10 @@ fn test_projects() {
     let try_remove_member = Project::remove_member(&mut all_projects, &"test2".to_string(), "test");
     assert_eq!(
         try_remove_member,
-        Err(String::from("Error: No Member with this Member ID found"))
+        Err((
+            404,
+            String::from("Error: No Member with this Member ID found")
+        ))
     );
 
     let try_remove_member =

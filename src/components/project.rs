@@ -42,14 +42,14 @@ impl Project {
         found
     }
 
-    pub fn get(all_projects: &Vec<Project>, project_id: &str) -> Result<Project, String> {
+    pub fn get(all_projects: &Vec<Project>, project_id: &str) -> Result<Project, (usize, String)> {
         for project in all_projects.iter() {
             if project.id.to_lowercase() == project_id.to_lowercase() {
                 return Ok(project.clone());
             }
         }
 
-        Err(String::from("Project not found"))
+        Err((404, String::from("Error: Project not found")))
     }
 
     pub fn create(
@@ -59,12 +59,12 @@ impl Project {
         description: &str,
         api_path: &str,
         members: Vec<String>,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
 
         let mut has_error: bool = false;
-        let mut latest_error: String = String::new();
+        let mut latest_error: (usize, String) = (500, String::new());
 
         let new_project = Project {
             id: tmp_id.clone(),
@@ -78,7 +78,7 @@ impl Project {
         let id_update = Self::update_id(all_projects, &tmp_id, id);
         if let Err(e) = id_update {
             has_error = true;
-            println!("Error: {}", e);
+            println!("{}", e.1);
             latest_error = e;
             new_id = tmp_id;
         }
@@ -87,7 +87,7 @@ impl Project {
             let name_update = Self::update_name(all_projects, &new_id, name);
             if let Err(e) = name_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -96,7 +96,7 @@ impl Project {
             let description_update = Self::update_description(all_projects, &new_id, description);
             if let Err(e) = description_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -105,7 +105,7 @@ impl Project {
             let api_path_update = Self::update_api_path(all_projects, &new_id, api_path);
             if let Err(e) = api_path_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -114,7 +114,7 @@ impl Project {
             let members_update = Self::update_members(all_projects, &new_id, members);
             if let Err(e) = members_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -122,7 +122,7 @@ impl Project {
         if has_error {
             let delete_project = Self::delete(all_projects, &new_id);
             if let Err(e) = delete_project {
-                println!("Error: {}", e);
+                println!("{}", e.1);
             }
 
             return Err(latest_error);
@@ -135,12 +135,12 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         new_id: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
         for project in all_projects.iter() {
             if project.id == new_id {
-                return Err(String::from("Error: id is already in use"));
+                return Err((403, String::from("Error: id is already in use")));
             }
         }
 
@@ -148,13 +148,19 @@ impl Project {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
-            return Err(String::from("Error: new_id contains an invalid character"));
+            return Err((
+                400,
+                String::from("Error: new_id contains an invalid character"),
+            ));
         }
 
         if String::from(new_id.trim()).len() < 1 {
-            return Err(String::from("Error: id does not contain enough characters"));
+            return Err((
+                400,
+                String::from("Error: id does not contain enough characters"),
+            ));
         } else if String::from(new_id.trim()).len() > 100 {
-            return Err(String::from("Error: id contains too many characters"));
+            return Err((400, String::from("Error: id contains too many characters")));
         }
 
         for project in all_projects.iter_mut() {
@@ -166,7 +172,7 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         Ok(())
@@ -176,22 +182,29 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
         if !String::from(name)
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == ' ' || c == '-' || c == '_')
         {
-            return Err(String::from("Error: name contains an invalid character"));
+            return Err((
+                400,
+                String::from("Error: name contains an invalid character"),
+            ));
         }
 
         if String::from(name.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: name does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: name does not contain enough characters"),
             ));
         } else if String::from(name.trim()).len() > 100 {
-            return Err(String::from("Error: name contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: name contains too many characters"),
+            ));
         }
 
         for project in all_projects.iter_mut() {
@@ -203,7 +216,7 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         Ok(())
@@ -213,18 +226,20 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         description: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
         if description.trim().len() > 0 && String::from(description).chars().any(|c| c == ';') {
-            return Err(String::from(
-                "Error: description contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: description contains an invalid character"),
             ));
         }
 
         if String::from(description.trim()).len() > 400 {
-            return Err(String::from(
-                "Error: description contains too many characters",
+            return Err((
+                400,
+                String::from("Error: description contains too many characters"),
             ));
         }
 
@@ -237,7 +252,7 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         Ok(())
@@ -247,12 +262,12 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         api_path: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
         for project in all_projects.iter() {
             if project.api_path == api_path {
-                return Err(String::from("Error: api_path is already in use"));
+                return Err((403, String::from("Error: api_path is already in use")));
             }
         }
 
@@ -260,23 +275,31 @@ impl Project {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '/')
         {
-            return Err(String::from(
-                "Error: api_path contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: api_path contains an invalid character"),
             ));
         }
 
         if api_path.to_lowercase() != api_path {
-            return Err(String::from(
-                "Error: api_path should not contain uppercase alphabetical character(s)",
+            return Err((
+                400,
+                String::from(
+                    "Error: api_path should not contain uppercase alphabetical character(s)",
+                ),
             ));
         }
 
         if String::from(api_path.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: api_path does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: api_path does not contain enough characters"),
             ));
         } else if String::from(api_path.trim()).len() > 50 {
-            return Err(String::from("Error: api_path contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: api_path contains too many characters"),
+            ));
         }
 
         for project in all_projects.iter_mut() {
@@ -288,7 +311,7 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         Ok(())
@@ -298,9 +321,9 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         members: Vec<String>,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut has_error = false;
-        let mut last_error = String::new();
+        let mut last_error: (usize, String) = (500, String::new());
 
         for member in members.clone() {
             if member.trim().len() == 0 {
@@ -324,7 +347,7 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         member: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
         let mut all_members = Vec::<String>::new();
 
@@ -332,18 +355,21 @@ impl Project {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-')
         {
-            return Err(String::from(
-                "Error: One or more Member IDs contain an invalid character",
+            return Err((
+                400,
+                String::from("Error: One or more Member IDs contain an invalid character"),
             ));
         }
 
         if String::from(member.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: One or more Member IDs do not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: One or more Member IDs do not contain enough characters"),
             ));
         } else if String::from(member.trim()).len() > 50 {
-            return Err(String::from(
-                "Error: One or more Member IDs contain too many characters",
+            return Err((
+                400,
+                String::from("Error: One or more Member IDs contain too many characters"),
             ));
         }
 
@@ -356,14 +382,15 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         if let Some(pro) = found_project {
             for m in pro.members.iter() {
                 if member.to_lowercase() == m.to_lowercase() {
-                    return Err(String::from(
-                        "Error: List of Member IDs contains duplicate(s)",
+                    return Err((
+                        400,
+                        String::from("Error: List of Member IDs contains duplicate(s)"),
                     ));
                 }
             }
@@ -385,7 +412,7 @@ impl Project {
         all_projects: &mut Vec<Project>,
         id: &String,
         member: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
         let mut found_member = false;
         let mut all_members = Vec::<String>::new();
@@ -400,7 +427,7 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         if let Some(pro) = found_project {
@@ -413,7 +440,10 @@ impl Project {
         }
 
         if !found_member {
-            return Err(String::from("Error: No Member with this Member ID found"));
+            return Err((
+                404,
+                String::from("Error: No Member with this Member ID found"),
+            ));
         }
 
         for m in all_members {
@@ -433,7 +463,7 @@ impl Project {
         Ok(())
     }
 
-    pub fn delete(all_projects: &mut Vec<Project>, id: &String) -> Result<(), String> {
+    pub fn delete(all_projects: &mut Vec<Project>, id: &String) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
         for project in all_projects.iter_mut() {
@@ -444,7 +474,7 @@ impl Project {
         }
 
         if let None = found_project {
-            return Err(String::from("Error: Project not found"));
+            return Err((404, String::from("Error: Project not found")));
         }
 
         let updated_projects: Vec<Project> = all_projects

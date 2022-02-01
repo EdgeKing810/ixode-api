@@ -18,21 +18,28 @@ fn test_configs() {
     let test_config2 = Config::create(&mut all_configs, "test?", "Test2");
     assert_eq!(
         test_config2,
-        Err(String::from("Error: name contains an invalid character"))
+        Err((
+            400,
+            String::from("Error: name contains an invalid character")
+        ))
     );
 
     let test_config2 = Config::create(&mut all_configs, "test", "Test2");
     assert_eq!(
         test_config2,
-        Err(String::from(
-            "Error: A config with that name already exists (TEST)"
+        Err((
+            403,
+            String::from("Error: A config with that name already exists (TEST)")
         ))
     );
 
     let test_config2 = Config::create(&mut all_configs, "test2", "Test2|");
     assert_eq!(
         test_config2,
-        Err(String::from("Error: value contains an invalid character"))
+        Err((
+            400,
+            String::from("Error: value contains an invalid character")
+        ))
     );
 
     let test_config2 = Config::create(&mut all_configs, "test2", "Test2");

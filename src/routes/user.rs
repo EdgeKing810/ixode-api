@@ -98,9 +98,7 @@ pub async fn fetch_one(data: Json<UserFetchInput>, token: Token) -> Value {
 
     let target_user = match User::get(&users, target_uid) {
         Ok(u) => u,
-        Err(e) => {
-            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
-        }
+        Err(e) => return json!({"status": e.0, "message": e.1}),
     };
 
     let mut clean_users = Vec::<User>::new();
@@ -156,7 +154,7 @@ pub fn login(data: Json<LoginInput>) -> Value {
         User::login_email(&users, &auth_data, &password)
     } {
         Ok(user) => user,
-        _ => return json!({"status": 401, "message": "Error: Incorrect Password"}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
     };
 
     let jwt = match create_jwt(&mappings, user.id.clone()) {
@@ -248,7 +246,7 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
         role_numeric.clone(),
     ) {
         Ok(uid) => uid,
-        Err(e) => return json!({"status": 400, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
     };
 
     let smtp_username = get_config_value(&mappings, "SMTP_USERNAME", "");
@@ -353,7 +351,7 @@ pub async fn update(data: Json<ChangeInput>, token: Token) -> Value {
         Change::PASSWORD => User::update_password(&mut users, uid, data),
     } {
         Err(e) => {
-            return json!({"status": 500, "message": e});
+            return json!({"status": e.0, "message": e.1});
         }
         _ => {}
     }
@@ -398,9 +396,7 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
 
     let target_user = match User::get(&users, target_uid) {
         Ok(u) => u,
-        Err(e) => {
-            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
-        }
+        Err(e) => return json!({"status": e.0, "message": e.1}),
     };
     if target_user.role == Role::ROOT {
         return json!({"status": 403, "message": "Error: Cannot change the ROLE of this User"});
@@ -414,7 +410,7 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
     };
 
     match User::update_role(&mut users, target_uid, role_numeric) {
-        Err(e) => return json!({"error": 500, "message": e}),
+        Err(e) => return json!({"error": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -456,16 +452,14 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
 
     let target_user = match User::get(&users, target_uid) {
         Ok(u) => u,
-        Err(e) => {
-            return json!({"status": 404, "message": format!("Error: User not found ({})", e)})
-        }
+        Err(e) => return json!({"status": e.0, "message": e.1}),
     };
     if target_user.role == Role::ROOT {
         return json!({"status": 403, "message": "Error: Cannot delete this User"});
     }
 
     match User::delete(&mut users, target_uid) {
-        Err(e) => return json!({"error": 500, "message": e}),
+        Err(e) => return json!({"error": e.0, "message": e.1}),
         _ => {}
     }
 

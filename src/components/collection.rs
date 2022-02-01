@@ -21,22 +21,12 @@ impl Collection {
         project_id: &str,
         name: &str,
         description: &str,
-    ) -> Result<(), String> {
-        // if Self::exist(collections, id) {
-        //     let new_id = EncryptionKey::generate_uuid();
-        //     return Self::create(
-        //         collections,
-        //         &*new_id.to_string(),
-        //         project_id,
-        //         name,
-        //         description,
-        //     );
-        // }
+    ) -> Result<(), (usize, String)> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
 
         let mut has_error: bool = false;
-        let mut latest_error: String = String::new();
+        let mut latest_error: (usize, String) = (500, String::new());
 
         let new_collection = Collection {
             id: tmp_id.clone(),
@@ -51,7 +41,7 @@ impl Collection {
         let id_update = Self::update_id(collections, &tmp_id, id);
         if let Err(e) = id_update {
             has_error = true;
-            println!("Error: {}", e);
+            println!("{}", e.1);
             latest_error = e;
             new_id = tmp_id;
         }
@@ -60,7 +50,7 @@ impl Collection {
             let project_id_update = Self::update_project_id(collections, &new_id, project_id);
             if let Err(e) = project_id_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -69,7 +59,7 @@ impl Collection {
             let name_update = Self::update_name(collections, &new_id, name);
             if let Err(e) = name_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -78,7 +68,7 @@ impl Collection {
             let description_update = Self::update_description(collections, &new_id, description);
             if let Err(e) = description_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -86,7 +76,7 @@ impl Collection {
         if has_error {
             let delete_collection = Self::delete(collections, &new_id);
             if let Err(e) = delete_collection {
-                println!("Error: {}", e);
+                println!("{}", e.1);
             }
 
             return Err(latest_error);
@@ -122,7 +112,7 @@ impl Collection {
         all_collections: &Vec<Collection>,
         project_id: &str,
         id: &str,
-    ) -> Result<Collection, String> {
+    ) -> Result<Collection, (usize, String)> {
         for collection in all_collections.iter() {
             if collection.id.to_lowercase() == id.to_lowercase()
                 && collection.project_id.to_lowercase() == project_id.to_lowercase()
@@ -131,19 +121,19 @@ impl Collection {
             }
         }
 
-        Err(String::from("Collection not found"))
+        Err((404, String::from("Error: Collection not found")))
     }
 
     pub fn update_id(
         all_collections: &mut Vec<Collection>,
         id: &String,
         new_id: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
             if collection.id == *new_id {
-                return Err(String::from("Error: id is already in use"));
+                return Err((403, String::from("Error: id is already in use")));
             }
         }
 
@@ -151,13 +141,22 @@ impl Collection {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
-            return Err(String::from("Error: new_id contains an invalid character"));
+            return Err((
+                400,
+                String::from("Error: new_id contains an invalid character"),
+            ));
         }
 
         if String::from(new_id.trim()).len() < 1 {
-            return Err(String::from("Error: id does not contain enough characters"));
+            return Err((
+                400,
+                String::from("Error: id does not contain enough characters"),
+            ));
         } else if String::from(new_id.trim()).len() > 100 {
-            return Err(String::from("Error: new_id contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: new_id contains too many characters"),
+            ));
         }
 
         for collection in all_collections.iter_mut() {
@@ -169,7 +168,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -179,25 +178,28 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         project_id: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         if !String::from(project_id)
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
-            return Err(String::from(
-                "Error: project_id contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: project_id contains an invalid character"),
             ));
         }
 
         if String::from(project_id.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: project_id does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: project_id does not contain enough characters"),
             ));
         } else if String::from(project_id.trim()).len() > 100 {
-            return Err(String::from(
-                "Error: project_id contains too many characters",
+            return Err((
+                400,
+                String::from("Error: project_id contains too many characters"),
             ));
         }
 
@@ -210,7 +212,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -220,22 +222,29 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         if !String::from(name)
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
         {
-            return Err(String::from("Error: name contains an invalid character"));
+            return Err((
+                400,
+                String::from("Error: name contains an invalid character"),
+            ));
         }
 
         if String::from(name.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: name does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: name does not contain enough characters"),
             ));
         } else if String::from(name.trim()).len() > 100 {
-            return Err(String::from("Error: name contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: name contains too many characters"),
+            ));
         }
 
         for collection in all_collections.iter_mut() {
@@ -247,7 +256,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -257,25 +266,28 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         description: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         if !String::from(description)
             .chars()
             .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
         {
-            return Err(String::from(
-                "Error: description contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: description contains an invalid character"),
             ));
         }
 
         if String::from(description.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: description does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: description does not contain enough characters"),
             ));
         } else if String::from(description.trim()).len() > 400 {
-            return Err(String::from(
-                "Error: description contains too many characters",
+            return Err((
+                400,
+                String::from("Error: description contains too many characters"),
             ));
         }
 
@@ -288,7 +300,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -298,7 +310,7 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         structure: Structure,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -306,7 +318,24 @@ impl Collection {
                 found_collection = Some(collection.clone());
 
                 let mut current_structures = collection.structures.clone();
-                current_structures.push(structure);
+
+                match Structure::create(
+                    &mut current_structures,
+                    &structure.id,
+                    &structure.name,
+                    &structure.stype.to_string(),
+                    &structure.default_val,
+                    structure.min,
+                    structure.max,
+                    structure.encrypted,
+                    structure.unique,
+                    &structure.regex_pattern,
+                    structure.array,
+                ) {
+                    Err(e) => return Err(e),
+                    _ => {}
+                }
+
                 collection.structures = current_structures;
 
                 break;
@@ -314,7 +343,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -325,35 +354,47 @@ impl Collection {
         id: &String,
         structure_id: &String,
         structure: Structure,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
                 found_collection = Some(collection.clone());
-                let mut found_structure = false;
 
                 let mut current_structures = collection.structures.clone();
+                let mut updated_structures = Vec::<Structure>::new();
 
                 for current_structure in current_structures.iter_mut() {
-                    if current_structure.id == *structure_id {
-                        *current_structure = structure.clone();
-                        found_structure = true;
+                    if current_structure.id != *structure_id {
+                        updated_structures.push(current_structure.clone());
                     }
                 }
 
-                if !found_structure {
-                    current_structures.push(structure);
+                match Structure::create(
+                    &mut updated_structures,
+                    &structure.id,
+                    &structure.name,
+                    &structure.stype.to_string(),
+                    &structure.default_val,
+                    structure.min,
+                    structure.max,
+                    structure.encrypted,
+                    structure.unique,
+                    &structure.regex_pattern,
+                    structure.array,
+                ) {
+                    Err(e) => return Err(e),
+                    _ => {}
                 }
 
-                collection.structures = current_structures;
+                collection.structures = updated_structures;
 
                 break;
             }
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -363,7 +404,7 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         custom_structure: CustomStructure,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -371,6 +412,27 @@ impl Collection {
                 found_collection = Some(collection.clone());
 
                 let mut current_custom_structures = collection.custom_structures.clone();
+
+                match CustomStructure::create(
+                    &mut current_custom_structures,
+                    &custom_structure.id,
+                    &custom_structure.name,
+                ) {
+                    Err(e) => return Err(e),
+                    _ => {}
+                }
+
+                for structure in custom_structure.structures.clone() {
+                    match CustomStructure::add_structure(
+                        &mut current_custom_structures,
+                        &custom_structure.id,
+                        structure,
+                    ) {
+                        Err(e) => return Err(e),
+                        _ => {}
+                    }
+                }
+
                 current_custom_structures.push(custom_structure);
                 collection.custom_structures = current_custom_structures;
 
@@ -379,7 +441,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -390,35 +452,50 @@ impl Collection {
         id: &String,
         custom_structure_id: &String,
         custom_structure: CustomStructure,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
                 found_collection = Some(collection.clone());
-                let mut found_structure = false;
 
                 let mut current_custom_structures = collection.custom_structures.clone();
+                let mut updated_custom_structures = Vec::<CustomStructure>::new();
 
                 for current_custom_structure in current_custom_structures.iter_mut() {
-                    if current_custom_structure.id == *custom_structure_id {
-                        *current_custom_structure = custom_structure.clone();
-                        found_structure = true;
+                    if current_custom_structure.id != *custom_structure_id {
+                        updated_custom_structures.push(current_custom_structure.clone());
                     }
                 }
 
-                if !found_structure {
-                    current_custom_structures.push(custom_structure);
+                match CustomStructure::create(
+                    &mut updated_custom_structures,
+                    &custom_structure.id,
+                    &custom_structure.name,
+                ) {
+                    Err(e) => return Err(e),
+                    _ => {}
                 }
 
-                collection.custom_structures = current_custom_structures;
+                for structure in custom_structure.structures {
+                    match CustomStructure::add_structure(
+                        &mut updated_custom_structures,
+                        &custom_structure.id,
+                        structure,
+                    ) {
+                        Err(e) => return Err(e),
+                        _ => {}
+                    }
+                }
+
+                collection.custom_structures = updated_custom_structures;
 
                 break;
             }
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -428,7 +505,7 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         structures: Vec<Structure>,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -441,7 +518,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -451,7 +528,7 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         custom_structures: Vec<CustomStructure>,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -464,7 +541,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -474,7 +551,7 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         structure_id: &String,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -482,11 +559,11 @@ impl Collection {
                 found_collection = Some(collection.clone());
 
                 let mut current_structures = collection.structures.clone();
-                let result_delete_structure =
-                    Structure::delete(&mut current_structures, structure_id);
-                if let Err(e) = result_delete_structure {
-                    return Err(e);
+                match Structure::delete(&mut current_structures, structure_id) {
+                    Err(e) => return Err(e),
+                    _ => {}
                 }
+
                 collection.structures = current_structures;
 
                 break;
@@ -494,7 +571,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
@@ -504,7 +581,7 @@ impl Collection {
         all_collections: &mut Vec<Collection>,
         id: &String,
         custom_structure_id: &String,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -512,10 +589,9 @@ impl Collection {
                 found_collection = Some(collection.clone());
 
                 let mut current_custom_structures = collection.custom_structures.clone();
-                let result_delete_custom_structure =
-                    CustomStructure::delete(&mut current_custom_structures, custom_structure_id);
-                if let Err(e) = result_delete_custom_structure {
-                    return Err(e);
+                match CustomStructure::delete(&mut current_custom_structures, custom_structure_id) {
+                    Err(e) => return Err(e),
+                    _ => {}
                 }
                 collection.custom_structures = current_custom_structures;
 
@@ -524,13 +600,16 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         Ok(())
     }
 
-    pub fn delete(all_collections: &mut Vec<Collection>, id: &String) -> Result<(), String> {
+    pub fn delete(
+        all_collections: &mut Vec<Collection>,
+        id: &String,
+    ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
         for collection in all_collections.iter_mut() {
@@ -541,7 +620,7 @@ impl Collection {
         }
 
         if let None = found_collection {
-            return Err(String::from("Error: Collection not found"));
+            return Err((404, String::from("Error: Collection not found")));
         }
 
         let updated_collections: Vec<Collection> = all_collections
@@ -608,7 +687,7 @@ impl Collection {
             current_collection[3].split(">").collect::<Vec<&str>>()[0],
         );
         if let Err(e) = create_collection {
-            return e;
+            return e.1;
         }
 
         let current_structures = collection_str.split(">").collect::<Vec<&str>>()[1];
@@ -639,7 +718,7 @@ impl Collection {
                 current_custom_structure[1],
             );
             if let Err(e) = create_custom_structure {
-                return e;
+                return e.1;
             }
 
             let current_structures = current_custom_structure[2..].join("|");
@@ -659,7 +738,7 @@ impl Collection {
                 final_structures_custom,
             );
             if let Err(e) = custom_set_structures {
-                return e;
+                return e.1;
             }
         }
 
@@ -669,7 +748,7 @@ impl Collection {
             final_structures,
         );
         if let Err(e) = set_structures {
-            return e;
+            return e.1;
         }
 
         let set_custom_structures = Collection::set_custom_structures(
@@ -678,7 +757,7 @@ impl Collection {
             final_custom_structures,
         );
         if let Err(e) = set_custom_structures {
-            return e;
+            return e.1;
         }
 
         String::new()

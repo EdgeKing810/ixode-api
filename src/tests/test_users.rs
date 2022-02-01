@@ -34,8 +34,9 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: first_name contains an invalid character"
+        Err((
+            400,
+            String::from("Error: first_name contains an invalid character")
         ))
     );
 
@@ -50,8 +51,9 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: last_name contains an invalid character"
+        Err((
+            400,
+            String::from("Error: last_name contains an invalid character")
         ))
     );
 
@@ -66,7 +68,7 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from("Error: username already taken"))
+        Err((403, String::from("Error: username already taken")))
     );
 
     let test_user2 = User::create(
@@ -78,7 +80,10 @@ fn test_users() {
         "Test123*",
         0,
     );
-    assert_eq!(test_user2, Err(String::from("Error: email already taken")));
+    assert_eq!(
+        test_user2,
+        Err((403, String::from("Error: email already taken")))
+    );
 
     let test_user2 = User::create(
         &mut all_users,
@@ -91,7 +96,7 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from("Error: Invalid email address"))
+        Err((400, String::from("Error: Invalid email address")))
     );
 
     let test_user2 = User::create(
@@ -105,7 +110,7 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from("Error: Invalid email address"))
+        Err((400, String::from("Error: Invalid email address")))
     );
 
     let test_user2 = User::create(
@@ -119,8 +124,9 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: password should be longer than 7 characters"
+        Err((
+            400,
+            String::from("Error: password should be longer than 7 characters")
         ))
     );
 
@@ -135,8 +141,11 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: password should contain at least 1 uppercase alphabetic character"
+        Err((
+            400,
+            String::from(
+                "Error: password should contain at least 1 uppercase alphabetic character"
+            )
         ))
     );
 
@@ -151,8 +160,11 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: password should contain at least 1 lowercase alphabetic character"
+        Err((
+            400,
+            String::from(
+                "Error: password should contain at least 1 lowercase alphabetic character"
+            )
         ))
     );
 
@@ -167,8 +179,9 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: password should contain at least 1 number"
+        Err((
+            400,
+            String::from("Error: password should contain at least 1 number")
         ))
     );
 
@@ -183,8 +196,9 @@ fn test_users() {
     );
     assert_eq!(
         test_user2,
-        Err(String::from(
-            "Error: password contains a forbidden character (;)"
+        Err((
+            400,
+            String::from("Error: password contains a forbidden character (;)")
         ))
     );
 
@@ -202,7 +216,7 @@ fn test_users() {
     let incorrect_login_test_user2 = User::login_username(&all_users, "te_st", "Test123*");
     assert_eq!(
         incorrect_login_test_user2,
-        Err(String::from("Error: Password mismatch"))
+        Err((401, String::from("Error: Password mismatch")))
     );
 
     let login_test_user2 = User::login_username(&all_users, "te_st", "Test123*&^()[]{}*-_");

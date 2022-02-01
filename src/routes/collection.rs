@@ -245,7 +245,7 @@ pub async fn create(data: Json<CreateCollectionInput>, token: Token) -> Value {
         &collection.name,
         &collection.description,
     ) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -347,7 +347,7 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
             Collection::update_description(&mut all_collections, collection_id, data)
         }
     } {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -431,7 +431,7 @@ pub async fn delete(data: Json<DeleteCollectionInput>, token: Token) -> Value {
     }
 
     match Collection::delete(&mut all_collections, collection_id) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 

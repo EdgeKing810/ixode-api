@@ -232,9 +232,9 @@ pub fn set_config_value(
     all_configs: &mut Vec<Config>,
     id: &str,
     value: &str,
-) -> Result<(), String> {
+) -> Result<(), (usize, String)> {
     if !Config::exist(&all_configs, id) {
-        return Err("Config does not exist".to_string());
+        return Err((404, "Error: Config does not exist".to_string()));
     }
 
     match Config::update_value(all_configs, id, value) {

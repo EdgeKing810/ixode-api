@@ -156,7 +156,7 @@ pub async fn add(data: Json<AddConfigInput>, token: Token) -> Value {
     } else {
         Config::create(&mut all_configs, key, value)
     } {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -206,7 +206,7 @@ pub async fn update(data: Json<AddConfigInput>, token: Token) -> Value {
     }
 
     match Config::update_value(&mut all_configs, key, value) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -262,7 +262,7 @@ pub async fn delete(data: Json<DeleteConfigInput>, token: Token) -> Value {
     }
 
     match Config::delete(&mut all_configs, key) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 

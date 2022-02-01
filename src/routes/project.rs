@@ -222,7 +222,7 @@ pub async fn create(data: Json<CreateProjectInput>, token: Token) -> Value {
         &project.api_path,
         final_members,
     ) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -317,7 +317,7 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
         UpdateType::DESCRIPTION => Project::update_description(&mut all_projects, project_id, data),
         UpdateType::APIPATH => Project::update_api_path(&mut all_projects, project_id, data),
     } {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -394,7 +394,7 @@ pub async fn delete(data: Json<DeleteProjectInput>, token: Token) -> Value {
     }
 
     match Project::delete(&mut all_projects, project_id) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -487,7 +487,7 @@ pub async fn add_member(data: Json<MemberProjectInput>, token: Token) -> Value {
     }
 
     match Project::add_member(&mut all_projects, project_id, target_uid) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -558,7 +558,7 @@ pub async fn remove_member(data: Json<MemberProjectInput>, token: Token) -> Valu
     }
 
     match Project::remove_member(&mut all_projects, project_id, target_uid) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 

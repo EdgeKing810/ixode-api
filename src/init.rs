@@ -127,7 +127,7 @@ fn initialize_users(mappings: &Vec<Mapping>) -> Vec<User> {
             0,
         );
         if let Err(e) = create_user {
-            println!("{}", e);
+            println!("{}", e.1);
         }
     }
 
@@ -174,7 +174,7 @@ fn initialize_projects(mappings: &Vec<Mapping>) -> Vec<Project> {
             vec![],
         );
         if let Err(e) = create_project {
-            println!("{}", e);
+            println!("{}", e.1);
         }
     }
 
@@ -241,7 +241,7 @@ fn initialize_configs(mappings: &Vec<Mapping>) -> Vec<Config> {
         if !Config::exist(&all_configs, key) {
             let create_config = Config::create(&mut all_configs, key, "_empty");
             if let Err(e) = create_config {
-                println!("{}", e);
+                println!("{}", e.1);
             }
         }
     }
@@ -314,7 +314,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             "To store blog posts.",
         );
         if let Err(e) = create_collection {
-            println!("{}", e);
+            println!("{}", e.1);
         }
 
         let mut all_structures = Vec::<Structure>::new();

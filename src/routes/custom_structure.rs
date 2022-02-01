@@ -90,7 +90,7 @@ pub async fn add(data: Json<AddCustomStructureInput>, token: Token) -> Value {
         collection_id,
         custom_structure.clone(),
     ) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -194,7 +194,7 @@ pub async fn update(data: Json<UpdateCustomStructureInput>, token: Token) -> Val
         custom_structure_id,
         custom_structure.clone(),
     ) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -295,7 +295,7 @@ pub async fn delete(data: Json<DeleteCustomStructureInput>, token: Token) -> Val
         collection_id,
         custom_structure_id,
     ) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 

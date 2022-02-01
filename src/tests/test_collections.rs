@@ -23,7 +23,7 @@ fn test_correct_collection() {
             "To store blog posts.",
         );
         if let Err(e) = create_collection {
-            println!("{}", e);
+            println!("{}", e.1);
         }
 
         let mut all_structures = Vec::<Structure>::new();
@@ -180,7 +180,7 @@ fn test_incorrect_collection() {
             "To store blog posts.",
         );
         if let Err(e) = create_collection {
-            println!("{}", e);
+            println!("{}", e.1);
         }
 
         let mut all_structures = Vec::<Structure>::new();
@@ -214,7 +214,7 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_structure,
-            Err(String::from("Error: id is already in use"))
+            Err((403, String::from("Error: id is already in use")))
         );
 
         let test_structure = Structure::create(
@@ -232,29 +232,36 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_structure,
-            Err(String::from("Error: new_id contains an invalid character"))
+            Err((
+                400,
+                String::from("Error: new_id contains an invalid character")
+            ))
         );
 
         let test_structure =
             Structure::update_id(&mut all_structures, &"title2".to_string(), "title3");
         assert_eq!(
             test_structure,
-            Err(String::from("Error: Structure not found"))
+            Err((404, String::from("Error: Structure not found")))
         );
 
         let test_structure =
             Structure::update_name(&mut all_structures, &"title".to_string(), "Title-");
         assert_eq!(
             test_structure,
-            Err(String::from("Error: name contains an invalid character"))
+            Err((
+                400,
+                String::from("Error: name contains an invalid character")
+            ))
         );
 
         let test_structure =
             Structure::update_type(&mut all_structures, &"title".to_string(), "test;");
         assert_eq!(
             test_structure,
-            Err(String::from(
-                "Error: stype_txt contains an invalid character"
+            Err((
+                400,
+                String::from("Error: stype_txt contains an invalid character")
             ))
         );
 
@@ -262,8 +269,9 @@ fn test_incorrect_collection() {
             Structure::update_default(&mut all_structures, &"title".to_string(), "test@");
         assert_eq!(
             test_structure,
-            Err(String::from(
-                "Error: default_val contains an invalid character"
+            Err((
+                400,
+                String::from("Error: default_val contains an invalid character")
             ))
         );
 
@@ -271,8 +279,9 @@ fn test_incorrect_collection() {
             Structure::update_regex(&mut all_structures, &"title".to_string(), "^;$");
         assert_eq!(
             test_structure,
-            Err(String::from(
-                "Error: regex_pattern contains an invalid character"
+            Err((
+                400,
+                String::from("Error: regex_pattern contains an invalid character")
             ))
         );
 
@@ -323,7 +332,7 @@ fn test_incorrect_collection() {
             CustomStructure::create(&mut all_custom_structures, "comment", "comment");
         assert_eq!(
             test_custom_structure,
-            Err(String::from("Error: id is already in use"))
+            Err((403, String::from("Error: id is already in use")))
         );
 
         let test_custom_structure = CustomStructure::update_id(
@@ -333,7 +342,7 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_custom_structure,
-            Err(String::from("Error: Custom Structure not found"))
+            Err((404, String::from("Error: Custom Structure not found")))
         );
 
         let test_custom_structure = CustomStructure::update_id(
@@ -343,7 +352,10 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_custom_structure,
-            Err(String::from("Error: new_id contains an invalid character"))
+            Err((
+                400,
+                String::from("Error: new_id contains an invalid character")
+            ))
         );
 
         let test_custom_structure = CustomStructure::update_name(
@@ -353,7 +365,10 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_custom_structure,
-            Err(String::from("Error: name contains an invalid character"))
+            Err((
+                400,
+                String::from("Error: name contains an invalid character")
+            ))
         );
 
         Collection::set_custom_structures(
@@ -372,29 +387,33 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_collection,
-            Err(String::from("Error: id is already in use"))
+            Err((403, String::from("Error: id is already in use")))
         );
 
         let test_collection =
             Collection::update_id(&mut all_collections, &"posts2".to_string(), "posts3");
         assert_eq!(
             test_collection,
-            Err(String::from("Error: Collection not found"))
+            Err((404, String::from("Error: Collection not found")))
         );
 
         let test_collection =
             Collection::update_id(&mut all_collections, &"posts".to_string(), "posts;");
         assert_eq!(
             test_collection,
-            Err(String::from("Error: new_id contains an invalid character"))
+            Err((
+                400,
+                String::from("Error: new_id contains an invalid character")
+            ))
         );
 
         let test_collection =
             Collection::update_project_id(&mut all_collections, &"posts".to_string(), "konnect;");
         assert_eq!(
             test_collection,
-            Err(String::from(
-                "Error: project_id contains an invalid character"
+            Err((
+                400,
+                String::from("Error: project_id contains an invalid character")
             ))
         );
 
@@ -402,7 +421,10 @@ fn test_incorrect_collection() {
             Collection::update_name(&mut all_collections, &"posts".to_string(), "Pos>ts");
         assert_eq!(
             test_collection,
-            Err(String::from("Error: name contains an invalid character"))
+            Err((
+                400,
+                String::from("Error: name contains an invalid character")
+            ))
         );
 
         let test_collection = Collection::update_description(
@@ -412,8 +434,9 @@ fn test_incorrect_collection() {
         );
         assert_eq!(
             test_collection,
-            Err(String::from(
-                "Error: description contains an invalid character"
+            Err((
+                400,
+                String::from("Error: description contains an invalid character")
             ))
         );
     }

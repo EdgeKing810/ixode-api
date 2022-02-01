@@ -5,8 +5,8 @@ use rocket::serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct CustomStructure {
     pub id: String,
-    name: String,
-    structures: Vec<Structure>,
+    pub name: String,
+    pub structures: Vec<Structure>,
 }
 
 impl CustomStructure {
@@ -14,17 +14,12 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &str,
         name: &str,
-    ) -> Result<(), String> {
-        // if Self::exist(all_custom_structures, id) {
-        //     let new_id = EncryptionKey::generate_uuid(8);
-        //     return Self::create(all_custom_structures, &*new_id.to_string(), name);
-        // }
-
+    ) -> Result<(), (usize, String)> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
 
         let mut has_error: bool = false;
-        let mut latest_error: String = String::new();
+        let mut latest_error: (usize, String) = (500, String::new());
 
         let new_custom_structure = CustomStructure {
             id: tmp_id.clone(),
@@ -36,7 +31,7 @@ impl CustomStructure {
         let id_update = Self::update_id(all_custom_structures, &tmp_id, id);
         if let Err(e) = id_update {
             has_error = true;
-            println!("Error: {}", e);
+            println!("{}", e.1);
             latest_error = e;
             new_id = tmp_id;
         }
@@ -45,7 +40,7 @@ impl CustomStructure {
             let name_update = Self::update_name(all_custom_structures, &new_id, name);
             if let Err(e) = name_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -53,7 +48,7 @@ impl CustomStructure {
         if has_error {
             let delete_project = Self::delete(all_custom_structures, &new_id);
             if let Err(e) = delete_project {
-                println!("Error: {}", e);
+                println!("{}", e.1);
             }
 
             return Err(latest_error);
@@ -78,12 +73,12 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
         new_id: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         for custom_structure in all_custom_structures.iter_mut() {
             if custom_structure.id == new_id {
-                return Err(String::from("Error: id is already in use"));
+                return Err((403, String::from("Error: id is already in use")));
             }
         }
 
@@ -91,15 +86,22 @@ impl CustomStructure {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
-            return Err(String::from("Error: new_id contains an invalid character"));
+            return Err((
+                400,
+                String::from("Error: new_id contains an invalid character"),
+            ));
         }
 
         if String::from(new_id.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: new_id does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: new_id does not contain enough characters"),
             ));
         } else if String::from(new_id.trim()).len() > 100 {
-            return Err(String::from("Error: new_id contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: new_id contains too many characters"),
+            ));
         }
 
         for custom_structure in all_custom_structures.iter_mut() {
@@ -111,7 +113,7 @@ impl CustomStructure {
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         Ok(())
@@ -121,22 +123,29 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
         name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         if !String::from(name)
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
         {
-            return Err(String::from("Error: name contains an invalid character"));
+            return Err((
+                400,
+                String::from("Error: name contains an invalid character"),
+            ));
         }
 
         if String::from(name.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: name does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: name does not contain enough characters"),
             ));
         } else if String::from(name.trim()).len() > 100 {
-            return Err(String::from("Error: name contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: name contains too many characters"),
+            ));
         }
 
         for custom_structure in all_custom_structures.iter_mut() {
@@ -148,7 +157,7 @@ impl CustomStructure {
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         Ok(())
@@ -158,7 +167,7 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
         structure: Structure,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         for custom_structure in all_custom_structures.iter_mut() {
@@ -166,7 +175,24 @@ impl CustomStructure {
                 found_custom_structure = Some(custom_structure.clone());
 
                 let mut current_structures = custom_structure.structures.clone();
-                current_structures.push(structure);
+
+                match Structure::create(
+                    &mut current_structures,
+                    &structure.id,
+                    &structure.name,
+                    &structure.stype.to_string(),
+                    &structure.default_val,
+                    structure.min,
+                    structure.max,
+                    structure.encrypted,
+                    structure.unique,
+                    &structure.regex_pattern,
+                    structure.array,
+                ) {
+                    Err(e) => return Err(e),
+                    _ => {}
+                }
+
                 custom_structure.structures = current_structures;
 
                 break;
@@ -174,7 +200,7 @@ impl CustomStructure {
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         Ok(())
@@ -183,36 +209,49 @@ impl CustomStructure {
     pub fn update_structure(
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
+        structure_id: &String,
         structure: Structure,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         for custom_structure in all_custom_structures.iter_mut() {
             if custom_structure.id == *id {
                 found_custom_structure = Some(custom_structure.clone());
-                let mut found_structure = false;
 
                 let mut current_structures = custom_structure.structures.clone();
+                let mut updated_structures = Vec::<Structure>::new();
 
                 for current_structure in current_structures.iter_mut() {
-                    if current_structure.id == structure.id {
-                        *current_structure = structure.clone();
-                        found_structure = true;
+                    if current_structure.id != *structure_id {
+                        updated_structures.push(current_structure.clone());
                     }
                 }
 
-                if !found_structure {
-                    current_structures.push(structure);
+                match Structure::create(
+                    &mut updated_structures,
+                    &structure.id,
+                    &structure.name,
+                    &structure.stype.to_string(),
+                    &structure.default_val,
+                    structure.min,
+                    structure.max,
+                    structure.encrypted,
+                    structure.unique,
+                    &structure.regex_pattern,
+                    structure.array,
+                ) {
+                    Err(e) => return Err(e),
+                    _ => {}
                 }
 
-                custom_structure.structures = current_structures;
+                custom_structure.structures = updated_structures;
 
                 break;
             }
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         Ok(())
@@ -222,7 +261,7 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
         structures: Vec<Structure>,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         for custom_structure in all_custom_structures.iter_mut() {
@@ -235,7 +274,7 @@ impl CustomStructure {
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         Ok(())
@@ -245,7 +284,7 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
         structure_id: &String,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         for custom_structure in all_custom_structures.iter_mut() {
@@ -253,11 +292,11 @@ impl CustomStructure {
                 found_custom_structure = Some(custom_structure.clone());
 
                 let mut current_structures = custom_structure.structures.clone();
-                let result_delete_structure =
-                    Structure::delete(&mut current_structures, structure_id);
-                if let Err(e) = result_delete_structure {
-                    return Err(e);
+                match Structure::delete(&mut current_structures, structure_id) {
+                    Err(e) => return Err(e),
+                    _ => {}
                 }
+
                 custom_structure.structures = current_structures;
 
                 break;
@@ -265,7 +304,7 @@ impl CustomStructure {
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         Ok(())
@@ -274,7 +313,7 @@ impl CustomStructure {
     pub fn delete(
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
         for custom_structure in all_custom_structures.iter_mut() {
@@ -285,7 +324,7 @@ impl CustomStructure {
         }
 
         if let None = found_custom_structure {
-            return Err(String::from("Error: Custom Structure not found"));
+            return Err((404, String::from("Error: Custom Structure not found")));
         }
 
         let updated_structures: Vec<CustomStructure> = all_custom_structures
@@ -322,12 +361,13 @@ impl CustomStructure {
         stringified_custom_structures
     }
 
-    pub fn from_string(custom_structure_str: &str) -> Result<CustomStructure, String> {
+    pub fn from_string(custom_structure_str: &str) -> Result<CustomStructure, (usize, String)> {
         let current_custom_structure = custom_structure_str.split("|").collect::<Vec<&str>>();
 
         if current_custom_structure.len() < 3 {
-            return Err(String::from(
-                "Error: Wrong format for Custom Structure data",
+            return Err((
+                400,
+                String::from("Error: Wrong format for Custom Structure data"),
             ));
         }
 

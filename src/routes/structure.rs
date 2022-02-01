@@ -86,7 +86,7 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
     }
 
     match Collection::add_structure(&mut all_collections, collection_id, structure.clone()) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -190,7 +190,7 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
         structure_id,
         structure.clone(),
     ) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 
@@ -287,7 +287,7 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
     }
 
     match Collection::remove_structure(&mut all_collections, collection_id, structure_id) {
-        Err(e) => return json!({"status": 500, "message": e}),
+        Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
     }
 

@@ -52,14 +52,14 @@ impl User {
         }
     }
 
-    pub fn get(all_users: &Vec<User>, uid: &str) -> Result<User, String> {
+    pub fn get(all_users: &Vec<User>, uid: &str) -> Result<User, (usize, String)> {
         for user in all_users.iter() {
             if user.id.to_lowercase() == uid.to_lowercase() {
                 return Ok(user.clone());
             }
         }
 
-        Err(String::from("User not found"))
+        Err((404, String::from("Error: User not found")))
     }
 
     pub fn exist(all_users: &Vec<User>, id: &str) -> bool {
@@ -106,7 +106,7 @@ impl User {
         email: &str,
         password: &str,
         role_numeric: u32,
-    ) -> Result<String, String> {
+    ) -> Result<String, (usize, String)> {
         return User::create(
             all_users,
             first_name,
@@ -126,12 +126,12 @@ impl User {
         email: &str,
         password: &str,
         role_numeric: u32,
-    ) -> Result<String, String> {
+    ) -> Result<String, (usize, String)> {
         let id = Uuid::new_v4();
         let uid = id.to_string();
 
         let mut has_error: bool = false;
-        let mut latest_error: String = String::new();
+        let mut latest_error: (usize, String) = (500, String::new());
 
         let salt = Uuid::new_v4();
         let config = Config::default();
@@ -152,7 +152,7 @@ impl User {
         let name_update = Self::update_name(all_users, &uid, first_name, last_name);
         if let Err(e) = name_update {
             has_error = true;
-            println!("Error: {}", e);
+            println!("{}", e.1);
             latest_error = e;
         }
 
@@ -160,7 +160,7 @@ impl User {
             let username_update = Self::update_username(all_users, &uid, username);
             if let Err(e) = username_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -169,7 +169,7 @@ impl User {
             let email_update = Self::update_email(all_users, &uid, email);
             if let Err(e) = email_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -178,7 +178,7 @@ impl User {
             let password_update = Self::update_password(all_users, &uid, password);
             if let Err(e) = password_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -187,7 +187,7 @@ impl User {
             let role_update = Self::update_role(all_users, &uid, role_numeric);
             if let Err(e) = role_update {
                 has_error = true;
-                println!("Error: {}", e);
+                println!("{}", e.1);
                 latest_error = e;
             }
         }
@@ -195,7 +195,7 @@ impl User {
         if has_error {
             let delete_user = Self::delete(all_users, &uid);
             if let Err(e) = delete_user {
-                println!("Error: {}", e);
+                println!("{}", e.1);
             }
 
             return Err(latest_error);
@@ -208,7 +208,7 @@ impl User {
         all_users: &Vec<User>,
         auth: &str,
         password: &str,
-    ) -> Result<User, String> {
+    ) -> Result<User, (usize, String)> {
         let mut found_user: Option<User> = None;
 
         for user in all_users.iter() {
@@ -219,7 +219,7 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         let correct_password = match argon2::verify_encoded(
@@ -228,18 +228,22 @@ impl User {
         ) {
             Ok(b) => b,
             Err(e) => {
-                return Err(e.to_string());
+                return Err((400, e.to_string()));
             }
         };
 
         if !correct_password {
-            return Err(String::from("Error: Password mismatch"));
+            return Err((401, String::from("Error: Password mismatch")));
         }
 
         Ok(found_user.unwrap())
     }
 
-    pub fn login_email(all_users: &Vec<User>, auth: &str, password: &str) -> Result<User, String> {
+    pub fn login_email(
+        all_users: &Vec<User>,
+        auth: &str,
+        password: &str,
+    ) -> Result<User, (usize, String)> {
         let mut found_user: Option<User> = None;
 
         for user in all_users.iter() {
@@ -250,14 +254,14 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         let correct_password =
             argon2::verify_encoded(&found_user.clone().unwrap().password, password.as_bytes());
 
         if !correct_password.is_ok() {
-            return Err(String::from("Error: Password mismatch"));
+            return Err((401, String::from("Error: Password mismatch")));
         }
 
         Ok(found_user.unwrap())
@@ -267,25 +271,28 @@ impl User {
         all_users: &mut Vec<User>,
         id: &String,
         first_name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         if !String::from(first_name)
             .chars()
             .all(|c| c.is_alphabetic() || c == ' ' || c == '-')
         {
-            return Err(String::from(
-                "Error: first_name contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: first_name contains an invalid character"),
             ));
         }
 
         if String::from(first_name.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: first_name does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: first_name does not contain enough characters"),
             ));
         } else if String::from(first_name.trim()).len() > 100 {
-            return Err(String::from(
-                "Error: first_name contains too many characters",
+            return Err((
+                400,
+                String::from("Error: first_name contains too many characters"),
             ));
         }
 
@@ -298,7 +305,7 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         Ok(())
@@ -308,25 +315,28 @@ impl User {
         all_users: &mut Vec<User>,
         id: &String,
         last_name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         if !String::from(last_name)
             .chars()
             .all(|c| c.is_alphabetic() || c == ' ' || c == '-')
         {
-            return Err(String::from(
-                "Error: last_name contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: last_name contains an invalid character"),
             ));
         }
 
         if String::from(last_name.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: last_name does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: last_name does not contain enough characters"),
             ));
         } else if String::from(last_name.trim()).len() > 100 {
-            return Err(String::from(
-                "Error: last_name contains too many characters",
+            return Err((
+                400,
+                String::from("Error: last_name contains too many characters"),
             ));
         }
 
@@ -339,7 +349,7 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         Ok(())
@@ -350,7 +360,7 @@ impl User {
         id: &String,
         first_name: &str,
         last_name: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         return match User::update_first_name(all_users, id, first_name) {
             Ok(()) => match User::update_last_name(all_users, id, last_name) {
                 Ok(()) => Ok(()),
@@ -364,12 +374,12 @@ impl User {
         all_users: &mut Vec<User>,
         id: &String,
         username: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         for user in all_users.iter() {
             if user.username.to_lowercase() == username.to_lowercase().trim() && user.id != *id {
-                return Err(String::from("Error: username already taken"));
+                return Err((403, String::from("Error: username already taken")));
             }
         }
 
@@ -377,8 +387,9 @@ impl User {
             .chars()
             .all(|c| c.is_alphanumeric() || c == '_')
         {
-            return Err(String::from(
-                "Error: username contains an invalid character",
+            return Err((
+                400,
+                String::from("Error: username contains an invalid character"),
             ));
         }
 
@@ -391,18 +402,22 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         Ok(())
     }
 
-    pub fn update_email(all_users: &mut Vec<User>, id: &String, email: &str) -> Result<(), String> {
+    pub fn update_email(
+        all_users: &mut Vec<User>,
+        id: &String,
+        email: &str,
+    ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         for user in all_users.iter() {
             if user.email.to_lowercase() == email.to_lowercase().trim() && user.id != *id {
-                return Err(String::from("Error: email already taken"));
+                return Err((403, String::from("Error: email already taken")));
             }
         }
 
@@ -411,15 +426,19 @@ impl User {
         )
         .unwrap();
         if !email_regex.is_match(email) {
-            return Err(String::from("Error: Invalid email address"));
+            return Err((400, String::from("Error: Invalid email address")));
         }
 
         if String::from(email.trim()).len() < 1 {
-            return Err(String::from(
-                "Error: email does not contain enough characters",
+            return Err((
+                400,
+                String::from("Error: email does not contain enough characters"),
             ));
         } else if String::from(email.trim()).len() > 100 {
-            return Err(String::from("Error: email contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: email contains too many characters"),
+            ));
         }
 
         for user in all_users.iter_mut() {
@@ -431,7 +450,7 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         Ok(())
@@ -441,15 +460,19 @@ impl User {
         all_users: &mut Vec<User>,
         id: &String,
         password: &str,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         if String::from(password.trim()).len() < 7 {
-            return Err(String::from(
-                "Error: password should be longer than 7 characters",
+            return Err((
+                400,
+                String::from("Error: password should be longer than 7 characters"),
             ));
         } else if String::from(password.trim()).len() > 100 {
-            return Err(String::from("Error: password contains too many characters"));
+            return Err((
+                400,
+                String::from("Error: password contains too many characters"),
+            ));
         }
 
         if !String::from(password)
@@ -457,28 +480,36 @@ impl User {
             .chars()
             .any(|c| c.is_alphabetic() && c.is_uppercase())
         {
-            return Err(String::from(
-                "Error: password should contain at least 1 uppercase alphabetic character",
+            return Err((
+                400,
+                String::from(
+                    "Error: password should contain at least 1 uppercase alphabetic character",
+                ),
             ));
         } else if !String::from(password)
             .trim()
             .chars()
             .any(|c| c.is_alphabetic() && c.is_lowercase())
         {
-            return Err(String::from(
-                "Error: password should contain at least 1 lowercase alphabetic character",
+            return Err((
+                400,
+                String::from(
+                    "Error: password should contain at least 1 lowercase alphabetic character",
+                ),
             ));
         } else if !String::from(password)
             .trim()
             .chars()
             .any(|c| c.is_numeric())
         {
-            return Err(String::from(
-                "Error: password should contain at least 1 number",
+            return Err((
+                400,
+                String::from("Error: password should contain at least 1 number"),
             ));
         } else if password.contains(';') {
-            return Err(String::from(
-                "Error: password contains a forbidden character (;)",
+            return Err((
+                400,
+                String::from("Error: password contains a forbidden character (;)"),
             ));
         }
 
@@ -496,7 +527,7 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         Ok(())
@@ -506,7 +537,7 @@ impl User {
         all_users: &mut Vec<User>,
         id: &String,
         role_numeric: u32,
-    ) -> Result<(), String> {
+    ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         let role = match role_numeric {
@@ -525,13 +556,13 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         Ok(())
     }
 
-    pub fn delete(all_users: &mut Vec<User>, id: &String) -> Result<(), String> {
+    pub fn delete(all_users: &mut Vec<User>, id: &String) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
         for user in all_users.iter_mut() {
@@ -542,7 +573,7 @@ impl User {
         }
 
         if let None = found_user {
-            return Err(String::from("Error: User not found"));
+            return Err((404, String::from("Error: User not found")));
         }
 
         let updated_users: Vec<User> = all_users
