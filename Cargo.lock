@@ -962,6 +962,7 @@ dependencies = [
  "magic-crypt",
  "regex",
  "rocket",
+ "rocket-multipart-form-data",
  "rocket_dyn_templates",
  "rust-argon2",
  "serde",
@@ -1743,6 +1744,18 @@ dependencies = [
  "ubyte",
  "version_check",
  "yansi",
+]
+
+[[package]]
+name = "rocket-multipart-form-data"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bec4978d352a6bd60b23b9e518096082f194abfbb03d0fdc189b5440dbb2798"
+dependencies = [
+ "mime",
+ "multer",
+ "rocket",
+ "tokio-util",
 ]
 
 [[package]]

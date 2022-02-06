@@ -4,6 +4,7 @@ extern crate magic_crypt;
 extern crate argon2;
 extern crate dotenv;
 extern crate rocket;
+extern crate rocket_multipart_form_data;
 
 mod init;
 mod utils;
@@ -103,6 +104,7 @@ fn rocket() -> _ {
                 routes::custom_structure::delete,
             ],
         )
+        .mount(fpath("/upload"), routes![routes::upload::upload])
         .register(
             "/",
             catchers![
