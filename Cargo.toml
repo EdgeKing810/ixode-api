@@ -20,6 +20,8 @@ chrono = "0.4"
 jsonwebtoken = "7.2"
 lettre = "0.10.0-rc.4"
 rocket-multipart-form-data = "0.10.0"
+r2d2 = "0.8.9"
+r2d2_redis = "0.14.0"
 
 [profile.release]
 lto = true

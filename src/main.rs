@@ -21,6 +21,8 @@ mod routes;
 #[path = "tests/tests.rs"]
 mod tests;
 
+mod redis_connection;
+
 use std::collections::HashMap;
 
 use init::initialize;
@@ -115,6 +117,7 @@ fn rocket() -> _ {
                 custom_catchers::internal_server_error
             ],
         )
+        .manage(redis_connection::init_pool())
         .attach(Template::fairing())
 }
 
