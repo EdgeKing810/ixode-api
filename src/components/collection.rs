@@ -764,23 +764,7 @@ impl Collection {
     }
 }
 
-pub fn fetch_all_collections(path: String, encryption_key: &String) -> Vec<Collection> {
-    let all_collections_raw = fetch_file(path.clone(), encryption_key);
-
-    let individual_collections = all_collections_raw
-        .split("\n")
-        .filter(|line| line.chars().count() >= 3);
-
-    let mut final_collections: Vec<Collection> = Vec::<Collection>::new();
-
-    for collection in individual_collections {
-        Collection::from_string(&mut final_collections, collection);
-    }
-
-    final_collections
-}
-
-pub fn save_all_collections(collections: &Vec<Collection>, path: String, encryption_key: &String) {
+pub fn stringify_collections(collections: &Vec<Collection>) -> String {
     let mut stringified_collections = String::new();
 
     for collection in collections {
@@ -796,6 +780,31 @@ pub fn save_all_collections(collections: &Vec<Collection>, path: String, encrypt
         );
     }
 
+    stringified_collections
+}
+
+pub fn unwrap_collections(all_collections_raw: String) -> Vec<Collection> {
+    let individual_collections = all_collections_raw
+        .split("\n")
+        .filter(|line| line.chars().count() >= 3);
+
+    let mut final_collections: Vec<Collection> = Vec::<Collection>::new();
+
+    for collection in individual_collections {
+        Collection::from_string(&mut final_collections, collection);
+    }
+
+    final_collections
+}
+
+pub fn fetch_all_collections(path: String, encryption_key: &String) -> Vec<Collection> {
+    let all_collections_raw = fetch_file(path.clone(), encryption_key);
+    let final_collections = unwrap_collections(all_collections_raw);
+    final_collections
+}
+
+pub fn save_all_collections(collections: &Vec<Collection>, path: String, encryption_key: &String) {
+    let stringified_collections = stringify_collections(collections);
     save_file(path, stringified_collections, encryption_key);
     println!("Collections saved!");
 }

@@ -162,7 +162,7 @@ pub fn login(data: Json<LoginInput>) -> Value {
         Err(e) => return json!({"status": 500, "message": e}),
     };
 
-    json!({"status": 200, "message": "Works!", "user": user, "jwt": jwt})
+    json!({"status": 200, "message": "Login Successful!", "user": user, "jwt": jwt})
 }
 
 #[derive(Serialize, Deserialize)]

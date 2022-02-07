@@ -664,24 +664,7 @@ impl User {
     }
 }
 
-pub fn fetch_all_users(path: String, encryption_key: &String) -> Vec<User> {
-    let all_users_raw = fetch_file(path.clone(), encryption_key);
-
-    let individual_users = all_users_raw
-        .split("\n")
-        .filter(|line| line.chars().count() >= 3);
-
-    let mut final_users: Vec<User> = Vec::<User>::new();
-
-    for user in individual_users {
-        let tmp_user = User::from_string(user);
-        final_users.push(tmp_user);
-    }
-
-    final_users
-}
-
-pub fn save_all_users(users: &Vec<User>, path: String, encryption_key: &String) {
+pub fn stringify_users(users: &Vec<User>) -> String {
     let mut stringified_users = String::new();
 
     for user in users {
@@ -697,6 +680,32 @@ pub fn save_all_users(users: &Vec<User>, path: String, encryption_key: &String) 
         );
     }
 
+    stringified_users
+}
+
+pub fn unwrap_users(all_users_raw: String) -> Vec<User> {
+    let individual_users = all_users_raw
+        .split("\n")
+        .filter(|line| line.chars().count() >= 3);
+
+    let mut final_users: Vec<User> = Vec::<User>::new();
+
+    for user in individual_users {
+        let tmp_user = User::from_string(user);
+        final_users.push(tmp_user);
+    }
+
+    final_users
+}
+
+pub fn fetch_all_users(path: String, encryption_key: &String) -> Vec<User> {
+    let all_users_raw = fetch_file(path.clone(), encryption_key);
+    let final_users = unwrap_users(all_users_raw);
+    final_users
+}
+
+pub fn save_all_users(users: &Vec<User>, path: String, encryption_key: &String) {
+    let stringified_users = stringify_users(users);
     save_file(path, stringified_users, encryption_key);
     println!("Users saved!");
 }

@@ -525,24 +525,7 @@ impl Project {
     }
 }
 
-pub fn fetch_all_projects(path: String, encryption_key: &String) -> Vec<Project> {
-    let all_projects_raw = fetch_file(path.clone(), encryption_key);
-
-    let individual_projects = all_projects_raw
-        .split("\n")
-        .filter(|line| line.chars().count() >= 3);
-
-    let mut final_projects: Vec<Project> = Vec::<Project>::new();
-
-    for project in individual_projects {
-        let tmp_project = Project::from_string(project);
-        final_projects.push(tmp_project);
-    }
-
-    final_projects
-}
-
-pub fn save_all_projects(projects: &Vec<Project>, path: String, encryption_key: &String) {
+pub fn stringify_projects(projects: &Vec<Project>) -> String {
     let mut stringified_projects = String::new();
 
     for project in projects {
@@ -558,6 +541,32 @@ pub fn save_all_projects(projects: &Vec<Project>, path: String, encryption_key: 
         );
     }
 
+    stringified_projects
+}
+
+pub fn unwrap_projects(all_projects_raw: String) -> Vec<Project> {
+    let individual_projects = all_projects_raw
+        .split("\n")
+        .filter(|line| line.chars().count() >= 3);
+
+    let mut final_projects: Vec<Project> = Vec::<Project>::new();
+
+    for project in individual_projects {
+        let tmp_project = Project::from_string(project);
+        final_projects.push(tmp_project);
+    }
+
+    final_projects
+}
+
+pub fn fetch_all_projects(path: String, encryption_key: &String) -> Vec<Project> {
+    let all_projects_raw = fetch_file(path.clone(), encryption_key);
+    let final_projects: Vec<Project> = unwrap_projects(all_projects_raw);
+    final_projects
+}
+
+pub fn save_all_projects(projects: &Vec<Project>, path: String, encryption_key: &String) {
+    let stringified_projects = stringify_projects(projects);
     save_file(path, stringified_projects, encryption_key);
     println!("Projects saved!");
 }

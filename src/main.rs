@@ -3,6 +3,7 @@
 extern crate magic_crypt;
 extern crate argon2;
 extern crate dotenv;
+extern crate redis;
 extern crate rocket;
 extern crate rocket_multipart_form_data;
 
@@ -21,8 +22,6 @@ mod routes;
 #[path = "tests/tests.rs"]
 mod tests;
 
-mod redis_connection;
-
 use std::collections::HashMap;
 
 use init::initialize;
@@ -33,11 +32,12 @@ use rocket::{
     get, launch, routes,
 };
 use rocket_dyn_templates::Template;
-use utils::{auto_fetch_all_mappings, get_config_value};
+use utils::{auto_fetch_all_mappings, get_config_value, init_redis};
 
 #[launch]
 fn rocket() -> _ {
     initialize();
+    println!("{}", init_redis());
 
     rocket::build()
         .mount("/", routes![welcome])
@@ -117,7 +117,7 @@ fn rocket() -> _ {
                 custom_catchers::internal_server_error
             ],
         )
-        .manage(redis_connection::init_pool())
+        .manage(utils::init_redis())
         .attach(Template::fairing())
 }
 
