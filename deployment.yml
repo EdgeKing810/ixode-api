@@ -77,10 +77,10 @@ spec:
               subPath: .env
             - name: kinesis-api-uploads-volume
               mountPath: /app/public
-        # - image: redis:latest
-        #   name: kinesis-api-redis-db
-        #   ports:
-        #     - containerPort: 6379
+        - image: redis:latest
+          name: kinesis-api-redis-db
+          ports:
+            - containerPort: 6379
       imagePullSecrets:
         - name: regcred
       volumes:
