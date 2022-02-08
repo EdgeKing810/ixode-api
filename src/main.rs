@@ -119,6 +119,7 @@ fn rocket() -> _ {
         )
         .manage(utils::init_redis())
         .attach(Template::fairing())
+        .attach(middlewares::cors::CORS)
 }
 
 #[get("/")]
