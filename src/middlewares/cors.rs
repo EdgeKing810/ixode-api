@@ -1,5 +1,7 @@
+use std::io::Cursor;
+
 use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::Header;
+use rocket::http::{ContentType, Header, Method};
 use rocket::{Request, Response};
 
 pub struct CORS;
@@ -21,5 +23,10 @@ impl Fairing for CORS {
         ));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+
+        if _request.method() == Method::Options {
+            response.set_header(ContentType::Plain);
+            response.set_sized_body(200, Cursor::new(""));
+        }
     }
 }

@@ -21,6 +21,7 @@ jsonwebtoken = "7.2"
 lettre = "0.10.0-rc.4"
 rocket-multipart-form-data = "0.10.0"
 redis = "0.21.5"
+rocket_cors = { git = "https://github.com/lawliet89/rocket_cors", branch = "master" }
 
 [profile.release]
 lto = true

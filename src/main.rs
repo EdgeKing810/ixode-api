@@ -22,6 +22,7 @@ mod routes;
 #[path = "tests/tests.rs"]
 mod tests;
 
+use rocket_cors::{AllowedHeaders, AllowedOrigins};
 use std::collections::HashMap;
 
 use init::initialize;
@@ -29,7 +30,9 @@ use init::initialize;
 use rocket::{
     catchers,
     fs::{relative, FileServer},
-    get, launch, routes,
+    get,
+    http::Method,
+    launch, routes,
 };
 use rocket_dyn_templates::Template;
 use utils::{auto_fetch_all_mappings, get_config_value, init_redis};
@@ -39,9 +42,27 @@ fn rocket() -> _ {
     initialize();
     println!("{}", init_redis());
 
+    // let allowed_origins = AllowedOrigins::some_exact(&["https://www.acme.com"]);
+    let allowed_origins = AllowedOrigins::all();
+
+    let cors = rocket_cors::CorsOptions {
+        allowed_origins,
+        allowed_methods: vec![Method::Get, Method::Post, Method::Options]
+            .into_iter()
+            .map(From::from)
+            .collect(),
+        // allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Content-Type"]),
+        allowed_headers: AllowedHeaders::all(),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors()
+    .unwrap();
+
     rocket::build()
         .mount("/", routes![welcome])
         .mount("/public", FileServer::from(relative!("public")))
+        .mount("/", rocket_cors::catch_all_options_routes())
         .mount(
             fpath("/tmp"),
             routes![routes::test::world, routes::test::wave],
@@ -117,9 +138,10 @@ fn rocket() -> _ {
                 custom_catchers::internal_server_error
             ],
         )
-        .manage(utils::init_redis())
         .attach(Template::fairing())
-        .attach(middlewares::cors::CORS)
+        .attach(cors.clone())
+        .manage(utils::init_redis())
+        .manage(cors)
 }
 
 #[get("/")]
