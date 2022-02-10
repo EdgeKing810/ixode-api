@@ -70,6 +70,22 @@ pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
             );
         }
 
+        let splitted_clean_file_name = clean_file_name
+            .trim()
+            .clone()
+            .split(" ")
+            .collect::<Vec<&str>>();
+
+        let mut clean_file_name = String::new();
+        for i in 0..(splitted_clean_file_name.len() - 1) {
+            clean_file_name = format!(
+                "{}{}{}",
+                clean_file_name,
+                if i == 0 { "" } else { "_" },
+                splitted_clean_file_name[i]
+            );
+        }
+
         let end_block = EncryptionKey::generate_block(8);
         let final_name = format!("public/{}_{}.{}", clean_file_name, end_block, extension);
 
