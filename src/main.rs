@@ -73,6 +73,7 @@ fn rocket() -> _ {
                 routes::user::fetch_all,
                 routes::user::fetch_one,
                 routes::user::login,
+                routes::user::register,
                 routes::user::verify,
                 routes::user::update,
                 routes::user::update_role,
