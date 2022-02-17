@@ -3,6 +3,7 @@ use rocket::post;
 use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
 
+use lettre::message::MultiPart;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 
@@ -262,17 +263,22 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
 
     let email_template = auto_fetch_file("templates/email/welcome.html", &mappings)
         .split("{name}")
-        .fold(String::new(), |a, b| {
-            a + &format!("{} {}", first_name, last_name) + b
-        })
+        .collect::<Vec<&str>>()
+        .join(&format!("{} {}", first_name, last_name))
         .split("{site_url}")
-        .fold(String::new(), |a, b| a + &project_url + b)
+        .collect::<Vec<&str>>()
+        .join(&format!("{}", project_url))
         .split("{site_name}")
-        .fold(String::new(), |a, b| a + &project_name + b)
+        .collect::<Vec<&str>>()
+        .join(&format!("{}", project_name))
         .split("{username}")
-        .fold(String::new(), |a, b| a + username + b)
+        .collect::<Vec<&str>>()
+        .join(&format!("{}", username))
         .split("{password}")
-        .fold(String::new(), |a, b| a + &password + b);
+        .collect::<Vec<&str>>()
+        .join(&format!("{}", password));
+
+    println!("{}", email_template);
 
     let email = Message::builder()
         .from(format!("Hello <{}>", smtp_username).parse().unwrap())
@@ -280,7 +286,10 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
             .parse()
             .unwrap())
         .subject(format!("Welcome to {}", project_name))
-        .body(email_template)
+        .multipart(MultiPart::alternative_plain_html(
+            String::from(""),
+            email_template,
+        ))
         .unwrap();
 
     let creds = Credentials::new(smtp_username, smtp_password);
