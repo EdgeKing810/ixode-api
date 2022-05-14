@@ -163,7 +163,7 @@ pub fn login(data: Json<LoginInput>) -> Value {
         Err(e) => return json!({"status": 500, "message": e}),
     };
 
-    json!({"status": 200, "message": "Login Successful!", "user": user, "jwt": jwt})
+    json!({"status": 200, "message": "Login Successful!", "user": user, "uid": user.id, "jwt": jwt})
 }
 
 #[derive(Serialize, Deserialize)]
@@ -201,7 +201,9 @@ pub async fn login_jwt(data: Json<UIDInput>, token: Token) -> Value {
 
     let user = match User::get(&users, uid) {
         Ok(user) => user,
-        Err(e) => { return json!({"status": e.0, "message": e.1}); }
+        Err(e) => {
+            return json!({"status": e.0, "message": e.1});
+        }
     };
 
     let jwt = match create_jwt(&mappings, uid.clone()) {
@@ -209,7 +211,7 @@ pub async fn login_jwt(data: Json<UIDInput>, token: Token) -> Value {
         Err(e) => return json!({"status": 500, "message": e}),
     };
 
-    json!({"status": 200, "message": "Login Successful!", "user": user, "jwt": jwt})
+    json!({"status": 200, "message": "Login Successful!", "user": user, "uid": user.id, "jwt": jwt})
 }
 
 #[derive(Serialize, Deserialize)]
