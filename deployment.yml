@@ -87,7 +87,7 @@ spec:
   selector:
     matchLabels:
       app: kinesis-api-web
-  minReadySeconds: 600
+  minReadySeconds: 60
   strategy:
     type: RollingUpdate
     rollingUpdate:
