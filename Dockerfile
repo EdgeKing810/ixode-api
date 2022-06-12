@@ -10,6 +10,7 @@ RUN apt update && \
 
 RUN rustc -V
 RUN cargo --version
+RUN mkdir /db
 
 EXPOSE 8000
 CMD ["cargo", "run", "--release"]

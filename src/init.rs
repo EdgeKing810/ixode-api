@@ -298,12 +298,20 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
     let all_collections_path = get_file_name("collections", mappings);
     let mut all_collections = Vec::<Collection>::new();
 
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
     if let Err(e) = all_collections_path {
         println!("{}", e);
         return all_collections;
     }
 
-    all_collections = fetch_all_collections(all_collections_path.clone().unwrap(), &String::new());
+    all_collections = fetch_all_collections(
+        all_collections_path.clone().unwrap(),
+        &get_encryption_key(&mappings, &pass),
+    );
 
     if !Collection::exist(&all_collections, "posts") {
         let create_collection = Collection::create(
@@ -454,7 +462,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
         save_all_collections(
             &all_collections,
             all_collections_path.unwrap(),
-            &String::new(),
+            &get_encryption_key(&mappings, &pass),
         );
     }
 

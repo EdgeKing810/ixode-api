@@ -25,7 +25,7 @@ mod tests;
 use rocket_cors::{AllowedHeaders, AllowedOrigins};
 use std::collections::HashMap;
 
-use init::initialize;
+// use init::initialize;
 
 use rocket::{
     catchers,
@@ -35,11 +35,24 @@ use rocket::{
     launch, routes,
 };
 use rocket_dyn_templates::Template;
+use std::fs;
 use utils::{auto_fetch_all_mappings, get_config_value, init_redis};
 
 #[launch]
 fn rocket() -> _ {
-    initialize();
+    match dotenv::dotenv() {
+        Err(_) => {
+            match fs::copy(".env.template", ".env") {
+                Ok(_) => dotenv::dotenv().expect("Failed to read .env file"),
+                Err(_) => {
+                    panic!("Failed to create .env file from template");
+                }
+            };
+        }
+        _ => {}
+    }
+
+    // initialize();
     println!("{}", init_redis());
 
     // let allowed_origins = AllowedOrigins::some_exact(&["https://www.acme.com"]);

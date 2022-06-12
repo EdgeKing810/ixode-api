@@ -41,6 +41,42 @@ spec:
     requests:
       storage: 1Gi
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kinesis-api-data-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  local:
+    path: /nfs/general/kinesis-db
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s-worker-0
+                - k8s-worker-1
+                - k8s-worker-2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kinesis-api-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -51,7 +87,7 @@ spec:
   selector:
     matchLabels:
       app: kinesis-api-web
-  minReadySeconds: 60
+  minReadySeconds: 600
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -77,6 +113,8 @@ spec:
               subPath: .env
             - name: kinesis-api-uploads-volume
               mountPath: /app/public
+            - name: kinesis-api-data-volume
+              mountPath: /db
         - image: redis:latest
           name: kinesis-api-redis-db
           ports:
@@ -90,6 +128,9 @@ spec:
         - name: kinesis-api-uploads-volume
           persistentVolumeClaim:
             claimName: kinesis-api-uploads-pvc
+        - name: kinesis-api-data-volume
+          persistentVolumeClaim:
+            claimName: kinesis-api-data-pvc
 # ---
 # apiVersion: autoscaling/v1
 # kind: HorizontalPodAutoscaler
