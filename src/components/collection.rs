@@ -433,7 +433,6 @@ impl Collection {
                     }
                 }
 
-                current_custom_structures.push(custom_structure);
                 collection.custom_structures = current_custom_structures;
 
                 break;
@@ -800,11 +799,13 @@ pub fn unwrap_collections(all_collections_raw: String) -> Vec<Collection> {
 pub fn fetch_all_collections(path: String, encryption_key: &String) -> Vec<Collection> {
     let all_collections_raw = fetch_file(path.clone(), encryption_key);
     let final_collections = unwrap_collections(all_collections_raw);
+    println!("{:#?}", final_collections);
     final_collections
 }
 
 pub fn save_all_collections(collections: &Vec<Collection>, path: String, encryption_key: &String) {
     let stringified_collections = stringify_collections(collections);
+    println!("{:#?}", stringified_collections);
     save_file(path, stringified_collections, encryption_key);
     println!("Collections saved!");
 }
