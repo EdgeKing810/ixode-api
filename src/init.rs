@@ -25,6 +25,17 @@ pub fn initialize() {
     }
 
     let all_mappings = initialize_mappings();
+
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
+    match initialize_encryption_key(&all_mappings, &pass) {
+        Ok(_) => println!("Encryption Key Generated!"),
+        Err(e) => println!("{}", e),
+    }
+
     let all_users: Vec<User> = initialize_users(&all_mappings);
     let all_projects: Vec<Project> = initialize_projects(&all_mappings);
     let _all_configs: Vec<Config> = initialize_configs(&all_mappings);
@@ -273,9 +284,21 @@ pub fn initialize_encryption_key(
 
     encryption_key = fetch_encryption_key(encryption_key_path.clone().unwrap(), password);
 
-    if let Err(_) = encryption_key {
+    let mut should_continue = false;
+    match encryption_key.clone() {
+        Err(_) => {
+            should_continue = true;
+        }
+        Ok(k) => {
+            if k.len() < 1 {
+                should_continue = true;
+            }
+        }
+    }
+
+    if should_continue {
         // Encryption key most likely doesn't exist yet
-        let new_encryption_key = EncryptionKey::generate(20);
+        let new_encryption_key = EncryptionKey::generate(32);
         let saved_encryption_key = save_encryption_key(
             new_encryption_key.0.clone(),
             password,
