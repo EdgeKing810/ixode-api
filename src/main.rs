@@ -25,7 +25,7 @@ mod tests;
 use rocket_cors::{AllowedHeaders, AllowedOrigins};
 use std::collections::HashMap;
 
-// use init::initialize;
+use init::initialize;
 
 use rocket::{
     catchers,
@@ -52,7 +52,6 @@ fn rocket() -> _ {
         _ => {}
     }
 
-    // initialize();
     println!("{}", init_redis());
 
     // let allowed_origins = AllowedOrigins::some_exact(&["https://www.acme.com"]);
@@ -177,6 +176,8 @@ fn welcome() -> Template {
     context.insert("front_url", front_url);
     context.insert("logo_url", logo_url);
     context.insert("documentation_url", documentation_url);
+
+    initialize();
 
     Template::render("welcome", context)
 }
