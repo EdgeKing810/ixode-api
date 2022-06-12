@@ -23,7 +23,9 @@ pub fn fetch_file(path: String, encryption_key: &String) -> String {
                         .filter(|line| line.chars().count() >= 3)
                         .collect::<Vec<&str>>();
 
-                    if broken_content[0] == String::from(";|encrypted|;") {
+                    if broken_content.len() > 0
+                        && broken_content[0] == String::from(";|encrypted|;")
+                    {
                         for bc in broken_content {
                             if bc == String::from(";|encrypted|;") {
                                 continue;
