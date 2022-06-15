@@ -71,10 +71,12 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
     let mut allowed = false;
 
     if current_user.role != Role::ROOT {
-        for member in members {
-            if member.to_lowercase() == uid.to_string() {
-                allowed = true;
-                break;
+        if current_user.role == Role::ADMIN {
+            for member in members {
+                if member.to_lowercase() == uid.to_string() {
+                    allowed = true;
+                    break;
+                }
             }
         }
     } else {
@@ -159,10 +161,12 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
     let mut allowed = false;
 
     if current_user.role != Role::ROOT {
-        for member in members {
-            if member.to_lowercase() == uid.to_string() {
-                allowed = true;
-                break;
+        if current_user.role == Role::ADMIN {
+            for member in members {
+                if member.to_lowercase() == uid.to_string() {
+                    allowed = true;
+                    break;
+                }
             }
         }
     } else {
@@ -261,10 +265,12 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
     let mut allowed = false;
 
     if current_user.role != Role::ROOT {
-        for member in members {
-            if member.to_lowercase() == uid.to_string() {
-                allowed = true;
-                break;
+        if current_user.role == Role::ADMIN {
+            for member in members {
+                if member.to_lowercase() == uid.to_string() {
+                    allowed = true;
+                    break;
+                }
             }
         }
     } else {
