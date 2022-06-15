@@ -323,6 +323,7 @@ impl Collection {
                     &mut current_structures,
                     &structure.id,
                     &structure.name,
+                    &structure.description,
                     &structure.stype.to_string(),
                     &structure.default_val,
                     structure.min,
@@ -374,6 +375,7 @@ impl Collection {
                     &mut updated_structures,
                     &structure.id,
                     &structure.name,
+                    &structure.description,
                     &structure.stype.to_string(),
                     &structure.default_val,
                     structure.min,
@@ -417,6 +419,7 @@ impl Collection {
                     &mut current_custom_structures,
                     &custom_structure.id,
                     &custom_structure.name,
+                    &custom_structure.description,
                 ) {
                     Err(e) => return Err(e),
                     _ => {}
@@ -471,6 +474,7 @@ impl Collection {
                     &mut updated_custom_structures,
                     &custom_structure.id,
                     &custom_structure.name,
+                    &custom_structure.description,
                 ) {
                     Err(e) => return Err(e),
                     _ => {}
@@ -715,12 +719,13 @@ impl Collection {
                 &mut final_custom_structures,
                 current_custom_structure[0],
                 current_custom_structure[1],
+                current_custom_structure[2],
             );
             if let Err(e) = create_custom_structure {
                 return e.1;
             }
 
-            let current_structures = current_custom_structure[2..].join("|");
+            let current_structures = current_custom_structure[3..].join("|");
             let individual_structures = current_structures.split("%").collect::<Vec<&str>>();
             let mut final_structures_custom: Vec<Structure> = vec![];
             for structure in individual_structures {

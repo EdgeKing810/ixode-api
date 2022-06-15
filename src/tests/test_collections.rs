@@ -31,6 +31,7 @@ fn test_correct_collection() {
             &mut all_structures,
             "title",
             "Title",
+            "Title of a post",
             "text",
             "test title",
             5,
@@ -45,6 +46,7 @@ fn test_correct_collection() {
             &mut all_structures,
             "cover_image",
             "Cover Image",
+            "Cover Image picture",
             "media",
             "https://test.image.com",
             0,
@@ -59,6 +61,7 @@ fn test_correct_collection() {
             &mut all_structures,
             "content",
             "Content",
+            "Actual content of the post",
             "richtext",
             "[ Content goes here ]",
             30,
@@ -73,6 +76,7 @@ fn test_correct_collection() {
             &mut all_structures,
             "views",
             "Views",
+            "Number of people that have viewed a post",
             "number",
             "0",
             0,
@@ -85,22 +89,9 @@ fn test_correct_collection() {
         .unwrap();
         Structure::create(
             &mut all_structures,
-            "comment",
-            "Comments",
-            "comment",
-            "0",
-            0,
-            9999,
-            false,
-            false,
-            "",
-            true,
-        )
-        .unwrap();
-        Structure::create(
-            &mut all_structures,
             "published",
             "Published",
+            "Whether the blog post is published or not",
             "boolean",
             "false",
             0,
@@ -121,6 +112,7 @@ fn test_correct_collection() {
             &mut tmp_structures,
             "uid",
             "UID",
+            "ID of the User posting a comment",
             "uid",
             "",
             5,
@@ -135,6 +127,7 @@ fn test_correct_collection() {
             &mut tmp_structures,
             "value",
             "Value",
+            "Actual content of the comment",
             "text",
             "",
             1,
@@ -146,7 +139,13 @@ fn test_correct_collection() {
         )
         .unwrap();
 
-        CustomStructure::create(&mut all_custom_structures, "comment", "comment").unwrap();
+        CustomStructure::create(
+            &mut all_custom_structures,
+            "comment",
+            "comment",
+            "To store comments",
+        )
+        .unwrap();
         CustomStructure::set_structures(
             &mut all_custom_structures,
             &"comment".to_string(),
@@ -188,6 +187,7 @@ fn test_incorrect_collection() {
             &mut all_structures,
             "title",
             "Title",
+            "a title",
             "text",
             "test title",
             5,
@@ -203,6 +203,7 @@ fn test_incorrect_collection() {
             &mut all_structures,
             "title",
             "Title",
+            "a title",
             "text",
             "test title",
             5,
@@ -221,6 +222,7 @@ fn test_incorrect_collection() {
             &mut all_structures,
             "title2=",
             "Title",
+            "a title",
             "text",
             "test title",
             5,
@@ -238,6 +240,28 @@ fn test_incorrect_collection() {
             ))
         );
 
+        let test_structure = Structure::create(
+            &mut all_structures,
+            "title2",
+            "Title",
+            "a title%",
+            "text",
+            "test title",
+            5,
+            20,
+            false,
+            false,
+            "",
+            false,
+        );
+        assert_eq!(
+            test_structure,
+            Err((
+                400,
+                String::from("Error: description contains an invalid character")
+            ))
+        );
+
         let test_structure =
             Structure::update_id(&mut all_structures, &"title2".to_string(), "title3");
         assert_eq!(
@@ -252,6 +276,16 @@ fn test_incorrect_collection() {
             Err((
                 400,
                 String::from("Error: name contains an invalid character")
+            ))
+        );
+
+        let test_structure =
+            Structure::update_description(&mut all_structures, &"title".to_string(), "a title%");
+        assert_eq!(
+            test_structure,
+            Err((
+                400,
+                String::from("Error: description contains an invalid character")
             ))
         );
 
@@ -295,6 +329,7 @@ fn test_incorrect_collection() {
             &mut tmp_structures,
             "uid",
             "UID",
+            "ID of the User posting a comment",
             "uid",
             "",
             5,
@@ -309,6 +344,7 @@ fn test_incorrect_collection() {
             &mut tmp_structures,
             "value",
             "Value",
+            "Actual content of the comment",
             "text",
             "",
             1,
@@ -320,7 +356,13 @@ fn test_incorrect_collection() {
         )
         .unwrap();
 
-        CustomStructure::create(&mut all_custom_structures, "comment", "comment").unwrap();
+        CustomStructure::create(
+            &mut all_custom_structures,
+            "comment",
+            "comment",
+            "To store comments",
+        )
+        .unwrap();
         CustomStructure::set_structures(
             &mut all_custom_structures,
             &"comment".to_string(),
@@ -328,8 +370,12 @@ fn test_incorrect_collection() {
         )
         .unwrap();
 
-        let test_custom_structure =
-            CustomStructure::create(&mut all_custom_structures, "comment", "comment");
+        let test_custom_structure = CustomStructure::create(
+            &mut all_custom_structures,
+            "comment",
+            "comment",
+            "To store comments",
+        );
         assert_eq!(
             test_custom_structure,
             Err((403, String::from("Error: id is already in use")))
@@ -368,6 +414,19 @@ fn test_incorrect_collection() {
             Err((
                 400,
                 String::from("Error: name contains an invalid character")
+            ))
+        );
+
+        let test_custom_structure = CustomStructure::update_description(
+            &mut all_custom_structures,
+            &"comment".to_string(),
+            "To store comments^",
+        );
+        assert_eq!(
+            test_custom_structure,
+            Err((
+                400,
+                String::from("Error: description contains an invalid character")
             ))
         );
 

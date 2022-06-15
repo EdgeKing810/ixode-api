@@ -1,149 +1,8 @@
-Mappings saved!
-Users saved!
-Projects saved!
-Configs saved!
-Ok(
-    User {
-        id: "9CO7mb19-nYc63rom-IE80cmuP-Pq8P7eOC-DyK4esQ4-613",
-        first_name: "Kishan",
-        last_name: "Takoordyal",
-        username: "EdgeKing810",
-        email: "kishan@konnect.dev",
-        password: "$argon2i$v=19$m=4096,t=3,p=1$HvZNP8AnRBq+BpgvcRkLjQ$/6YLke4shp7lJqqd+cHELiYjhS6x4xOkbG5s2yIi3jY",
-        role: ROOT,
-    },
-)
-Projects: [
-    Project {
-        id: "konnect",
-        name: "Konnect - Social Media",
-        description: "A next-gen social media.",
-        api_path: "/api/v2/konnect",
-        members: [],
-    },
-]
-Collections: [
-    Collection {
-        id: "posts",
-        project_id: "konnect",
-        name: "Posts",
-        description: "To store blog posts.",
-        structures: [
-            Structure {
-                id: "title",
-                name: "Title",
-                stype: TEXT,
-                default_val: "test title",
-                min: 5,
-                max: 20,
-                encrypted: false,
-                unique: false,
-                regex_pattern: "",
-                array: false,
-            },
-            Structure {
-                id: "cover_image",
-                name: "Cover Image",
-                stype: MEDIA,
-                default_val: "https://test.image.com",
-                min: 0,
-                max: 200,
-                encrypted: false,
-                unique: false,
-                regex_pattern: "",
-                array: false,
-            },
-            Structure {
-                id: "content",
-                name: "Content",
-                stype: RICHTEXT,
-                default_val: "[ Content goes here ]",
-                min: 30,
-                max: 2000,
-                encrypted: false,
-                unique: false,
-                regex_pattern: "",
-                array: false,
-            },
-            Structure {
-                id: "views",
-                name: "Views",
-                stype: NUMBER,
-                default_val: "0",
-                min: 0,
-                max: 9999,
-                encrypted: false,
-                unique: false,
-                regex_pattern: "",
-                array: false,
-            },
-            Structure {
-                id: "comment",
-                name: "Comments",
-                stype: CUSTOM(
-                    "comment",
-                ),
-                default_val: "0",
-                min: 0,
-                max: 9999,
-                encrypted: false,
-                unique: false,
-                regex_pattern: "",
-                array: true,
-            },
-            Structure {
-                id: "published",
-                name: "Published",
-                stype: CUSTOM(
-                    "boolean",
-                ),
-                default_val: "false",
-                min: 0,
-                max: 5,
-                encrypted: false,
-                unique: false,
-                regex_pattern: "",
-                array: true,
-            },
-        ],
-        custom_structures: [
-            CustomStructure {
-                id: "comment",
-                name: "comment",
-                structures: [
-                    Structure {
-                        id: "uid",
-                        name: "UID",
-                        stype: UID,
-                        default_val: "",
-                        min: 5,
-                        max: 20,
-                        encrypted: false,
-                        unique: true,
-                        regex_pattern: "",
-                        array: false,
-                    },
-                    Structure {
-                        id: "value",
-                        name: "Value",
-                        stype: TEXT,
-                        default_val: "",
-                        min: 1,
-                        max: 100,
-                        encrypted: false,
-                        unique: false,
-                        regex_pattern: "",
-                        array: false,
-                    },
-                ],
-            },
-        ],
-    },
-]
+Error: REDIS_HOST not set
 Configured for debug.
    >> address: 0.0.0.0
    >> port: 8000
-   >> workers: 12
+   >> workers: 8
    >> ident: Kinesis API
    >> keep-alive: 5s
    >> limits: bytes = 8KiB, data-form = 2MiB, file = 1MiB, file/jpg = 20MiB, form = 32KiB, forms = 64kB, json = 5MiB, msgpack = 5MiB, string = 8KiB
@@ -154,6 +13,7 @@ Configured for debug.
    >> shutdown: ctrlc = true, force = true, signals = [SIGTERM], grace = 2s, mercy = 3s
 Routes:
    >> (welcome) GET /
+   >> OPTIONS /<catch_all_options_route..> [9223372036854775807]
    >> (world) GET /tmp/hello/world
    >> (wave) GET /tmp/wave/<name>/<age>
    >> (fetch_all) POST /user/fetch?<limit>&<offset> application/json
@@ -161,8 +21,12 @@ Routes:
    >> (verify) POST /user/verify application/json
    >> (update) POST /user/update application/json
    >> (delete) POST /user/delete application/json
+   >> (register) POST /user/register application/json
+   >> GET /cors/<status>
    >> (fetch_one) POST /user/fetch/one application/json
+   >> (login_jwt) POST /user/login/jwt application/json
    >> (update_role) POST /user/update/role application/json
+   >> (upload) POST /upload/
    >> (add) POST /config/add application/json
    >> (fetch_all) POST /config/fetch?<limit>&<offset> application/json
    >> (update) POST /config/update application/json
@@ -195,10 +59,11 @@ Catchers:
    >> (internal_server_error) 500
 Fairings:
    >> Templating (ignite, liftoff, request)
+   >> CORS (ignite, request, response)
    >> Shield (liftoff, response, singleton)
 Shield:
-   >> Permissions-Policy: interest-cohort=()
    >> X-Frame-Options: SAMEORIGIN
+   >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
 Templating:
    >> directory: templates

@@ -353,6 +353,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             &mut all_structures,
             "title",
             "Title",
+            "Title of a post",
             "text",
             "test title",
             5,
@@ -367,6 +368,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             &mut all_structures,
             "cover_image",
             "Cover Image",
+            "Cover Image picture",
             "media",
             "https://test.image.com",
             0,
@@ -381,6 +383,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             &mut all_structures,
             "content",
             "Content",
+            "Actual content of the post",
             "richtext",
             "[ Content goes here ]",
             30,
@@ -395,6 +398,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             &mut all_structures,
             "views",
             "Views",
+            "Number of people that have viewed a post",
             "number",
             "0",
             0,
@@ -407,22 +411,9 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
         .unwrap();
         Structure::create(
             &mut all_structures,
-            "comment",
-            "Comments",
-            "comment",
-            "0",
-            0,
-            9999,
-            false,
-            false,
-            "",
-            true,
-        )
-        .unwrap();
-        Structure::create(
-            &mut all_structures,
             "published",
             "Published",
+            "Whether the blog post is published or not",
             "boolean",
             "false",
             0,
@@ -443,6 +434,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             &mut tmp_structures,
             "uid",
             "UID",
+            "ID of the User posting a comment",
             "uid",
             "",
             5,
@@ -457,6 +449,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             &mut tmp_structures,
             "value",
             "Value",
+            "Actual content of the comment",
             "text",
             "",
             1,
@@ -468,7 +461,13 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
         )
         .unwrap();
 
-        CustomStructure::create(&mut all_custom_structures, "comment", "comment").unwrap();
+        CustomStructure::create(
+            &mut all_custom_structures,
+            "comment",
+            "comment",
+            "To store comments",
+        )
+        .unwrap();
         CustomStructure::set_structures(
             &mut all_custom_structures,
             &"comment".to_string(),

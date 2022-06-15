@@ -6,6 +6,7 @@ use rocket::serde::{Deserialize, Serialize};
 pub struct CustomStructure {
     pub id: String,
     pub name: String,
+    pub description: String,
     pub structures: Vec<Structure>,
 }
 
@@ -14,6 +15,7 @@ impl CustomStructure {
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &str,
         name: &str,
+        description: &str,
     ) -> Result<(), (usize, String)> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
@@ -24,6 +26,7 @@ impl CustomStructure {
         let new_custom_structure = CustomStructure {
             id: tmp_id.clone(),
             name: "".to_string(),
+            description: "".to_string(),
             structures: vec![],
         };
         all_custom_structures.push(new_custom_structure);
@@ -45,9 +48,19 @@ impl CustomStructure {
             }
         }
 
+        if !has_error {
+            let description_update =
+                Self::update_description(all_custom_structures, &new_id, description);
+            if let Err(e) = description_update {
+                has_error = true;
+                println!("{}", e.1);
+                latest_error = e;
+            }
+        }
+
         if has_error {
-            let delete_project = Self::delete(all_custom_structures, &new_id);
-            if let Err(e) = delete_project {
+            let delete_custom_structure = Self::delete(all_custom_structures, &new_id);
+            if let Err(e) = delete_custom_structure {
                 println!("{}", e.1);
             }
 
@@ -163,6 +176,45 @@ impl CustomStructure {
         Ok(())
     }
 
+    pub fn update_description(
+        all_custom_structures: &mut Vec<CustomStructure>,
+        id: &String,
+        description: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut found_custom_structure: Option<CustomStructure> = None;
+
+        if !String::from(description)
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
+        {
+            return Err((
+                400,
+                String::from("Error: description contains an invalid character"),
+            ));
+        }
+
+        if String::from(description.trim()).len() > 1000 {
+            return Err((
+                400,
+                String::from("Error: description contains too many characters"),
+            ));
+        }
+
+        for custom_structure in all_custom_structures.iter_mut() {
+            if custom_structure.id == *id {
+                found_custom_structure = Some(custom_structure.clone());
+                custom_structure.description = description.trim().to_string();
+                break;
+            }
+        }
+
+        if let None = found_custom_structure {
+            return Err((404, String::from("Error: Custom Structure not found")));
+        }
+
+        Ok(())
+    }
+
     pub fn add_structure(
         all_custom_structures: &mut Vec<CustomStructure>,
         id: &String,
@@ -180,6 +232,7 @@ impl CustomStructure {
                     &mut current_structures,
                     &structure.id,
                     &structure.name,
+                    &structure.description,
                     &structure.stype.to_string(),
                     &structure.default_val,
                     structure.min,
@@ -231,6 +284,7 @@ impl CustomStructure {
                     &mut updated_structures,
                     &structure.id,
                     &structure.name,
+                    &structure.description,
                     &structure.stype.to_string(),
                     &structure.default_val,
                     structure.min,
@@ -333,6 +387,7 @@ impl CustomStructure {
             .map(|custom_structure| CustomStructure {
                 id: custom_structure.id.clone(),
                 name: custom_structure.name.clone(),
+                description: custom_structure.description.clone(),
                 structures: custom_structure.structures.clone(),
             })
             .collect::<Vec<CustomStructure>>();
@@ -377,6 +432,7 @@ impl CustomStructure {
             &mut tmp_custom_structures,
             current_custom_structure[0],
             current_custom_structure[1],
+            current_custom_structure[2],
         );
 
         if let Err(e) = create_custom_structure {
@@ -384,7 +440,7 @@ impl CustomStructure {
         }
 
         let mut tmp_structures = Vec::<Structure>::new();
-        let current_structures = current_custom_structure[2..].join("|");
+        let current_structures = current_custom_structure[3..].join("|");
         let individual_structures = current_structures.split("%").collect::<Vec<&str>>();
 
         for structure in individual_structures {
@@ -402,8 +458,11 @@ impl CustomStructure {
         let stringified_structures = Structure::stringify(&custom_structure.structures);
 
         format!(
-            "{}|{}|{}",
-            custom_structure.id, custom_structure.name, stringified_structures
+            "{}|{}|{}|{}",
+            custom_structure.id,
+            custom_structure.name,
+            custom_structure.description,
+            stringified_structures
         )
     }
 }

@@ -50,6 +50,7 @@ impl fmt::Display for Type {
 pub struct Structure {
     pub id: String,
     pub name: String,
+    pub description: String,
     pub stype: Type,
     pub default_val: String,
     pub min: usize,
@@ -65,6 +66,7 @@ impl Structure {
         all_structures: &mut Vec<Structure>,
         id: &str,
         name: &str,
+        description: &str,
         stype_txt: &str,
         default_val: &str,
         min: usize,
@@ -83,6 +85,7 @@ impl Structure {
         let new_structure = Structure {
             id: tmp_id.clone(),
             name: "".to_string(),
+            description: "".to_string(),
             stype: Type::default(),
             default_val: "".to_string(),
             min: 0,
@@ -105,6 +108,15 @@ impl Structure {
         if !has_error {
             let name_update = Self::update_name(all_structures, &new_id, name);
             if let Err(e) = name_update {
+                has_error = true;
+                println!("{}", e.1);
+                latest_error = e;
+            }
+        }
+
+        if !has_error {
+            let description_update = Self::update_description(all_structures, &new_id, description);
+            if let Err(e) = description_update {
                 has_error = true;
                 println!("{}", e.1);
                 latest_error = e;
@@ -184,8 +196,8 @@ impl Structure {
         }
 
         if has_error {
-            let delete_project = Self::delete(all_structures, &new_id);
-            if let Err(e) = delete_project {
+            let delete_structure = Self::delete(all_structures, &new_id);
+            if let Err(e) = delete_structure {
                 println!("{}", e.1);
             }
 
@@ -290,6 +302,45 @@ impl Structure {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
                 structure.name = name.trim().to_string();
+                break;
+            }
+        }
+
+        if let None = found_structure {
+            return Err((404, String::from("Error: Structure not found")));
+        }
+
+        Ok(())
+    }
+
+    pub fn update_description(
+        all_structures: &mut Vec<Structure>,
+        id: &String,
+        description: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut found_structure: Option<Structure> = None;
+
+        if !String::from(description)
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
+        {
+            return Err((
+                400,
+                String::from("Error: description contains an invalid character"),
+            ));
+        }
+
+        if String::from(description.trim()).len() > 1000 {
+            return Err((
+                400,
+                String::from("Error: description contains too many characters"),
+            ));
+        }
+
+        for structure in all_structures.iter_mut() {
+            if structure.id == *id {
+                found_structure = Some(structure.clone());
+                structure.description = description.trim().to_string();
                 break;
             }
         }
@@ -542,6 +593,7 @@ impl Structure {
             .map(|structure| Structure {
                 id: structure.id.clone(),
                 name: structure.name.clone(),
+                description: structure.description.clone(),
                 stype: structure.stype.clone(),
                 default_val: structure.default_val.clone(),
                 min: structure.min.clone(),
@@ -605,9 +657,10 @@ impl Structure {
         };
 
         format!(
-            "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
+            "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
             structure.id,
             structure.name,
+            structure.description,
             stype_txt,
             structure.default_val,
             structure.min,
@@ -625,29 +678,29 @@ pub fn try_add_structure(array: &Vec<&str>, final_structures: &mut Vec<Structure
         return false;
     }
 
-    let min = array[4].parse::<usize>();
+    let min = array[5].parse::<usize>();
     if let Err(e) = min {
         println!("{}", e);
         return false;
     }
 
-    let max = array[5].parse::<usize>();
+    let max = array[6].parse::<usize>();
     if let Err(e) = max {
         println!("{}", e);
         return false;
     }
 
-    let encrypted = match array[6] {
+    let encrypted = match array[7] {
         "true" => true,
         _ => false,
     };
 
-    let unique = match array[7] {
+    let unique = match array[8] {
         "true" => true,
         _ => false,
     };
 
-    let is_array = match array[9] {
+    let is_array = match array[10] {
         "true" => true,
         _ => false,
     };
@@ -658,11 +711,12 @@ pub fn try_add_structure(array: &Vec<&str>, final_structures: &mut Vec<Structure
         array[1],
         array[2],
         array[3],
+        array[4],
         min.unwrap(),
         max.unwrap(),
         encrypted,
         unique,
-        array[8],
+        array[9],
         is_array,
     );
 
