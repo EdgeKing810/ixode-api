@@ -3,6 +3,7 @@ use crate::components::config::{fetch_all_configs, save_all_configs, Config};
 use crate::components::custom_structures::CustomStructure;
 use crate::components::encryption::{fetch_encryption_key, save_encryption_key, EncryptionKey};
 use crate::components::mappings::{fetch_all_mappings, get_file_name, save_all_mappings, Mapping};
+use crate::components::media::{fetch_all_medias, save_all_medias, Media};
 use crate::components::project::{fetch_all_projects, save_all_projects, Project};
 use crate::components::structures::Structure;
 use crate::components::user::{fetch_all_users, save_all_users, User};
@@ -40,6 +41,7 @@ pub fn initialize() {
     let all_projects: Vec<Project> = initialize_projects(&all_mappings);
     let _all_configs: Vec<Config> = initialize_configs(&all_mappings);
     let all_collections: Vec<Collection> = initialize_collections(&all_mappings);
+    let _all_medias: Vec<Media> = initialize_medias(&all_mappings);
 
     println!(
         "{:#?}",
@@ -489,4 +491,44 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
     }
 
     all_collections
+}
+
+fn initialize_medias(mappings: &Vec<Mapping>) -> Vec<Media> {
+    let all_medias_path = get_file_name("medias", mappings);
+    let mut all_medias = Vec::<Media>::new();
+
+    if let Err(e) = all_medias_path {
+        println!("{}", e);
+        return all_medias;
+    }
+
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
+    all_medias = fetch_all_medias(
+        all_medias_path.clone().unwrap(),
+        &get_encryption_key(&mappings, &pass),
+    );
+
+    if !Media::exist(&all_medias, "logo") {
+        let create_logo = Media::create(&mut all_medias, "logo", "logo.png");
+        if let Err(e) = create_logo {
+            println!("{}", e.1);
+        }
+    }
+
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
+    save_all_medias(
+        &all_medias,
+        all_medias_path.unwrap(),
+        &get_encryption_key(&mappings, &pass),
+    );
+
+    all_medias
 }

@@ -7,6 +7,8 @@ extern crate redis;
 extern crate rocket;
 extern crate rocket_multipart_form_data;
 
+use rocket::serde::json::{json, Value};
+
 mod init;
 mod utils;
 
@@ -73,6 +75,7 @@ fn rocket() -> _ {
 
     rocket::build()
         .mount("/", routes![welcome])
+        .mount("/init", routes![call_initialize])
         .mount("/public", FileServer::from(relative!("public")))
         .mount("/", rocket_cors::catch_all_options_routes())
         .mount(
@@ -152,6 +155,16 @@ fn rocket() -> _ {
                 custom_catchers::internal_server_error
             ],
         )
+        .mount(
+            fpath("/media"),
+            routes![
+                routes::media::fetch_all,
+                routes::media::fetch_one,
+                routes::media::create,
+                routes::media::update,
+                routes::media::delete,
+            ],
+        )
         .attach(Template::fairing())
         .attach(cors.clone())
         .manage(utils::init_redis())
@@ -177,9 +190,25 @@ fn welcome() -> Template {
     context.insert("logo_url", logo_url);
     context.insert("documentation_url", documentation_url);
 
-    initialize();
-
     Template::render("welcome", context)
+}
+
+#[get("/code?<code>")]
+fn call_initialize(code: Option<&str>) -> Value {
+    let passed_code = String::from(match code {
+        Some(x) => x,
+        None => "",
+    });
+
+    let mappings = auto_fetch_all_mappings();
+    let init_code = get_config_value(&mappings, "INIT_CODE", "code");
+
+    if init_code == passed_code {
+        initialize();
+        return json!({"status": 200, "message": "Initialize function running..."});
+    } else {
+        return json!({"status": 401, "message": "Incorrect Init Code."});
+    }
 }
 
 fn get_api_pre_path() -> String {

@@ -9,6 +9,8 @@ use rocket_multipart_form_data::{
 };
 
 use crate::components::encryption::EncryptionKey;
+use crate::components::media::Media;
+use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_medias, auto_save_all_medias};
 
 #[post("/", data = "<data>")]
 pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
@@ -86,13 +88,47 @@ pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
             );
         }
 
+        let splitted_respect_file_name = clean_file_name
+            .trim()
+            .clone()
+            .split("^")
+            .collect::<Vec<&str>>();
+
+        let mut clean_file_name = String::new();
+        for i in 0..(splitted_respect_file_name.len() - 1) {
+            clean_file_name = format!(
+                "{}{}{}",
+                clean_file_name,
+                if i == 0 { "" } else { "_" },
+                splitted_respect_file_name[i]
+            );
+        }
+
+        let mappings = auto_fetch_all_mappings();
+        let mut all_medias = match auto_fetch_all_medias(&mappings) {
+            Ok(u) => u,
+            _ => {
+                return json!({"status": 500, "message": "Error: Failed fetching medias"});
+            }
+        };
+
         let end_block = EncryptionKey::generate_block(8);
+        let media_id = EncryptionKey::generate_uuid(32);
         let final_name = format!("public/{}_{}.{}", clean_file_name, end_block, extension);
 
         match copy(path, final_name.clone()) {
             Err(_) => return json!({"status": 500, "message": "Error: File could not be saved"}),
             _ => {}
         };
+
+        match Media::create(&mut all_medias, &media_id, &final_name) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+
+        if let Err(e) = auto_save_all_medias(&mappings, &all_medias) {
+            return json!({"status": 500, "message": e});
+        }
 
         return json!({"status": 200, "message": "File uploaded successfully!", "path": final_name});
     }

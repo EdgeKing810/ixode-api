@@ -17,3 +17,6 @@ mod test_encryption;
 
 #[path = "test_collections.rs"]
 mod test_collections;
+
+#[path = "test_medias.rs"]
+mod test_medias;

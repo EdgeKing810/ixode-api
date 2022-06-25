@@ -244,7 +244,7 @@ fn test_incorrect_collection() {
             &mut all_structures,
             "title2",
             "Title",
-            "a title%",
+            "a title;",
             "text",
             "test title",
             5,
@@ -280,7 +280,7 @@ fn test_incorrect_collection() {
         );
 
         let test_structure =
-            Structure::update_description(&mut all_structures, &"title".to_string(), "a title%");
+            Structure::update_description(&mut all_structures, &"title".to_string(), "a title;");
         assert_eq!(
             test_structure,
             Err((
@@ -420,7 +420,7 @@ fn test_incorrect_collection() {
         let test_custom_structure = CustomStructure::update_description(
             &mut all_custom_structures,
             &"comment".to_string(),
-            "To store comments^",
+            "To store comments;",
         );
         assert_eq!(
             test_custom_structure,
@@ -489,7 +489,7 @@ fn test_incorrect_collection() {
         let test_collection = Collection::update_description(
             &mut all_collections,
             &"posts".to_string(),
-            "To store blog posts@.",
+            "To store blog posts;.",
         );
         assert_eq!(
             test_collection,

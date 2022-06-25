@@ -322,7 +322,7 @@ impl Structure {
 
         if !String::from(description)
             .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
+            .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
         {
             return Err((
                 400,

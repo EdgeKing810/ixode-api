@@ -24,3 +24,6 @@ pub mod structures;
 
 #[path = "user.rs"]
 pub mod user;
+
+#[path = "media.rs"]
+pub mod media;
