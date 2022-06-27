@@ -95,6 +95,13 @@ fn initialize_mappings() -> Vec<Mapping> {
         }
     }
 
+    if !Mapping::exist(&fetched_mappings, "medias") {
+        let media_mapping = Mapping::create(&mut fetched_mappings, "medias", "data/medias.txt");
+        if let Err(e) = media_mapping {
+            println!("{}", e);
+        }
+    }
+
     if !Mapping::exist(&fetched_mappings, "encryption_key") {
         let encryption_key_mapping = Mapping::create(
             &mut fetched_mappings,
