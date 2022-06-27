@@ -79,7 +79,7 @@ pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
             .collect::<Vec<&str>>();
 
         let mut clean_file_name = String::new();
-        for i in 0..(splitted_clean_file_name.len() - 1) {
+        for i in 0..(splitted_clean_file_name.len()) {
             clean_file_name = format!(
                 "{}{}{}",
                 clean_file_name,
@@ -95,7 +95,7 @@ pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
             .collect::<Vec<&str>>();
 
         let mut clean_file_name = String::new();
-        for i in 0..(splitted_respect_file_name.len() - 1) {
+        for i in 0..(splitted_respect_file_name.len()) {
             clean_file_name = format!(
                 "{}{}{}",
                 clean_file_name,
@@ -113,7 +113,7 @@ pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
         };
 
         let end_block = EncryptionKey::generate_block(8);
-        let media_id = EncryptionKey::generate_uuid(32);
+        let media_id = EncryptionKey::generate_uuid(8);
         let final_name = format!("public/{}_{}.{}", clean_file_name, end_block, extension);
 
         match copy(path, final_name.clone()) {
