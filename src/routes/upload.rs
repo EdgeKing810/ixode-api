@@ -130,7 +130,7 @@ pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {
             return json!({"status": 500, "message": e});
         }
 
-        return json!({"status": 200, "message": "File uploaded successfully!", "path": final_name});
+        return json!({"status": 200, "message": "File uploaded successfully!", "path": final_name, "media_id": media_id});
     }
 
     return json!({"status": 500, "message": "Error: File could not be processed and/or saved"});
