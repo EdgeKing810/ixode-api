@@ -111,7 +111,7 @@ impl Media {
                 400,
                 String::from("Error: id does not contain enough characters"),
             ));
-        } else if String::from(new_id.trim()).len() > 100 {
+        } else if String::from(new_id.trim()).len() > 500 {
             return Err((400, String::from("Error: id contains too many characters")));
         }
 
