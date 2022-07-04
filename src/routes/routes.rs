@@ -22,5 +22,8 @@ pub mod custom_structure;
 #[path = "media.rs"]
 pub mod media;
 
+#[path = "misc.rs"]
+pub mod misc;
+
 #[path = "upload.rs"]
 pub mod upload;

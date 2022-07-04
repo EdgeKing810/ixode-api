@@ -165,6 +165,7 @@ fn rocket() -> _ {
                 routes::media::delete,
             ],
         )
+        .mount(fpath("/misc"), routes![routes::misc::test_mongo])
         .attach(Template::fairing())
         .attach(cors.clone())
         .manage(utils::init_redis())
