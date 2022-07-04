@@ -1,5 +1,10 @@
 use crate::components::encryption::EncryptionKey;
-use std::{fs, fs::File, io::prelude::*, io::BufReader};
+use std::{
+    fs,
+    fs::{create_dir, read_dir, remove_dir, rename, File},
+    io::prelude::*,
+    io::BufReader,
+};
 
 pub fn fetch_file(path: String, encryption_key: &String) -> String {
     let file = File::open(&path);
@@ -109,5 +114,34 @@ pub fn remove_file(path: String) {
     let remove_file_result = fs::remove_file(&path);
     if let Err(e) = remove_file_result {
         println!("Error while removing file: {} ({})", e, path);
+    }
+}
+
+pub fn ensure_directory_exists(path: &String) {
+    let directory = read_dir(&path);
+
+    match directory {
+        Err(_) => {
+            let create_directory = create_dir(&path);
+            if let Err(e) = create_directory {
+                println!("Error occured while creating directory at {}: {}", &path, e);
+            }
+        }
+        _ => {}
+    }
+}
+
+pub fn remove_directory(path: &String) {
+    ensure_directory_exists(&path);
+    let remove_directory_result = remove_dir(&path);
+    if let Err(e) = remove_directory_result {
+        println!("Error while removing directory: {} ({})", e, path);
+    }
+}
+
+pub fn rename_directory(old_path: &String, path: &String) {
+    let rename_directory_result = rename(&old_path, &path);
+    if let Err(e) = rename_directory_result {
+        println!("Error while renaming directory: {} ({})", e, path);
     }
 }

@@ -1,4 +1,7 @@
-use crate::components::io::{fetch_file, save_file};
+use crate::{
+    components::io::{fetch_file, save_file},
+    utils::{auto_create_directory, auto_remove_directory, auto_rename_directory},
+};
 use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -63,6 +66,8 @@ impl Project {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
 
+        auto_create_directory(&format!("/data/projects/{}", &tmp_id));
+
         let mut has_error: bool = false;
         let mut latest_error: (usize, String) = (500, String::new());
 
@@ -80,7 +85,12 @@ impl Project {
             has_error = true;
             println!("{}", e.1);
             latest_error = e;
-            new_id = tmp_id;
+            new_id = tmp_id.clone();
+        } else {
+            auto_rename_directory(
+                &format!("/data/projects/{}", &tmp_id),
+                &format!("/data/projects/{}", id),
+            );
         }
 
         if !has_error {
@@ -124,6 +134,8 @@ impl Project {
             if let Err(e) = delete_project {
                 println!("{}", e.1);
             }
+
+            auto_remove_directory(&format!("/data/projects/{}", &tmp_id));
 
             return Err(latest_error);
         }
@@ -490,6 +502,8 @@ impl Project {
             .collect::<Vec<Project>>();
 
         *all_projects = updated_projects;
+
+        auto_remove_directory(&format!("/data/projects/{}", &id));
 
         Ok(())
     }

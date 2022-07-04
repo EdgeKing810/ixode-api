@@ -7,7 +7,7 @@ use crate::components::media::{fetch_all_medias, save_all_medias, Media};
 use crate::components::project::{fetch_all_projects, save_all_projects, Project};
 use crate::components::structures::Structure;
 use crate::components::user::{fetch_all_users, save_all_users, User};
-use crate::utils::get_encryption_key;
+use crate::utils::{auto_create_directory, get_encryption_key, get_root_data_dir};
 
 use core::panic;
 use std::fs;
@@ -54,16 +54,14 @@ pub fn initialize() {
 }
 
 fn initialize_mappings() -> Vec<Mapping> {
-    let mappings_path = format!(
-        "{}{}",
-        match std::env::var("CURRENT_PATH") {
-            Ok(path) => path,
-            _ => "/tmp".to_string(),
-        },
-        "/data/mappings.txt"
-    );
+    let root_dir = get_root_data_dir();
+    let mappings_path = format!("{}{}", root_dir, "/data/mappings.txt");
 
     let mut fetched_mappings = fetch_all_mappings(&mappings_path, &String::new());
+
+    auto_create_directory(&root_dir);
+    auto_create_directory(&format!("{}/data", root_dir));
+    auto_create_directory(&format!("{}/data/projects", root_dir));
 
     if !Mapping::exist(&fetched_mappings, "users") {
         let user_mapping = Mapping::create(&mut fetched_mappings, "users", "data/users.txt");

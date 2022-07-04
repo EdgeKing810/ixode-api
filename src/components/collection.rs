@@ -1,6 +1,7 @@
 use crate::components::custom_structures::CustomStructure;
 use crate::components::io::{fetch_file, save_file};
 use crate::components::structures::{try_add_structure, Structure};
+use crate::utils::{auto_create_directory, auto_remove_directory, auto_rename_directory};
 // use crate::encryption::{EncryptionKey};
 use rocket::serde::{Deserialize, Serialize};
 
@@ -25,6 +26,8 @@ impl Collection {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
 
+        auto_create_directory(&format!("/data/projects/{}/{}", &project_id, &tmp_id));
+
         let mut has_error: bool = false;
         let mut latest_error: (usize, String) = (500, String::new());
 
@@ -43,7 +46,12 @@ impl Collection {
             has_error = true;
             println!("{}", e.1);
             latest_error = e;
-            new_id = tmp_id;
+            new_id = tmp_id.clone();
+        } else {
+            auto_rename_directory(
+                &format!("/data/projects/{}/{}", &project_id, &tmp_id),
+                &format!("/data/projects/{}/{}", &project_id, &id),
+            );
         }
 
         if !has_error {
@@ -78,6 +86,8 @@ impl Collection {
             if let Err(e) = delete_collection {
                 println!("{}", e.1);
             }
+
+            auto_remove_directory(&format!("/data/projects/{}/{}", &project_id, &tmp_id));
 
             return Err(latest_error);
         }
@@ -638,6 +648,10 @@ impl Collection {
                 custom_structures: collection.custom_structures.clone(),
             })
             .collect::<Vec<Collection>>();
+
+        if let Some(col) = found_collection {
+            auto_remove_directory(&format!("/data/projects/{}/{}", &col.project_id, &id));
+        }
 
         *all_collections = updated_collections;
 

@@ -3,7 +3,9 @@ use crate::components::collection::{
     Collection,
 };
 use crate::components::config::{fetch_all_configs, save_all_configs, Config};
-use crate::components::io::{fetch_file, remove_file, save_file};
+use crate::components::io::{
+    ensure_directory_exists, fetch_file, remove_directory, remove_file, rename_directory, save_file,
+};
 use crate::components::mappings::{fetch_all_mappings, get_file_name, save_all_mappings, Mapping};
 use crate::components::media::{
     fetch_all_medias, save_all_medias, stringify_medias, unwrap_medias, Media,
@@ -487,4 +489,30 @@ pub fn auto_save_file(path: &str, data: &str, mappings: &Vec<Mapping>) {
     let encryption_key = get_encryption_key(mappings, &tmp_password);
 
     save_file(path.to_string(), data.to_string(), &encryption_key);
+}
+
+pub fn get_root_data_dir() -> String {
+    match std::env::var("CURRENT_PATH") {
+        Ok(path) => path,
+        _ => "/tmp".to_string(),
+    }
+}
+
+pub fn auto_create_directory(path: &str) {
+    let dir = get_root_data_dir();
+    let complete_path = format!("{}{}", dir, path);
+    ensure_directory_exists(&complete_path);
+}
+
+pub fn auto_rename_directory(old_path: &str, path: &str) {
+    let dir = get_root_data_dir();
+    let complete_old_path = format!("{}{}", dir, old_path);
+    let complete_new_path = format!("{}{}", dir, path);
+    rename_directory(&complete_old_path, &complete_new_path);
+}
+
+pub fn auto_remove_directory(path: &str) {
+    let dir = get_root_data_dir();
+    let complete_path = format!("{}{}", dir, path);
+    remove_directory(&complete_path);
 }
