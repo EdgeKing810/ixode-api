@@ -177,7 +177,7 @@ impl DataPair {
 
         let final_dtype = dtype.split("----------").collect::<Vec<&str>>().join("---");
 
-        if final_dtype
+        if !final_dtype
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {

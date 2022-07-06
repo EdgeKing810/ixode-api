@@ -1,6 +1,6 @@
 Configured for debug.
    >> address: 0.0.0.0
-   >> port: 8000
+   >> port: 8080
    >> workers: 8
    >> ident: Kinesis API
    >> keep-alive: 5s
@@ -25,6 +25,7 @@ Routes:
    >> GET /cors/<status>
    >> (fetch_one) POST /user/fetch/one application/json
    >> (login_jwt) POST /user/login/jwt application/json
+   >> (test_mongo) POST /misc/test/mongo application/json
    >> (update_role) POST /user/update/role application/json
    >> (fetch_all) POST /media/fetch?<limit>&<offset> application/json
    >> (create) POST /media/create application/json
@@ -64,8 +65,8 @@ Catchers:
    >> (internal_server_error) 500
 Fairings:
    >> CORS (ignite, request, response)
-   >> Templating (ignite, liftoff, request)
    >> Shield (liftoff, response, singleton)
+   >> Templating (ignite, liftoff, request)
 Shield:
    >> X-Content-Type-Options: nosniff
    >> Permissions-Policy: interest-cohort=()
@@ -73,4 +74,4 @@ Shield:
 Templating:
    >> directory: templates
    >> engines: ["tera"]
-Rocket has launched from http://0.0.0.0:8000
+Rocket has launched from http://0.0.0.0:8080

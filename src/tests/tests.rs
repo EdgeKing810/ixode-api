@@ -20,3 +20,9 @@ mod test_collections;
 
 #[path = "test_medias.rs"]
 mod test_medias;
+
+#[path = "test_data.rs"]
+mod test_data;
+
+#[path = "test_datapair.rs"]
+mod test_datapair;
