@@ -86,11 +86,6 @@ impl Project {
             println!("{}", e.1);
             latest_error = e;
             new_id = tmp_id.clone();
-        } else {
-            auto_rename_directory(
-                &format!("/data/projects/{}", &tmp_id),
-                &format!("/data/projects/{}", id),
-            );
         }
 
         if !has_error {
@@ -134,8 +129,6 @@ impl Project {
             if let Err(e) = delete_project {
                 println!("{}", e.1);
             }
-
-            auto_remove_directory(&format!("/data/projects/{}", &tmp_id));
 
             return Err(latest_error);
         }
@@ -185,6 +178,11 @@ impl Project {
 
         if let None = found_project {
             return Err((404, String::from("Error: Project not found")));
+        } else {
+            auto_rename_directory(
+                &format!("/data/projects/{}", &id),
+                &format!("/data/projects/{}", new_id),
+            );
         }
 
         Ok(())

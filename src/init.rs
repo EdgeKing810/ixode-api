@@ -59,9 +59,9 @@ fn initialize_mappings() -> Vec<Mapping> {
 
     let mut fetched_mappings = fetch_all_mappings(&mappings_path, &String::new());
 
-    auto_create_directory(&root_dir);
-    auto_create_directory(&format!("{}/data", root_dir));
-    auto_create_directory(&format!("{}/data/projects", root_dir));
+    auto_create_directory("/");
+    auto_create_directory("/data");
+    auto_create_directory("/data/projects");
 
     if !Mapping::exist(&fetched_mappings, "users") {
         let user_mapping = Mapping::create(&mut fetched_mappings, "users", "data/users.txt");

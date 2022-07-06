@@ -33,7 +33,7 @@ impl Collection {
 
         let new_collection = Collection {
             id: tmp_id.clone(),
-            project_id: "".to_string(),
+            project_id: project_id.to_string(),
             name: "".to_string(),
             description: "".to_string(),
             structures: vec![],
@@ -47,11 +47,6 @@ impl Collection {
             println!("{}", e.1);
             latest_error = e;
             new_id = tmp_id.clone();
-        } else {
-            auto_rename_directory(
-                &format!("/data/projects/{}/{}", &project_id, &tmp_id),
-                &format!("/data/projects/{}/{}", &project_id, &id),
-            );
         }
 
         if !has_error {
@@ -86,8 +81,6 @@ impl Collection {
             if let Err(e) = delete_collection {
                 println!("{}", e.1);
             }
-
-            auto_remove_directory(&format!("/data/projects/{}/{}", &project_id, &tmp_id));
 
             return Err(latest_error);
         }
@@ -177,7 +170,12 @@ impl Collection {
             }
         }
 
-        if let None = found_collection {
+        if let Some(col) = found_collection {
+            auto_rename_directory(
+                &format!("/data/projects/{}/{}", col.project_id, &id),
+                &format!("/data/projects/{}/{}", col.project_id, &new_id),
+            );
+        } else {
             return Err((404, String::from("Error: Collection not found")));
         }
 

@@ -90,7 +90,10 @@ impl DataPair {
             }
         }
 
-        let final_id = new_id.split("----------").collect::<Vec<&str>>().join("---");
+        let final_id = new_id
+            .split("----------")
+            .collect::<Vec<&str>>()
+            .join("---");
 
         if !final_id
             .chars()

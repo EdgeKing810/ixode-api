@@ -1,2 +1,0 @@
-test;Test Project;This is a test project.;/api/v1/projects;
-test3;Test Project 3;This is a new test project (3).;/api/v1/projects3;|test-1-2-3

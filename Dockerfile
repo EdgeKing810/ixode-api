@@ -12,5 +12,5 @@ RUN rustc -V
 RUN cargo --version
 RUN mkdir -p /db/data
 
-EXPOSE 8000
+EXPOSE 8080
 CMD ["cargo", "run", "--release"]

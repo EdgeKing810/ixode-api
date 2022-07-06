@@ -102,7 +102,7 @@ spec:
         - image: repo.kinesis.games:5050/rust/kinesis-db:latest
           name: kinesis-api-web
           ports:
-            - containerPort: 8000
+            - containerPort: 8080
           imagePullPolicy: Always
           # resources:
           #   requests:
@@ -155,7 +155,7 @@ spec:
   type: NodePort
   ports:
     - port: 8080
-      targetPort: 8000
+      targetPort: 8080
       nodePort: 31025
       protocol: TCP
   selector:

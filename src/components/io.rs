@@ -1,7 +1,7 @@
-use crate::components::encryption::EncryptionKey;
+use crate::{components::encryption::EncryptionKey, utils::get_root_data_dir};
 use std::{
     fs,
-    fs::{create_dir, read_dir, remove_dir, rename, File},
+    fs::{create_dir, read_dir, remove_dir_all, rename, File},
     io::prelude::*,
     io::BufReader,
 };
@@ -122,6 +122,7 @@ pub fn ensure_directory_exists(path: &String) {
 
     match directory {
         Err(_) => {
+            println!("path: {}", path);
             let create_directory = create_dir(&path);
             if let Err(e) = create_directory {
                 println!("Error occured while creating directory at {}: {}", &path, e);
@@ -132,8 +133,14 @@ pub fn ensure_directory_exists(path: &String) {
 }
 
 pub fn remove_directory(path: &String) {
+    let root_dir = get_root_data_dir();
+    if !path.contains(&root_dir) {
+        print!("Unallowed attempt to remove: {}", path);
+        return;
+    }
+
     ensure_directory_exists(&path);
-    let remove_directory_result = remove_dir(&path);
+    let remove_directory_result = remove_dir_all(&path);
     if let Err(e) = remove_directory_result {
         println!("Error while removing directory: {} ({})", e, path);
     }
