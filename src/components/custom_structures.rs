@@ -277,25 +277,25 @@ impl CustomStructure {
                 for current_structure in current_structures.iter_mut() {
                     if current_structure.id != *structure_id {
                         updated_structures.push(current_structure.clone());
+                    } else {
+                        match Structure::create(
+                            &mut updated_structures,
+                            &structure.id,
+                            &structure.name,
+                            &structure.description,
+                            &structure.stype.to_string(),
+                            &structure.default_val,
+                            structure.min,
+                            structure.max,
+                            structure.encrypted,
+                            structure.unique,
+                            &structure.regex_pattern,
+                            structure.array,
+                        ) {
+                            Err(e) => return Err(e),
+                            _ => {}
+                        }
                     }
-                }
-
-                match Structure::create(
-                    &mut updated_structures,
-                    &structure.id,
-                    &structure.name,
-                    &structure.description,
-                    &structure.stype.to_string(),
-                    &structure.default_val,
-                    structure.min,
-                    structure.max,
-                    structure.encrypted,
-                    structure.unique,
-                    &structure.regex_pattern,
-                    structure.array,
-                ) {
-                    Err(e) => return Err(e),
-                    _ => {}
                 }
 
                 custom_structure.structures = updated_structures;

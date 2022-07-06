@@ -378,25 +378,25 @@ impl Collection {
                 for current_structure in current_structures.iter_mut() {
                     if current_structure.id != *structure_id {
                         updated_structures.push(current_structure.clone());
+                    } else {
+                        match Structure::create(
+                            &mut updated_structures,
+                            &structure.id,
+                            &structure.name,
+                            &structure.description,
+                            &structure.stype.to_string(),
+                            &structure.default_val,
+                            structure.min,
+                            structure.max,
+                            structure.encrypted,
+                            structure.unique,
+                            &structure.regex_pattern,
+                            structure.array,
+                        ) {
+                            Err(e) => return Err(e),
+                            _ => {}
+                        }
                     }
-                }
-
-                match Structure::create(
-                    &mut updated_structures,
-                    &structure.id,
-                    &structure.name,
-                    &structure.description,
-                    &structure.stype.to_string(),
-                    &structure.default_val,
-                    structure.min,
-                    structure.max,
-                    structure.encrypted,
-                    structure.unique,
-                    &structure.regex_pattern,
-                    structure.array,
-                ) {
-                    Err(e) => return Err(e),
-                    _ => {}
                 }
 
                 collection.structures = updated_structures;
@@ -477,27 +477,27 @@ impl Collection {
                 for current_custom_structure in current_custom_structures.iter_mut() {
                     if current_custom_structure.id != *custom_structure_id {
                         updated_custom_structures.push(current_custom_structure.clone());
-                    }
-                }
+                    } else {
+                        match CustomStructure::create(
+                            &mut updated_custom_structures,
+                            &custom_structure.id,
+                            &custom_structure.name,
+                            &custom_structure.description,
+                        ) {
+                            Err(e) => return Err(e),
+                            _ => {}
+                        }
 
-                match CustomStructure::create(
-                    &mut updated_custom_structures,
-                    &custom_structure.id,
-                    &custom_structure.name,
-                    &custom_structure.description,
-                ) {
-                    Err(e) => return Err(e),
-                    _ => {}
-                }
-
-                for structure in custom_structure.structures {
-                    match CustomStructure::add_structure(
-                        &mut updated_custom_structures,
-                        &custom_structure.id,
-                        structure,
-                    ) {
-                        Err(e) => return Err(e),
-                        _ => {}
+                        for structure in &custom_structure.structures {
+                            match CustomStructure::add_structure(
+                                &mut updated_custom_structures,
+                                &custom_structure.id,
+                                structure.clone(),
+                            ) {
+                                Err(e) => return Err(e),
+                                _ => {}
+                            }
+                        }
                     }
                 }
 
