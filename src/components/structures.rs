@@ -1,9 +1,12 @@
 use std::fmt;
 
+use regex::Regex;
 use rocket::serde::{Deserialize, Serialize};
+
+use crate::data_converter::stype_validator;
 // use crate::encryption::EncryptionKey;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Type {
     TEXT,
     EMAIL,
@@ -133,15 +136,6 @@ impl Structure {
         }
 
         if !has_error {
-            let default_update = Self::update_default(all_structures, &new_id, default_val);
-            if let Err(e) = default_update {
-                has_error = true;
-                println!("{}", e.1);
-                latest_error = e;
-            }
-        }
-
-        if !has_error {
             let min_update = Self::update_min(all_structures, &new_id, min);
             if let Err(e) = min_update {
                 has_error = true;
@@ -189,6 +183,15 @@ impl Structure {
         if !has_error {
             let array_update = Self::update_array(all_structures, &new_id, array);
             if let Err(e) = array_update {
+                has_error = true;
+                println!("{}", e.1);
+                latest_error = e;
+            }
+        }
+
+        if !has_error {
+            let default_update = Self::update_default(all_structures, &new_id, default_val);
+            if let Err(e) = default_update {
                 has_error = true;
                 println!("{}", e.1);
                 latest_error = e;
@@ -369,20 +372,7 @@ impl Structure {
             ));
         }
 
-        let stype = match stype_txt {
-            "text" => Type::TEXT,
-            "email" => Type::EMAIL,
-            "password" => Type::PASSWORD,
-            "richtext" => Type::RICHTEXT,
-            "number" => Type::NUMBER,
-            "enum" => Type::ENUM,
-            "date" => Type::DATE,
-            "media" => Type::MEDIA,
-            "bool" => Type::BOOLEAN,
-            "uid" => Type::UID,
-            "json" => Type::JSON,
-            _ => Type::CUSTOM(String::from(stype_txt)),
-        };
+        let stype = Structure::to_stype(stype_txt);
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
@@ -424,7 +414,34 @@ impl Structure {
             }
         }
 
-        if let None = found_structure {
+        if let Some(found) = found_structure {
+            if default_val.len() < found.min {
+                return Err((
+                    400,
+                    String::from("Error: default_val does not contain enough characters"),
+                ));
+            } else if default_val.len() > found.max {
+                return Err((
+                    400,
+                    String::from("Error: default_val contains too many characters"),
+                ));
+            }
+
+            if found.regex_pattern.len() > 1 {
+                if let Ok(re) = Regex::new(&format!(r"{}", found.regex_pattern)) {
+                    if !re.is_match(&default_val) {
+                        return Err((
+                            400,
+                            String::from("Error: default_val does not match regex pattern"),
+                        ));
+                    }
+                }
+            }
+
+            if let Err(e) = stype_validator(&default_val, found.stype, true) {
+                return Err(e);
+            }
+        } else {
             return Err((404, String::from("Error: Structure not found")));
         }
 
@@ -548,6 +565,11 @@ impl Structure {
             return Err((404, String::from("Error: Structure not found")));
         }
 
+        if let Err(e) = Regex::new(&format!(r"{}", regex_pattern)) {
+            print!("{}", e);
+            return Err((400, String::from("Error: regex_pattern is invalid")));
+        }
+
         Ok(())
     }
 
@@ -640,8 +662,8 @@ impl Structure {
         Err((400, String::from("Error: Wrong format for Structure data")))
     }
 
-    pub fn to_string(structure: Structure) -> String {
-        let stype_txt = match structure.stype.clone() {
+    pub fn from_stype(stype: Type) -> String {
+        return match stype.clone() {
             Type::TEXT => "text".to_string(),
             Type::EMAIL => "email".to_string(),
             Type::PASSWORD => "password".to_string(),
@@ -655,6 +677,27 @@ impl Structure {
             Type::JSON => "json".to_string(),
             Type::CUSTOM(txt) => txt.clone(),
         };
+    }
+
+    pub fn to_stype(stype_txt: &str) -> Type {
+        return match stype_txt.clone() {
+            "text" => Type::TEXT,
+            "email" => Type::EMAIL,
+            "password" => Type::PASSWORD,
+            "richtext" => Type::RICHTEXT,
+            "number" => Type::NUMBER,
+            "enum" => Type::ENUM,
+            "date" => Type::DATE,
+            "media" => Type::MEDIA,
+            "bool" => Type::BOOLEAN,
+            "uid" => Type::UID,
+            "json" => Type::JSON,
+            txt => Type::CUSTOM(txt.to_string()),
+        };
+    }
+
+    pub fn to_string(structure: Structure) -> String {
+        let stype_txt = Structure::from_stype(structure.stype);
 
         format!(
             "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",

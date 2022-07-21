@@ -3,6 +3,8 @@ use rocket::serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct DataPair {
     pub id: String,
+    pub structure_id: String,
+    pub custom_structure_id: String,
     pub value: String,
     pub dtype: String,
 }
@@ -11,6 +13,8 @@ impl DataPair {
     pub fn create(
         all_pairs: &mut Vec<DataPair>,
         id: &str,
+        structure_id: &str,
+        custom_structure_id: &str,
         value: &str,
         dtype: &str,
     ) -> Result<(), (usize, String)> {
@@ -22,6 +26,8 @@ impl DataPair {
 
         let new_pair = DataPair {
             id: tmp_id.clone(),
+            structure_id: "".to_string(),
+            custom_structure_id: "".to_string(),
             value: "".to_string(),
             dtype: "".to_string(),
         };
@@ -33,6 +39,21 @@ impl DataPair {
             println!("{}", e.1);
             latest_error = e;
             new_id = tmp_id.clone();
+        }
+
+        let structure_id_update = Self::update_structure_id(all_pairs, &new_id, structure_id);
+        if let Err(e) = structure_id_update {
+            has_error = true;
+            println!("{}", e.1);
+            latest_error = e;
+        }
+
+        let custom_structure_id_update =
+            Self::update_custom_structure_id(all_pairs, &new_id, custom_structure_id);
+        if let Err(e) = custom_structure_id_update {
+            has_error = true;
+            println!("{}", e.1);
+            latest_error = e;
         }
 
         if !has_error {
@@ -121,6 +142,94 @@ impl DataPair {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
                 pair.id = final_id.trim().to_string();
+                break;
+            }
+        }
+
+        if let None = found_pair {
+            return Err((404, String::from("Error: DataPair not found")));
+        }
+
+        Ok(())
+    }
+
+    pub fn update_structure_id(
+        all_pairs: &mut Vec<DataPair>,
+        id: &String,
+        structure_id: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut found_pair: Option<DataPair> = None;
+
+        let final_structure_id = structure_id
+            .split("----------")
+            .collect::<Vec<&str>>()
+            .join("---");
+
+        if !structure_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        {
+            return Err((
+                400,
+                String::from("Error: structure_id contains an invalid character"),
+            ));
+        }
+
+        if final_structure_id.trim().len() > 200 {
+            return Err((
+                400,
+                String::from("Error: structure_id contains too many characters"),
+            ));
+        }
+
+        for pair in all_pairs.iter_mut() {
+            if pair.id == *id {
+                found_pair = Some(pair.clone());
+                pair.structure_id = structure_id.trim().to_string();
+                break;
+            }
+        }
+
+        if let None = found_pair {
+            return Err((404, String::from("Error: DataPair not found")));
+        }
+
+        Ok(())
+    }
+
+    pub fn update_custom_structure_id(
+        all_pairs: &mut Vec<DataPair>,
+        id: &String,
+        custom_structure_id: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut found_pair: Option<DataPair> = None;
+
+        let final_custom_structure_id = custom_structure_id
+            .split("----------")
+            .collect::<Vec<&str>>()
+            .join("---");
+
+        if !custom_structure_id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        {
+            return Err((
+                400,
+                String::from("Error: custom_structure_id contains an invalid character"),
+            ));
+        }
+
+        if final_custom_structure_id.trim().len() > 200 {
+            return Err((
+                400,
+                String::from("Error: custom_structure_id contains too many characters"),
+            ));
+        }
+
+        for pair in all_pairs.iter_mut() {
+            if pair.id == *id {
+                found_pair = Some(pair.clone());
+                pair.custom_structure_id = final_custom_structure_id.trim().to_string();
                 break;
             }
         }
@@ -233,6 +342,8 @@ impl DataPair {
             .filter(|pair| pair.id != *id)
             .map(|pair| DataPair {
                 id: pair.id.clone(),
+                structure_id: pair.structure_id.clone(),
+                custom_structure_id: pair.custom_structure_id.clone(),
                 value: pair.value.clone(),
                 dtype: pair.dtype.clone(),
             })
@@ -244,7 +355,10 @@ impl DataPair {
     }
 
     pub fn stringify(pair: DataPair) -> String {
-        format!("{}={}={}", pair.id, pair.dtype, pair.value,)
+        format!(
+            "{}={}={}={}={}",
+            pair.id, pair.structure_id, pair.custom_structure_id, pair.dtype, pair.value,
+        )
     }
 
     pub fn to_string(all_pairs: &Vec<DataPair>) -> String {
@@ -272,10 +386,19 @@ impl DataPair {
             let current_pair = pair.split("=").collect::<Vec<&str>>();
 
             let pair_id = current_pair[0];
-            let pair_dtype = current_pair[1];
-            let pair_value = current_pair[2..].join("=");
+            let pair_structure_id = current_pair[1];
+            let pair_custom_structure_id = current_pair[2];
+            let pair_dtype = current_pair[3];
+            let pair_value = current_pair[4..].join("=");
 
-            if let Err(e) = DataPair::create(all_pairs, pair_id, &pair_value, &pair_dtype) {
+            if let Err(e) = DataPair::create(
+                all_pairs,
+                pair_id,
+                &pair_structure_id,
+                &pair_custom_structure_id,
+                &pair_value,
+                &pair_dtype,
+            ) {
                 println!("{}", e.1);
                 continue;
             }

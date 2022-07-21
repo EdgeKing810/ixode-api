@@ -8,7 +8,7 @@ pub struct Data {
     id: String,
     project_id: String,
     collection_id: String,
-    pairs: Vec<DataPair>,
+    pub pairs: Vec<DataPair>,
 }
 
 impl Data {
@@ -264,7 +264,14 @@ impl Data {
 
                 let mut current_pairs = data.pairs.clone();
 
-                match DataPair::create(&mut current_pairs, &pair.id, &pair.value, &pair.dtype) {
+                match DataPair::create(
+                    &mut current_pairs,
+                    &pair.id,
+                    &pair.structure_id,
+                    &pair.custom_structure_id,
+                    &pair.value,
+                    &pair.dtype,
+                ) {
                     Err(e) => return Err(e),
                     _ => {}
                 }
@@ -304,6 +311,8 @@ impl Data {
                         match DataPair::create(
                             &mut updated_pairs,
                             &pair.id,
+                            &pair.structure_id,
+                            &pair.custom_structure_id,
                             &pair.value,
                             &pair.dtype,
                         ) {

@@ -7,8 +7,8 @@ use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Collection {
-    id: String,
-    project_id: String,
+    pub id: String,
+    pub project_id: String,
     name: String,
     description: String,
     pub structures: Vec<Structure>,

@@ -9,6 +9,7 @@ extern crate rocket_multipart_form_data;
 
 use rocket::serde::json::{json, Value};
 
+mod data_converter;
 mod init;
 mod utils;
 

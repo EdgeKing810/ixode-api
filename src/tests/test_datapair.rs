@@ -5,10 +5,10 @@ use crate::components::{data::Data, datapair::DataPair};
 fn test_datapair() {
     let mut all_pairs = Vec::<DataPair>::new();
 
-    let test_pair = DataPair::create(&mut all_pairs, "test", "test", "string");
+    let test_pair = DataPair::create(&mut all_pairs, "test", "", "", "test", "string");
     assert_eq!(test_pair, Ok(()));
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test ", "test2", "test2");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test ", "", "", "test2", "test2");
     assert_eq!(
         test_pair2,
         Err((
@@ -17,7 +17,39 @@ fn test_datapair() {
         ))
     );
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "test2", "test2.");
+    let test_pair2 = DataPair::create(
+        &mut all_pairs,
+        "test2",
+        "test2.",
+        "test2",
+        "test2",
+        "test2.",
+    );
+    assert_eq!(
+        test_pair2,
+        Err((
+            400,
+            String::from("Error: structure_id contains an invalid character")
+        ))
+    );
+
+    let test_pair2 = DataPair::create(
+        &mut all_pairs,
+        "test2",
+        "test2",
+        "test2.",
+        "test2",
+        "test2.",
+    );
+    assert_eq!(
+        test_pair2,
+        Err((
+            400,
+            String::from("Error: custom_structure_id contains an invalid character")
+        ))
+    );
+
+    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "", "", "test2", "test2.");
     assert_eq!(
         test_pair2,
         Err((
@@ -26,18 +58,21 @@ fn test_datapair() {
         ))
     );
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test", "test2", "test2");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test", "", "", "test2", "test2");
     assert_eq!(
         test_pair2,
         Err((403, String::from("Error: id is already in use")))
     );
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "test2", "test2");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "", "test2", "test2", "test2");
     assert_eq!(test_pair2, Ok(()));
 
     let pair2_id = String::from("test2");
 
     let test_pair3 = DataPair::update_value(&mut all_pairs, &pair2_id, "test3");
+    assert_eq!(test_pair3, Ok(()));
+
+    let test_pair3 = DataPair::update_custom_structure_id(&mut all_pairs, &pair2_id, "test3");
     assert_eq!(test_pair3, Ok(()));
 
     let test_pair3 = DataPair::update_dtype(&mut all_pairs, &pair2_id, "test3");
