@@ -6,8 +6,8 @@ use rocket::serde::{Deserialize, Serialize};
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Data {
     id: String,
-    project_id: String,
-    collection_id: String,
+    pub project_id: String,
+    pub collection_id: String,
     pub pairs: Vec<DataPair>,
 }
 
@@ -249,6 +249,74 @@ impl Data {
         }
 
         Ok(())
+    }
+
+    pub fn bulk_update_project_id(
+        all_data: &mut Vec<Data>,
+        project_id: &str,
+        new_project_id: &str,
+    ) {
+        for data in all_data.iter_mut() {
+            if data.project_id == *project_id {
+                data.project_id = new_project_id.to_string();
+            }
+        }
+    }
+
+    pub fn bulk_update_collection_id(
+        all_data: &mut Vec<Data>,
+        collection_id: &str,
+        new_collection_id: &str,
+    ) {
+        for data in all_data.iter_mut() {
+            if data.collection_id == *collection_id {
+                data.collection_id = new_collection_id.to_string();
+            }
+        }
+    }
+
+    pub fn bulk_update_structure_id(
+        all_data: &mut Vec<Data>,
+        project_id: &str,
+        collection_id: &str,
+        structure_id: &str,
+        new_structure_id: &str,
+    ) {
+        for data in all_data.iter_mut() {
+            if data.project_id == *project_id && data.collection_id == *collection_id {
+                let mut current_pairs = data.pairs.clone();
+
+                DataPair::bulk_update_structure_id(
+                    &mut current_pairs,
+                    structure_id,
+                    new_structure_id,
+                );
+
+                data.pairs = current_pairs;
+            }
+        }
+    }
+
+    pub fn bulk_update_custom_structure_id(
+        all_data: &mut Vec<Data>,
+        project_id: &str,
+        collection_id: &str,
+        custom_structure_id: &str,
+        new_custom_structure_id: &str,
+    ) {
+        for data in all_data.iter_mut() {
+            if data.project_id == *project_id && data.collection_id == *collection_id {
+                let mut current_pairs = data.pairs.clone();
+
+                DataPair::bulk_update_custom_structure_id(
+                    &mut current_pairs,
+                    custom_structure_id,
+                    new_custom_structure_id,
+                );
+
+                data.pairs = current_pairs;
+            }
+        }
     }
 
     pub fn add_pair(

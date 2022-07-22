@@ -29,6 +29,9 @@ pub struct CustomStructurePair {
     pub structures: Vec<StructurePair>,
 }
 
+// TODO: if required == false for a structure, do NOT
+// reject if default_val or data is empty
+
 // TODO: Updating all Data when Structures/C.S are updated in their functions
 // Concerns 'stype' and 'array' only
 
@@ -152,6 +155,16 @@ fn process_structures(
         let pair_id = EncryptionKey::generate_uuid(16);
         let processed_dtype = Structure::from_stype(stype.clone());
         let final_data = actual_data.join(",");
+
+        if final_data.len() <= 0 && required {
+            return Err((
+                400,
+                format!(
+                    "Error: Value is required for structure '{}' in collection '{}'",
+                    structure_id, custom_structure_id
+                ),
+            ));
+        }
 
         for v in actual_data {
             if used_default {

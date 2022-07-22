@@ -3,6 +3,7 @@ use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
+use crate::components::custom_structures::CustomStructure;
 use crate::components::project::Project;
 use crate::components::structures::Structure;
 use crate::components::user::{Role, User};
@@ -18,6 +19,7 @@ pub struct AddStructureInput {
     uid: String,
     project_id: String,
     collection_id: String,
+    custom_structure_id: String,
     structure: Structure,
 }
 
@@ -26,6 +28,7 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
     let uid = &data.uid;
     let project_id = &data.project_id;
     let collection_id = &data.collection_id;
+    let custom_structure_id = &data.custom_structure_id;
     let structure = &data.structure;
 
     match verify_jwt(uid.clone(), token.0).await {
@@ -87,9 +90,37 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to add Structures to this Collection"});
     }
 
-    match Collection::add_structure(&mut all_collections, collection_id, structure.clone()) {
-        Err(e) => return json!({"status": e.0, "message": e.1}),
-        _ => {}
+    if custom_structure_id.trim().len() <= 0 {
+        match Collection::add_structure(&mut all_collections, collection_id, structure.clone()) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+    } else {
+        let current_collection = match all_collections.iter_mut().find(|c| c.id == *collection_id) {
+            Some(c) => c,
+            None => {
+                return json!({"status": 404, "message": "Error: No Collection with this collection_id found"})
+            }
+        };
+
+        let mut all_custom_structures = current_collection.custom_structures.clone();
+        match CustomStructure::add_structure(
+            &mut all_custom_structures,
+            custom_structure_id,
+            structure.clone(),
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+
+        match Collection::set_custom_structures(
+            &mut all_collections,
+            collection_id,
+            all_custom_structures,
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
     }
 
     match auto_save_all_collections(&mappings, &all_collections) {
@@ -107,6 +138,7 @@ pub struct UpdateStructureInput {
     project_id: String,
     collection_id: String,
     structure_id: String,
+    custom_structure_id: String,
     structure: Structure,
 }
 
@@ -116,6 +148,7 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
     let project_id = &data.project_id;
     let collection_id = &data.collection_id;
     let structure_id = &data.structure_id;
+    let custom_structure_id = &data.custom_structure_id;
     let structure = &data.structure;
 
     match verify_jwt(uid.clone(), token.0).await {
@@ -184,18 +217,57 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
         }
     };
 
-    if !Structure::exist(&mut col.structures.clone(), structure_id) {
-        return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
-    }
+    if custom_structure_id.trim().len() <= 0 {
+        if !Structure::exist(&mut col.structures.clone(), structure_id) {
+            return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
+        }
 
-    match Collection::update_structure(
-        &mut all_collections,
-        collection_id,
-        structure_id,
-        structure.clone(),
-    ) {
-        Err(e) => return json!({"status": e.0, "message": e.1}),
-        _ => {}
+        match Collection::update_structure(
+            &mut all_collections,
+            collection_id,
+            structure_id,
+            structure.clone(),
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+    } else {
+        let mut all_custom_structures = col.custom_structures.clone();
+        let current_custom_structure = match all_custom_structures
+            .iter_mut()
+            .find(|cs| cs.id == *custom_structure_id)
+        {
+            Some(c) => c,
+            None => {
+                return json!({"status": 404, "message": "Error: No Custom Structure with this custom_structure_id found"})
+            }
+        };
+
+        if !Structure::exist(
+            &mut current_custom_structure.structures.clone(),
+            structure_id,
+        ) {
+            return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
+        }
+
+        match CustomStructure::update_structure(
+            &mut all_custom_structures,
+            custom_structure_id,
+            structure_id,
+            structure.clone(),
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+
+        match Collection::set_custom_structures(
+            &mut all_collections,
+            collection_id,
+            all_custom_structures,
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
     }
 
     match auto_save_all_collections(&mappings, &all_collections) {
@@ -213,6 +285,7 @@ pub struct DeleteStructureInput {
     project_id: String,
     collection_id: String,
     structure_id: String,
+    custom_structure_id: String,
 }
 
 #[post("/delete", format = "json", data = "<data>")]
@@ -221,6 +294,7 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
     let project_id = &data.project_id;
     let collection_id = &data.collection_id;
     let structure_id = &data.structure_id;
+    let custom_structure_id = &data.custom_structure_id;
 
     match verify_jwt(uid.clone(), token.0).await {
         Err(info) => return json!({"status": info.0, "message": info.1}),
@@ -288,13 +362,51 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
         }
     };
 
-    if !Structure::exist(&mut col.structures.clone(), structure_id) {
-        return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
-    }
+    if custom_structure_id.trim().len() <= 0 {
+        if !Structure::exist(&mut col.structures.clone(), structure_id) {
+            return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
+        }
 
-    match Collection::remove_structure(&mut all_collections, collection_id, structure_id) {
-        Err(e) => return json!({"status": e.0, "message": e.1}),
-        _ => {}
+        match Collection::remove_structure(&mut all_collections, collection_id, structure_id) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+    } else {
+        let mut all_custom_structures = col.custom_structures.clone();
+        let current_custom_structure = match all_custom_structures
+            .iter_mut()
+            .find(|cs| cs.id == *custom_structure_id)
+        {
+            Some(c) => c,
+            None => {
+                return json!({"status": 404, "message": "Error: No Custom Structure with this custom_structure_id found"})
+            }
+        };
+
+        if !Structure::exist(
+            &mut current_custom_structure.structures.clone(),
+            structure_id,
+        ) {
+            return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
+        }
+
+        match CustomStructure::remove_structure(
+            &mut all_custom_structures,
+            custom_structure_id,
+            structure_id,
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+
+        match Collection::set_custom_structures(
+            &mut all_collections,
+            collection_id,
+            all_custom_structures,
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
     }
 
     match auto_save_all_collections(&mappings, &all_collections) {

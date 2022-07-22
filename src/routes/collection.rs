@@ -3,12 +3,13 @@ use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
+use crate::components::data::Data;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_mappings, auto_fetch_all_projects,
-    auto_fetch_all_users, auto_save_all_collections,
+    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -259,7 +260,7 @@ pub async fn create(data: Json<CreateCollectionInput>, token: Token) -> Value {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 #[serde(crate = "rocket::serde")]
 pub enum UpdateType {
     ID,
@@ -344,6 +345,13 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to update Collections in this Project"});
     }
 
+    let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &collection_id) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching data"});
+        }
+    };
+
     match match change.clone() {
         UpdateType::ID => Collection::update_id(&mut all_collections, collection_id, data),
         UpdateType::NAME => Collection::update_name(&mut all_collections, collection_id, data),
@@ -353,6 +361,17 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
     } {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if change.clone() == &UpdateType::ID {
+        Data::bulk_update_collection_id(&mut all_data, collection_id, data);
+
+        match auto_save_all_data(&mappings, project_id, data, &all_data) {
+            Ok(_) => {}
+            Err(e) => {
+                return json!({"status": 500, "message": e});
+            }
+        }
     }
 
     match auto_save_all_collections(&mappings, &all_collections) {

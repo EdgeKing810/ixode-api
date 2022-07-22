@@ -323,6 +323,30 @@ impl DataPair {
         Ok(())
     }
 
+    pub fn bulk_update_structure_id(
+        all_pairs: &mut Vec<DataPair>,
+        structure_id: &str,
+        new_structure_id: &str,
+    ) {
+        for pair in all_pairs.iter_mut() {
+            if pair.structure_id == structure_id {
+                pair.structure_id = new_structure_id.to_string();
+            }
+        }
+    }
+
+    pub fn bulk_update_custom_structure_id(
+        all_pairs: &mut Vec<DataPair>,
+        custom_structure_id: &str,
+        new_custom_structure_id: &str,
+    ) {
+        for pair in all_pairs.iter_mut() {
+            if pair.custom_structure_id == custom_structure_id {
+                pair.custom_structure_id = new_custom_structure_id.to_string();
+            }
+        }
+    }
+
     pub fn delete(all_pairs: &mut Vec<DataPair>, id: &String) -> Result<(), (usize, String)> {
         let mut found_pair: Option<DataPair> = None;
 

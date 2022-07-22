@@ -3,13 +3,15 @@ use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
+use crate::components::data::Data;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_mappings, auto_fetch_all_projects,
-    auto_fetch_all_users, auto_save_all_collections, auto_save_all_projects,
+    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
+    auto_save_all_projects,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -234,7 +236,7 @@ pub async fn create(data: Json<CreateProjectInput>, token: Token) -> Value {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq)]
 #[serde(crate = "rocket::serde")]
 pub enum UpdateType {
     ID,
@@ -291,6 +293,26 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
         }
     };
 
+    let mut all_collections = match auto_fetch_all_collections(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching collections"});
+        }
+    };
+
+    let mut all_project_data = Vec::<Data>::new();
+    for col in all_collections.iter() {
+        if col.project_id == *project_id {
+            let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &col.id) {
+                Ok(u) => u,
+                _ => {
+                    return json!({"status": 500, "message": "Error: Failed fetching data"});
+                }
+            };
+            all_project_data.append(&mut all_data);
+        }
+    }
+
     let members = project.members.clone();
     let mut allowed = false;
 
@@ -319,6 +341,39 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
     } {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if change.clone() == &UpdateType::ID {
+        Data::bulk_update_project_id(&mut all_project_data, project_id, data);
+
+        for col in all_collections.clone().iter() {
+            if col.project_id == *project_id {
+                match Collection::update_project_id(&mut all_collections, &col.id, data) {
+                    Err(e) => return json!({"status": e.0, "message": e.1}),
+                    _ => {}
+                }
+
+                let current_data = all_project_data
+                    .iter()
+                    .filter(|d| d.collection_id == col.id)
+                    .cloned()
+                    .collect::<Vec<Data>>();
+
+                match auto_save_all_data(&mappings, data, &col.id, &current_data) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        return json!({"status": 500, "message": e});
+                    }
+                }
+            }
+        }
+
+        match auto_save_all_collections(&mappings, &all_collections) {
+            Ok(_) => {}
+            Err(e) => {
+                return json!({"status": 500, "message": e});
+            }
+        }
     }
 
     match auto_save_all_projects(&mappings, &all_projects) {
