@@ -415,7 +415,7 @@ impl Structure {
         }
 
         if let Some(found) = found_structure {
-            if default_val.len() < found.min {
+            if default_val.len() < found.min && default_val.trim().len() > 0 {
                 return Err((
                     400,
                     String::from("Error: default_val does not contain enough characters"),

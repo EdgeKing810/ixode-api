@@ -281,20 +281,27 @@ impl Data {
         collection_id: &str,
         structure_id: &str,
         new_structure_id: &str,
-    ) {
+    ) -> Result<(), (usize, String)> {
         for data in all_data.iter_mut() {
             if data.project_id == *project_id && data.collection_id == *collection_id {
                 let mut current_pairs = data.pairs.clone();
 
-                DataPair::bulk_update_structure_id(
+                match DataPair::bulk_update_structure_id(
                     &mut current_pairs,
                     structure_id,
                     new_structure_id,
-                );
+                ) {
+                    Ok(_) => {}
+                    Err(e) => {
+                        return Err(e);
+                    }
+                }
 
                 data.pairs = current_pairs;
             }
         }
+
+        Ok(())
     }
 
     pub fn bulk_update_custom_structure_id(
@@ -303,20 +310,71 @@ impl Data {
         collection_id: &str,
         custom_structure_id: &str,
         new_custom_structure_id: &str,
-    ) {
+    ) -> Result<(), (usize, String)> {
         for data in all_data.iter_mut() {
             if data.project_id == *project_id && data.collection_id == *collection_id {
                 let mut current_pairs = data.pairs.clone();
 
-                DataPair::bulk_update_custom_structure_id(
+                match DataPair::bulk_update_custom_structure_id(
                     &mut current_pairs,
                     custom_structure_id,
                     new_custom_structure_id,
-                );
+                ) {
+                    Ok(_) => {}
+                    Err(e) => return Err(e),
+                }
 
                 data.pairs = current_pairs;
             }
         }
+
+        Ok(())
+    }
+
+    pub fn bulk_update_value(
+        all_data: &mut Vec<Data>,
+        project_id: &str,
+        collection_id: &str,
+        structure_id: &str,
+        value: &str,
+    ) -> Result<(), (usize, String)> {
+        for data in all_data.iter_mut() {
+            if data.project_id == *project_id && data.collection_id == *collection_id {
+                let mut current_pairs = data.pairs.clone();
+
+                match DataPair::bulk_update_value(&mut current_pairs, structure_id, value) {
+                    Ok(_) => {}
+                    Err(e) => return Err(e),
+                }
+
+                data.pairs = current_pairs;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn bulk_update_stype(
+        all_data: &mut Vec<Data>,
+        project_id: &str,
+        collection_id: &str,
+        structure_id: &str,
+        stype: &str,
+    ) -> Result<(), (usize, String)> {
+        for data in all_data.iter_mut() {
+            if data.project_id == *project_id && data.collection_id == *collection_id {
+                let mut current_pairs = data.pairs.clone();
+
+                match DataPair::bulk_update_dtype(&mut current_pairs, structure_id, stype) {
+                    Ok(_) => {}
+                    Err(e) => return Err(e),
+                }
+
+                data.pairs = current_pairs;
+            }
+        }
+
+        Ok(())
     }
 
     pub fn add_pair(

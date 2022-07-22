@@ -4,13 +4,14 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
 use crate::components::custom_structures::CustomStructure;
+use crate::components::data::Data;
 use crate::components::project::Project;
 use crate::components::structures::Structure;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_mappings, auto_fetch_all_projects,
-    auto_fetch_all_users, auto_save_all_collections,
+    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -210,17 +211,27 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to update Structures in this Collection"});
     }
 
-    let col = match Collection::get(&all_collections, project_id, collection_id) {
+    let mut col = match Collection::get(&all_collections, project_id, collection_id) {
         Ok(col) => col,
         Err(_) => {
             return json!({"status": 404, "message": "Error: No Collection with this collection_id found"})
         }
     };
 
+    let found_structure: Option<Structure>;
+
     if custom_structure_id.trim().len() <= 0 {
         if !Structure::exist(&mut col.structures.clone(), structure_id) {
             return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
         }
+
+        found_structure = Some(
+            col.structures
+                .iter_mut()
+                .find(|s| s.id == *structure_id)
+                .unwrap()
+                .clone(),
+        );
 
         match Collection::update_structure(
             &mut all_collections,
@@ -250,6 +261,15 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
             return json!({"status": 404, "message": "Error: No Structure with this structure_id found"});
         }
 
+        found_structure = Some(
+            current_custom_structure
+                .structures
+                .iter_mut()
+                .find(|s| s.id == *structure_id)
+                .unwrap()
+                .clone(),
+        );
+
         match CustomStructure::update_structure(
             &mut all_custom_structures,
             custom_structure_id,
@@ -267,6 +287,91 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
         ) {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
+        }
+    }
+
+    let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &collection_id) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching data"});
+        }
+    };
+
+    if let Some(fs) = found_structure {
+        let mut should_reset_value: bool = false;
+        if fs.array != structure.array {
+            should_reset_value = true;
+        } else {
+            let old_dtype = Structure::from_stype(fs.stype.clone());
+            let new_dtype = Structure::from_stype(structure.stype.clone());
+
+            // vec!["text", "email", "password", "richtext", "number", "enum", "date", "media", "bool","uid", "json"];
+
+            if old_dtype != new_dtype {
+                let first_check = vec![
+                    "richtext", "text", "email", "password", "number", "uid", "json",
+                ];
+
+                if first_check.contains(&old_dtype.to_string().as_str())
+                    && (new_dtype != "text" && new_dtype != "richtext")
+                {
+                    should_reset_value = true;
+                }
+
+                let second_check = vec![
+                    "email", "password", "number", "enum", "date", "media", "bool", "uid", "json",
+                ];
+
+                if second_check.contains(&new_dtype.to_string().as_str()) {
+                    should_reset_value = true;
+                }
+            }
+        }
+
+        if should_reset_value {
+            match Data::bulk_update_value(
+                &mut all_data,
+                project_id,
+                collection_id,
+                structure_id,
+                "",
+            ) {
+                Err(e) => return json!({"status": e.0, "message": e.1}),
+                _ => {}
+            }
+        }
+
+        if fs.stype != structure.stype {
+            match Data::bulk_update_stype(
+                &mut all_data,
+                project_id,
+                collection_id,
+                structure_id,
+                &Structure::from_stype(structure.stype.clone()),
+            ) {
+                Err(e) => return json!({"status": e.0, "message": e.1}),
+                _ => {}
+            }
+        }
+    }
+
+    if structure_id != &structure.id {
+        match Data::bulk_update_structure_id(
+            &mut all_data,
+            project_id,
+            collection_id,
+            structure_id,
+            &structure.id,
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+    }
+
+    match auto_save_all_data(&mappings, project_id, collection_id, &all_data) {
+        Ok(_) => {}
+        Err(e) => {
+            return json!({"status": 500, "message": e});
         }
     }
 

@@ -4,12 +4,13 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
 use crate::components::custom_structures::CustomStructure;
+use crate::components::data::Data;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_mappings, auto_fetch_all_projects,
-    auto_fetch_all_users, auto_save_all_collections,
+    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -200,6 +201,33 @@ pub async fn update(data: Json<UpdateCustomStructureInput>, token: Token) -> Val
     ) {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if custom_structure_id != &custom_structure.id {
+        let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &collection_id) {
+            Ok(u) => u,
+            _ => {
+                return json!({"status": 500, "message": "Error: Failed fetching data"});
+            }
+        };
+
+        match Data::bulk_update_custom_structure_id(
+            &mut all_data,
+            project_id,
+            collection_id,
+            custom_structure_id,
+            &custom_structure.id,
+        ) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+
+        match auto_save_all_data(&mappings, project_id, collection_id, &all_data) {
+            Ok(_) => {}
+            Err(e) => {
+                return json!({"status": 500, "message": e});
+            }
+        }
     }
 
     match auto_save_all_collections(&mappings, &all_collections) {

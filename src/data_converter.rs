@@ -29,15 +29,13 @@ pub struct CustomStructurePair {
     pub structures: Vec<StructurePair>,
 }
 
+// TODO: RICHTEXT -> MARKDOWN
+// TODO: Enforce FORMAT on Frontend
+// TODO: Regulate/Officialize the use of Structure::from_stype instead of other methods
+// TODO: date -> datetime-local (or have both)
+
 // TODO: if required == false for a structure, do NOT
 // reject if default_val or data is empty
-
-// TODO: Updating all Data when Structures/C.S are updated in their functions
-// Concerns 'stype' and 'array' only
-
-// TODO: Do necessary actions when structures' ID Change or they get deleted
-// or when C.S' ID are changed or they get deleted
-// NECESSARY HAS ALREADY BEEN DONE FOR WHEN PROJECTS OR COLLECTIONS GET DELETED
 
 pub fn convert_from_raw(
     all_data: &mut Vec<Data>,

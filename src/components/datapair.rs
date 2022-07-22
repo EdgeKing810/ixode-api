@@ -323,28 +323,93 @@ impl DataPair {
         Ok(())
     }
 
+    pub fn bulk_update_value(
+        all_pairs: &mut Vec<DataPair>,
+        structure_id: &str,
+        value: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut pair_ids = Vec::<String>::new();
+        for pair in all_pairs.iter_mut() {
+            if pair.structure_id == structure_id {
+                pair_ids.push(pair.id.clone());
+            }
+        }
+
+        for pair_id in pair_ids {
+            match DataPair::update_value(all_pairs, &pair_id, value) {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn bulk_update_dtype(
+        all_pairs: &mut Vec<DataPair>,
+        structure_id: &str,
+        dtype: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut pair_ids = Vec::<String>::new();
+        for pair in all_pairs.iter_mut() {
+            if pair.structure_id == structure_id {
+                pair_ids.push(pair.id.clone());
+            }
+        }
+
+        for pair_id in pair_ids {
+            match DataPair::update_dtype(all_pairs, &pair_id, dtype) {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn bulk_update_structure_id(
         all_pairs: &mut Vec<DataPair>,
         structure_id: &str,
         new_structure_id: &str,
-    ) {
+    ) -> Result<(), (usize, String)> {
+        let mut pair_ids = Vec::<String>::new();
         for pair in all_pairs.iter_mut() {
             if pair.structure_id == structure_id {
-                pair.structure_id = new_structure_id.to_string();
+                pair_ids.push(pair.id.clone());
             }
         }
+
+        for pair_id in pair_ids {
+            match DataPair::update_structure_id(all_pairs, &pair_id, new_structure_id) {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(())
     }
 
     pub fn bulk_update_custom_structure_id(
         all_pairs: &mut Vec<DataPair>,
         custom_structure_id: &str,
         new_custom_structure_id: &str,
-    ) {
+    ) -> Result<(), (usize, String)> {
+        let mut pair_ids = Vec::<String>::new();
         for pair in all_pairs.iter_mut() {
             if pair.custom_structure_id == custom_structure_id {
-                pair.custom_structure_id = new_custom_structure_id.to_string();
+                pair_ids.push(pair.id.clone());
             }
         }
+
+        for pair_id in pair_ids {
+            match DataPair::update_custom_structure_id(all_pairs, &pair_id, new_custom_structure_id)
+            {
+                Ok(_) => {}
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(())
     }
 
     pub fn delete(all_pairs: &mut Vec<DataPair>, id: &String) -> Result<(), (usize, String)> {
