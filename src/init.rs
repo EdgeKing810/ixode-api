@@ -393,7 +393,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             "content",
             "Content",
             "Actual content of the post",
-            "richtext",
+            "markdown",
             "[ Content goes here ]",
             10,
             2000,

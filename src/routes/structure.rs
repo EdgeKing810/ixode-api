@@ -305,15 +305,15 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
             let old_dtype = Structure::from_stype(fs.stype.clone());
             let new_dtype = Structure::from_stype(structure.stype.clone());
 
-            // vec!["text", "email", "password", "richtext", "number", "enum", "date", "media", "bool","uid", "json"];
+            // vec!["text", "email", "password", "markdown", "number", "enum", "date", "media", "bool","uid", "json"];
 
             if old_dtype != new_dtype {
                 let first_check = vec![
-                    "richtext", "text", "email", "password", "number", "uid", "json",
+                    "markdown", "text", "email", "password", "number", "uid", "json",
                 ];
 
                 if first_check.contains(&old_dtype.to_string().as_str())
-                    && (new_dtype != "text" && new_dtype != "richtext")
+                    && (new_dtype != "text" && new_dtype != "markdown")
                 {
                     should_reset_value = true;
                 }

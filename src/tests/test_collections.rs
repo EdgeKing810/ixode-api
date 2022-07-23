@@ -64,7 +64,7 @@ fn test_correct_collection() {
             "content",
             "Content",
             "Actual content of the post",
-            "richtext",
+            "markdown",
             "[ Content goes here ]",
             15,
             2000,

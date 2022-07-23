@@ -29,12 +29,7 @@ pub struct CustomStructurePair {
     pub structures: Vec<StructurePair>,
 }
 
-// TODO: RICHTEXT -> MARKDOWN
-// TODO: Enforce FORMAT on Frontend
 // TODO: Display description on Frontend when available
-// TODO: Regulate/Officialize the use of Structure::from_stype instead of other methods
-// TODO: date -> datetime-local (or have both)
-// TODO: boolean
 
 pub fn convert_from_raw(
     all_data: &mut Vec<Data>,
@@ -353,6 +348,20 @@ pub fn stype_validator(
     }
 
     if stype == Type::DATE {
+        let date_regex = Regex::new(
+            r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+        )
+        .unwrap();
+
+        if !date_regex.is_match(data) {
+            return Err((
+                400,
+                format!("Error: Value '{}' is an invalid date", data),
+            ));
+        }
+    }
+
+    if stype == Type::DATETIME {
         let datetime_regex = Regex::new(
             r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (\+|\-)[0-9]{2}:[0-9]{2}$",
         )
