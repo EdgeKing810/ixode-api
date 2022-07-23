@@ -29,8 +29,6 @@ pub struct CustomStructurePair {
     pub structures: Vec<StructurePair>,
 }
 
-// TODO: Display description on Frontend when available
-
 pub fn convert_from_raw(
     all_data: &mut Vec<Data>,
     collection: &Collection,
