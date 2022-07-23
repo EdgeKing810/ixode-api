@@ -62,6 +62,7 @@ pub struct Structure {
     pub unique: bool,
     pub regex_pattern: String,
     pub array: bool,
+    pub required: bool,
 }
 
 impl Structure {
@@ -78,6 +79,7 @@ impl Structure {
         unique: bool,
         regex_pattern: &str,
         array: bool,
+        required: bool,
     ) -> Result<(), (usize, String)> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
@@ -97,6 +99,7 @@ impl Structure {
             unique: false,
             regex_pattern: "".to_string(),
             array: false,
+            required: false,
         };
         all_structures.push(new_structure);
 
@@ -183,6 +186,15 @@ impl Structure {
         if !has_error {
             let array_update = Self::update_array(all_structures, &new_id, array);
             if let Err(e) = array_update {
+                has_error = true;
+                println!("{}", e.1);
+                latest_error = e;
+            }
+        }
+
+        if !has_error {
+            let required_update = Self::update_required(all_structures, &new_id, required);
+            if let Err(e) = required_update {
                 has_error = true;
                 println!("{}", e.1);
                 latest_error = e;
@@ -415,6 +427,10 @@ impl Structure {
         }
 
         if let Some(found) = found_structure {
+            if default_val.trim().len() <= 0 {
+                return Ok(());
+            }
+
             if default_val.len() < found.min && default_val.trim().len() > 0 {
                 return Err((
                     400,
@@ -595,6 +611,28 @@ impl Structure {
         Ok(())
     }
 
+    pub fn update_required(
+        all_structures: &mut Vec<Structure>,
+        id: &String,
+        required: bool,
+    ) -> Result<(), (usize, String)> {
+        let mut found_structure: Option<Structure> = None;
+
+        for structure in all_structures.iter_mut() {
+            if structure.id == *id {
+                found_structure = Some(structure.clone());
+                structure.required = required;
+                break;
+            }
+        }
+
+        if let None = found_structure {
+            return Err((404, String::from("Error: Structure not found")));
+        }
+
+        Ok(())
+    }
+
     pub fn delete(all_structures: &mut Vec<Structure>, id: &String) -> Result<(), (usize, String)> {
         let mut found_structure: Option<Structure> = None;
 
@@ -624,6 +662,7 @@ impl Structure {
                 unique: structure.unique.clone(),
                 regex_pattern: structure.regex_pattern.clone(),
                 array: structure.array.clone(),
+                required: structure.required.clone(),
             })
             .collect::<Vec<Structure>>();
 
@@ -700,7 +739,7 @@ impl Structure {
         let stype_txt = Structure::from_stype(structure.stype);
 
         format!(
-            "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
+            "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
             structure.id,
             structure.name,
             structure.description,
@@ -711,7 +750,8 @@ impl Structure {
             structure.encrypted,
             structure.unique,
             structure.regex_pattern,
-            structure.array
+            structure.array,
+            structure.required
         )
     }
 }
@@ -748,6 +788,11 @@ pub fn try_add_structure(array: &Vec<&str>, final_structures: &mut Vec<Structure
         _ => false,
     };
 
+    let is_required = match array[11] {
+        "true" => true,
+        _ => false,
+    };
+
     let create_structure = Structure::create(
         final_structures,
         array[0],
@@ -761,6 +806,7 @@ pub fn try_add_structure(array: &Vec<&str>, final_structures: &mut Vec<Structure
         unique,
         array[9],
         is_array,
+        is_required,
     );
 
     if let Err(e) = create_structure {

@@ -369,6 +369,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             false,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -377,12 +378,13 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             "Cover Image",
             "Cover Image picture",
             "media",
-            "https://test.image.com",
+            "https://api.kinesis.world/public/banner_purple.png",
             0,
             200,
             false,
             false,
             "",
+            false,
             false,
         )
         .unwrap();
@@ -393,12 +395,13 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             "Actual content of the post",
             "richtext",
             "[ Content goes here ]",
-            30,
+            10,
             2000,
             false,
             false,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -414,6 +417,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             false,
             "",
             false,
+            false,
         )
         .unwrap();
         Structure::create(
@@ -428,6 +432,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             false,
             false,
             "",
+            true,
             true,
         )
         .unwrap();
@@ -450,6 +455,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             true,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -465,6 +471,7 @@ fn initialize_collections(mappings: &Vec<Mapping>) -> Vec<Collection> {
             false,
             "",
             false,
+            true,
         )
         .unwrap();
 

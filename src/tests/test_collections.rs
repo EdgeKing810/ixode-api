@@ -40,6 +40,7 @@ fn test_correct_collection() {
             false,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -48,12 +49,13 @@ fn test_correct_collection() {
             "Cover Image",
             "Cover Image picture",
             "media",
-            "https://api.kinesis.world/test",
+            "https://api.kinesis.world/public/banner_purple.png",
             0,
             200,
             false,
             false,
             "",
+            false,
             false,
         )
         .unwrap();
@@ -64,12 +66,13 @@ fn test_correct_collection() {
             "Actual content of the post",
             "richtext",
             "[ Content goes here ]",
-            20,
+            15,
             2000,
             false,
             false,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -84,6 +87,7 @@ fn test_correct_collection() {
             false,
             false,
             "",
+            false,
             false,
         )
         .unwrap();
@@ -100,6 +104,7 @@ fn test_correct_collection() {
             false,
             "",
             true,
+            true,
         )
         .unwrap();
         Collection::set_structures(&mut all_collections, &"posts".to_string(), all_structures)
@@ -115,12 +120,13 @@ fn test_correct_collection() {
             "ID of the User posting a comment",
             "uid",
             "",
-            0,
+            1,
             20,
             false,
             true,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -136,6 +142,7 @@ fn test_correct_collection() {
             false,
             "",
             false,
+            true,
         )
         .unwrap();
 
@@ -196,6 +203,7 @@ fn test_incorrect_collection() {
             false,
             "",
             false,
+            true,
         )
         .unwrap();
 
@@ -212,6 +220,7 @@ fn test_incorrect_collection() {
             false,
             "",
             false,
+            true,
         );
         assert_eq!(
             test_structure,
@@ -231,6 +240,7 @@ fn test_incorrect_collection() {
             false,
             "",
             false,
+            true,
         );
         assert_eq!(
             test_structure,
@@ -253,6 +263,7 @@ fn test_incorrect_collection() {
             false,
             "",
             false,
+            true,
         );
         assert_eq!(
             test_structure,
@@ -338,6 +349,7 @@ fn test_incorrect_collection() {
             true,
             "",
             false,
+            true,
         )
         .unwrap();
         Structure::create(
@@ -353,6 +365,7 @@ fn test_incorrect_collection() {
             false,
             "",
             false,
+            true,
         )
         .unwrap();
 

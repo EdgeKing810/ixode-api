@@ -340,6 +340,7 @@ impl Collection {
                     structure.unique,
                     &structure.regex_pattern,
                     structure.array,
+                    structure.required,
                 ) {
                     Err(e) => return Err(e),
                     _ => {}
@@ -390,6 +391,7 @@ impl Collection {
                             structure.unique,
                             &structure.regex_pattern,
                             structure.array,
+                            structure.required,
                         ) {
                             Err(e) => return Err(e),
                             _ => {}

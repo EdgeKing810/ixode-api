@@ -241,6 +241,7 @@ impl CustomStructure {
                     structure.unique,
                     &structure.regex_pattern,
                     structure.array,
+                    structure.required,
                 ) {
                     Err(e) => return Err(e),
                     _ => {}
@@ -291,6 +292,7 @@ impl CustomStructure {
                             structure.unique,
                             &structure.regex_pattern,
                             structure.array,
+                            structure.required,
                         ) {
                             Err(e) => return Err(e),
                             _ => {}

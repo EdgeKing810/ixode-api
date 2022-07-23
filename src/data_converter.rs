@@ -31,11 +31,10 @@ pub struct CustomStructurePair {
 
 // TODO: RICHTEXT -> MARKDOWN
 // TODO: Enforce FORMAT on Frontend
+// TODO: Display description on Frontend when available
 // TODO: Regulate/Officialize the use of Structure::from_stype instead of other methods
 // TODO: date -> datetime-local (or have both)
-
-// TODO: if required == false for a structure, do NOT
-// reject if default_val or data is empty
+// TODO: boolean
 
 pub fn convert_from_raw(
     all_data: &mut Vec<Data>,
@@ -124,12 +123,11 @@ fn process_structures(
         let max = structure.max.clone();
         let stype = structure.stype.clone();
         let unique = structure.unique.clone();
-        // let required = structure.required.clone(); // TODO
-        let required = false;
+        let required = structure.required.clone();
         let regex_pattern = structure.regex_pattern.clone();
         let array = structure.array.clone();
 
-        if value.len() <= 0 && required {
+        if value.len() <= 0 {
             value = structure.default_val.clone();
             used_default = true;
         }
