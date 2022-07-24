@@ -311,7 +311,7 @@ fn test_incorrect_collection() {
         );
 
         let test_structure =
-            Structure::update_default(&mut all_structures, &"title".to_string(), "test@");
+            Structure::update_default(&mut all_structures, &"title".to_string(), "test>");
         assert_eq!(
             test_structure,
             Err((
