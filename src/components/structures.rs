@@ -339,7 +339,7 @@ impl Structure {
 
         if !String::from(description)
             .chars()
-            .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
+            .all(|c| c != ';' && c != '>' && c != '#')
         {
             return Err((
                 400,
@@ -412,7 +412,7 @@ impl Structure {
 
         if !String::from(default_val)
             .chars()
-            .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
+            .all(|c| c != ';' && c != '>' && c != '#')
         {
             return Err((
                 400,
@@ -423,7 +423,6 @@ impl Structure {
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
-                structure.default_val = String::from(default_val.trim());
                 break;
             }
         }
@@ -433,34 +432,56 @@ impl Structure {
                 return Ok(());
             }
 
-            if default_val.len() < found.min && default_val.trim().len() > 0 {
-                return Err((
-                    400,
-                    String::from("Error: default_val does not contain enough characters"),
-                ));
-            } else if default_val.len() > found.max {
-                return Err((
-                    400,
-                    String::from("Error: default_val contains too many characters"),
-                ));
+            let mut actual_data = Vec::<String>::new();
+
+            let mut broken_data: Vec<&str> = vec![&default_val];
+            if found.array {
+                broken_data = default_val.split(",").collect::<Vec<&str>>();
             }
 
-            if found.regex_pattern.len() > 1 {
-                if let Ok(re) = Regex::new(&format!(r"{}", found.regex_pattern)) {
-                    if !re.is_match(&default_val) {
-                        return Err((
-                            400,
-                            String::from("Error: default_val does not match regex pattern"),
-                        ));
-                    }
+            for d in broken_data {
+                if d.trim().len() > 0 {
+                    actual_data.push(d.trim().to_string());
                 }
             }
 
-            if let Err(e) = stype_validator(&default_val, found.stype, true) {
-                return Err(e);
+            for v in actual_data {
+                if v.len() < found.min && v.trim().len() > 0 {
+                    return Err((
+                        400,
+                        String::from("Error: default_val does not contain enough characters"),
+                    ));
+                } else if v.len() > found.max {
+                    return Err((
+                        400,
+                        String::from("Error: default_val contains too many characters"),
+                    ));
+                }
+
+                if found.regex_pattern.len() > 1 {
+                    if let Ok(re) = Regex::new(&format!(r"{}", found.regex_pattern)) {
+                        if !re.is_match(&v) {
+                            return Err((
+                                400,
+                                String::from("Error: default_val does not match regex pattern"),
+                            ));
+                        }
+                    }
+                }
+
+                if let Err(e) = stype_validator(&v, found.stype.clone(), true) {
+                    return Err(e);
+                }
             }
         } else {
             return Err((404, String::from("Error: Structure not found")));
+        }
+
+        for structure in all_structures.iter_mut() {
+            if structure.id == *id {
+                structure.default_val = String::from(default_val.trim());
+                break;
+            }
         }
 
         Ok(())
@@ -498,6 +519,11 @@ impl Structure {
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
+
+                if max < structure.min {
+                    return Err((400, String::from("Error: max cannot be lower than min")));
+                }
+
                 structure.max = max;
                 break;
             }
@@ -563,7 +589,7 @@ impl Structure {
 
         if !String::from(regex_pattern)
             .chars()
-            .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
+            .all(|c| c != ';' && c != '>' && c != '#')
         {
             return Err((
                 400,

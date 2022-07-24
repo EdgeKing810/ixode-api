@@ -9,7 +9,7 @@ use crate::{
     utils::{auto_fetch_all_mappings, get_config_value},
 };
 use regex::Regex;
-use rocket::serde::{json::from_str, Deserialize, Serialize};
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct RawPair {
@@ -134,11 +134,6 @@ fn process_structures(
             if d.trim().len() > 0 {
                 actual_data.push(d.trim().to_string());
             }
-        }
-
-        if array {
-        } else {
-            actual_data.push(value.clone().trim().to_string());
         }
 
         let pair_id = EncryptionKey::generate_uuid(16);
@@ -346,16 +341,10 @@ pub fn stype_validator(
     }
 
     if stype == Type::DATE {
-        let date_regex = Regex::new(
-            r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-        )
-        .unwrap();
+        let date_regex = Regex::new(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$").unwrap();
 
         if !date_regex.is_match(data) {
-            return Err((
-                400,
-                format!("Error: Value '{}' is an invalid date", data),
-            ));
+            return Err((400, format!("Error: Value '{}' is an invalid date", data)));
         }
     }
 
@@ -393,15 +382,17 @@ pub fn stype_validator(
         }
     }
 
-    if stype == Type::JSON {
-        let json_data: rocket::serde::json::serde_json::Result<bool> = from_str(&data);
-        if let Err(_) = json_data {
-            return Err((
-                400,
-                format!("Error: Value '{}' is an invalid json object", data),
-            ));
-        }
-    }
+    // if stype == Type::JSON {
+    //     let json_string = "\"([^\"]+)\":[\"]*([^,^\\}^\"]+)";
+    //     let json_regex = Regex::new(&format!("r\"{}\"", json_string)).unwrap();
+
+    //     if !json_regex.is_match(data) {
+    //         return Err((
+    //             400,
+    //             format!("Error: Value '{}' is an invalid json object", data),
+    //         ));
+    //     }
+    // }
 
     Ok(String::from("Validation OK!"))
 }

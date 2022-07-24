@@ -279,7 +279,7 @@ impl Collection {
 
         if !String::from(description)
             .chars()
-            .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
+            .all(|c| c != ';' && c != '>' && c != '#')
         {
             return Err((
                 400,

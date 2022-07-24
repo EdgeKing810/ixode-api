@@ -27,7 +27,14 @@ pub async fn add(data: Json<AddCustomStructureInput>, token: Token) -> Value {
     let uid = &data.uid;
     let project_id = &data.project_id;
     let collection_id = &data.collection_id;
-    let custom_structure = &data.custom_structure;
+    let cs = &data.custom_structure;
+
+    let custom_structure = CustomStructure {
+        id: cs.id.clone(),
+        name: cs.name.clone(),
+        description: cs.description.clone(),
+        structures: vec![]
+    }; // Prevent skipping proper validation to be applied to relevant 'Data'
 
     match verify_jwt(uid.clone(), token.0).await {
         Err(info) => return json!({"status": info.0, "message": info.1}),
@@ -121,7 +128,14 @@ pub async fn update(data: Json<UpdateCustomStructureInput>, token: Token) -> Val
     let project_id = &data.project_id;
     let collection_id = &data.collection_id;
     let custom_structure_id = &data.custom_structure_id;
-    let custom_structure = &data.custom_structure;
+    let cs = &data.custom_structure;
+
+    let custom_structure = CustomStructure {
+        id: cs.id.clone(),
+        name: cs.name.clone(),
+        description: cs.description.clone(),
+        structures: vec![]
+    }; // Prevent skipping proper validation to be applied to relevant 'Data'
 
     match verify_jwt(uid.clone(), token.0).await {
         Err(info) => return json!({"status": info.0, "message": info.1}),
