@@ -146,16 +146,6 @@ fn rocket() -> _ {
             ],
         )
         .mount(fpath("/upload"), routes![routes::upload::upload])
-        .register(
-            "/",
-            catchers![
-                custom_catchers::bad_request,
-                custom_catchers::unauthorized,
-                custom_catchers::not_found,
-                custom_catchers::malformed_request,
-                custom_catchers::internal_server_error
-            ],
-        )
         .mount(
             fpath("/media"),
             routes![
@@ -166,7 +156,27 @@ fn rocket() -> _ {
                 routes::media::delete,
             ],
         )
+        .mount(
+            fpath("/data"),
+            routes![
+                routes::data::fetch,
+                routes::data::fetch_one,
+                routes::data::create,
+                routes::data::update,
+                routes::data::delete,
+            ],
+        )
         .mount(fpath("/misc"), routes![routes::misc::test_mongo])
+        .register(
+            "/",
+            catchers![
+                custom_catchers::bad_request,
+                custom_catchers::unauthorized,
+                custom_catchers::not_found,
+                custom_catchers::malformed_request,
+                custom_catchers::internal_server_error
+            ],
+        )
         .attach(Template::fairing())
         .attach(cors.clone())
         .manage(utils::init_redis())

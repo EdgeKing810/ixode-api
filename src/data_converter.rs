@@ -32,10 +32,10 @@ pub struct CustomStructurePair {
 pub fn convert_from_raw(
     all_data: &mut Vec<Data>,
     collection: &Collection,
-    raw_pairs: &RawPair,
-) -> Result<(), (usize, String)> {
-    let structure_pairs: Vec<StructurePair> = raw_pairs.structures.clone();
-    let custom_structure_pairs: Vec<CustomStructurePair> = raw_pairs.custom_structures.clone();
+    raw_pair: &RawPair,
+) -> Result<String, (usize, String)> {
+    let structure_pairs: Vec<StructurePair> = raw_pair.structures.clone();
+    let custom_structure_pairs: Vec<CustomStructurePair> = raw_pair.custom_structures.clone();
 
     let mut all_pairs = Vec::<DataPair>::new();
 
@@ -89,7 +89,7 @@ pub fn convert_from_raw(
         }
     }
 
-    Ok(())
+    Ok(data_id)
 }
 
 fn process_structures(

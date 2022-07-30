@@ -5,6 +5,8 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::collection::Collection;
 use crate::components::custom_structures::CustomStructure;
 use crate::components::data::Data;
+use crate::components::datapair::DataPair;
+use crate::components::encryption::EncryptionKey;
 use crate::components::project::Project;
 use crate::components::structures::Structure;
 use crate::components::user::{Role, User};
@@ -121,6 +123,37 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
         ) {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
+        }
+    }
+
+    let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &collection_id) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching data"});
+        }
+    };
+
+    for data in all_data.clone() {
+        let new_pair = DataPair {
+            id: EncryptionKey::generate_uuid(16),
+            structure_id: structure.id.clone(),
+            custom_structure_id: custom_structure_id.clone(),
+            dtype: Structure::from_stype(structure.stype.clone()),
+            value: String::new(),
+        };
+
+        match Data::add_pair(&mut all_data, &data.id, new_pair) {
+            Ok(_) => {}
+            Err(e) => {
+                return json!({"status": e.0, "message": e.1});
+            }
+        }
+    }
+
+    match auto_save_all_data(&mappings, project_id, collection_id, &all_data) {
+        Ok(_) => {}
+        Err(e) => {
+            return json!({"status": 500, "message": e});
         }
     }
 
@@ -511,6 +544,36 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
         ) {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
+        }
+    }
+
+    let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &collection_id) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching data"});
+        }
+    };
+
+    for data in all_data.clone() {
+        let pair_id = match data.pairs.iter().find(|dp| {
+            dp.structure_id == *structure_id && dp.custom_structure_id == *custom_structure_id
+        }) {
+            Some(x) => x.id.clone(),
+            None => String::new(),
+        };
+
+        if pair_id.len() > 0 {
+            match Data::remove_pair(&mut all_data, &data.id, &pair_id) {
+                Err(e) => return json!({"status": e.0, "message": e.1}),
+                _ => {}
+            }
+        }
+    }
+
+    match auto_save_all_data(&mappings, project_id, collection_id, &all_data) {
+        Ok(_) => {}
+        Err(e) => {
+            return json!({"status": 500, "message": e});
         }
     }
 

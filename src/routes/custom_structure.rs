@@ -33,7 +33,7 @@ pub async fn add(data: Json<AddCustomStructureInput>, token: Token) -> Value {
         id: cs.id.clone(),
         name: cs.name.clone(),
         description: cs.description.clone(),
-        structures: vec![]
+        structures: vec![],
     }; // Prevent skipping proper validation to be applied to relevant 'Data'
 
     match verify_jwt(uid.clone(), token.0).await {
@@ -134,7 +134,7 @@ pub async fn update(data: Json<UpdateCustomStructureInput>, token: Token) -> Val
         id: cs.id.clone(),
         name: cs.name.clone(),
         description: cs.description.clone(),
-        structures: vec![]
+        structures: vec![],
     }; // Prevent skipping proper validation to be applied to relevant 'Data'
 
     match verify_jwt(uid.clone(), token.0).await {

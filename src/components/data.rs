@@ -5,7 +5,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Data {
-    id: String,
+    pub id: String,
     pub project_id: String,
     pub collection_id: String,
     pub pairs: Vec<DataPair>,

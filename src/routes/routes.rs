@@ -25,5 +25,8 @@ pub mod media;
 #[path = "misc.rs"]
 pub mod misc;
 
+#[path = "data.rs"]
+pub mod data;
+
 #[path = "upload.rs"]
 pub mod upload;
