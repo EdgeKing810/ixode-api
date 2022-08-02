@@ -6,7 +6,7 @@ use crate::{
         encryption::EncryptionKey,
         structures::{Structure, Type},
     },
-    utils::{auto_fetch_all_mappings, get_config_value},
+    utils::{auto_fetch_all_data, auto_fetch_all_mappings, get_config_value},
 };
 use regex::Regex;
 use rocket::serde::{Deserialize, Serialize};
@@ -39,8 +39,14 @@ pub fn convert_from_raw(
 
     let mut all_pairs = Vec::<DataPair>::new();
 
-    if let Err(e) = process_structures(&mut all_pairs, &structure_pairs, &collection.structures, "")
-    {
+    if let Err(e) = process_structures(
+        &mut all_pairs,
+        &structure_pairs,
+        &collection.structures,
+        "",
+        &collection.project_id,
+        &collection.id,
+    ) {
         return Err(e);
     }
 
@@ -63,6 +69,8 @@ pub fn convert_from_raw(
             &target_custom_structure_pair.structures,
             &custom_structure.structures,
             &custom_structure_id,
+            &collection.project_id,
+            &collection.id,
         ) {
             return Err(e);
         }
@@ -97,6 +105,8 @@ fn process_structures(
     structure_pairs: &Vec<StructurePair>,
     structures: &Vec<Structure>,
     custom_structure_id: &str,
+    project_id: &str,
+    collection_id: &str,
 ) -> Result<(), (usize, String)> {
     for structure in structures {
         let structure_id = structure.id.clone();
@@ -143,10 +153,7 @@ fn process_structures(
         if final_data.len() <= 0 && required {
             return Err((
                 400,
-                format!(
-                    "Error: Value is required for structure '{}' in collection '{}'",
-                    structure_id, custom_structure_id
-                ),
+                format!("Error: Value is required for structure '{}'", structure_id),
             ));
         }
 
@@ -192,11 +199,21 @@ fn process_structures(
         }
 
         let mut found = false;
-        if unique && final_data.len() > 0 {
-            for pair in all_pairs.iter() {
-                if pair.structure_id == structure_id && pair.value == final_data {
-                    found = true;
-                    break;
+        let all_mappings = auto_fetch_all_mappings();
+        let all_data = match auto_fetch_all_data(&all_mappings, project_id, collection_id) {
+            Ok(data) => data,
+            Err(_) => {
+                return Err((500, format!("Error: Failed fetching data")));
+            }
+        };
+
+        if unique && final_data.len() > 0 && !used_default {
+            for d in all_data {
+                for pair in d.pairs.iter() {
+                    if pair.structure_id == structure_id && pair.value == final_data {
+                        found = true;
+                        break;
+                    }
                 }
             }
         }
