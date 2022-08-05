@@ -97,10 +97,13 @@ pub async fn fetch(data: Json<DataFetchInput>, token: Token) -> Value {
 
     let current_data = Data::get_all(&all_data, project_id, collection_id);
     let mut raw_pairs = Vec::<RawPair>::new();
+    let mut data_ids = Vec::<String>::new();
+
     for data in current_data {
         match convert_to_raw(&data, &collection) {
             Ok(rp) => {
                 raw_pairs.push(rp);
+                data_ids.push(data.id.clone());
             }
             Err(e) => {
                 return json!({"status": e.0, "message": e.1});
@@ -108,7 +111,7 @@ pub async fn fetch(data: Json<DataFetchInput>, token: Token) -> Value {
         };
     }
 
-    return json!({"status": 200, "message": "Data successfully fetched!", "pairs": raw_pairs});
+    return json!({"status": 200, "message": "Data successfully fetched!", "pairs": raw_pairs, "data_ids": data_ids});
 }
 
 #[derive(Serialize, Deserialize)]
@@ -209,7 +212,7 @@ pub async fn fetch_one(data: Json<DataFetchOneInput>, token: Token) -> Value {
         }
     };
 
-    return json!({"status": 200, "message": "Data successfully fetched!", "pair": raw_pair});
+    return json!({"status": 200, "message": "Data successfully fetched!", "pair": raw_pair, "data_id": data_id});
 }
 
 #[derive(Serialize, Deserialize)]
