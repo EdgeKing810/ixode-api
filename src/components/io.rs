@@ -149,6 +149,9 @@ pub fn remove_directory(path: &String) {
 pub fn rename_directory(old_path: &String, path: &String) {
     let rename_directory_result = rename(&old_path, &path);
     if let Err(e) = rename_directory_result {
-        println!("Error while renaming directory: {} ({})", e, path);
+        println!(
+            "Error while renaming directory: {} (from: {}) (to: {})",
+            e, old_path, path
+        );
     }
 }

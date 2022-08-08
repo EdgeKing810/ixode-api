@@ -34,6 +34,8 @@ pub fn convert_from_raw(
     collection: &Collection,
     raw_pair: &RawPair,
 ) -> Result<String, (usize, String)> {
+    println!("{:#?}", raw_pair);
+
     let structure_pairs: Vec<StructurePair> = raw_pair.structures.clone();
     let custom_structure_pairs: Vec<CustomStructurePair> = raw_pair.custom_structures.clone();
 
@@ -113,8 +115,11 @@ fn process_structures(
         let mut value = String::new();
         let mut used_default = false;
 
+        // println!("structure id: {}", structure_id);
+
         for structure_pair in structure_pairs {
             if structure_pair.id == structure_id {
+                // println!("chosen structure pair: {:#?}", structure_pair);
                 value = structure_pair.value.clone();
                 break;
             }
@@ -135,16 +140,22 @@ fn process_structures(
             used_default = true;
         }
 
+        // println!("value: {}", value);
+
         let mut broken_data: Vec<&str> = vec![&value];
         if array {
             broken_data = value.split(",").collect::<Vec<&str>>();
         }
+
+        // println!("broken_data: {:#?}", broken_data);
 
         for d in broken_data {
             if d.trim().len() > 0 {
                 actual_data.push(d.trim().to_string());
             }
         }
+
+        // println!("actual_data: {:#?}", actual_data);
 
         let pair_id = EncryptionKey::generate_uuid(16);
         let processed_dtype = Structure::from_stype(stype.clone());
@@ -224,6 +235,8 @@ fn process_structures(
                 format!("Error: Value '{}' should be unique", final_data),
             ));
         }
+
+        // println!("Success!");
 
         all_pairs.push(DataPair {
             id: pair_id,
@@ -308,9 +321,12 @@ fn revert_structures(
         let structure_id = structure.id.clone();
         let mut value = String::new();
 
+        // println!("structure_id: {}", structure_id);
+
         for pair in all_pairs {
-            if pair.id == structure_id {
+            if pair.structure_id == structure_id {
                 value = pair.value.clone();
+                // println!("val!: {}", value);
                 break;
             }
         }
