@@ -250,12 +250,7 @@ impl DataPair {
 
         let final_value = value.split("§").collect::<Vec<&str>>().join("_");
 
-        if String::from(final_value.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: value does not contain enough characters"),
-            ));
-        } else if String::from(final_value.trim()).len() > 50000 {
+        if String::from(final_value.trim()).len() > 500000 {
             return Err((
                 400,
                 String::from("Error: value contains too many characters"),

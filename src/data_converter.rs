@@ -33,6 +33,7 @@ pub fn convert_from_raw(
     all_data: &mut Vec<Data>,
     collection: &Collection,
     raw_pair: &RawPair,
+    updating: bool,
 ) -> Result<String, (usize, String)> {
     println!("{:#?}", raw_pair);
 
@@ -48,6 +49,7 @@ pub fn convert_from_raw(
         "",
         &collection.project_id,
         &collection.id,
+        updating,
     ) {
         return Err(e);
     }
@@ -73,6 +75,7 @@ pub fn convert_from_raw(
             &custom_structure_id,
             &collection.project_id,
             &collection.id,
+            updating,
         ) {
             return Err(e);
         }
@@ -109,6 +112,7 @@ fn process_structures(
     custom_structure_id: &str,
     project_id: &str,
     collection_id: &str,
+    updating: bool,
 ) -> Result<(), (usize, String)> {
     for structure in structures {
         let structure_id = structure.id.clone();
@@ -210,6 +214,7 @@ fn process_structures(
         }
 
         let mut found = false;
+        let mut count = 0;
         let all_mappings = auto_fetch_all_mappings();
         let all_data = match auto_fetch_all_data(&all_mappings, project_id, collection_id) {
             Ok(data) => data,
@@ -222,8 +227,12 @@ fn process_structures(
             for d in all_data {
                 for pair in d.pairs.iter() {
                     if pair.structure_id == structure_id && pair.value == final_data {
-                        found = true;
-                        break;
+                        if count > 0 || !updating {
+                            found = true;
+                            break;
+                        }
+
+                        count += 1;
                     }
                 }
             }

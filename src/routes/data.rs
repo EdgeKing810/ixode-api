@@ -303,7 +303,7 @@ pub async fn create(data: Json<CreateDataInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to create Data for this Collection"});
     }
 
-    let data_id = match convert_from_raw(&mut all_data, &collection, raw_pair) {
+    let data_id = match convert_from_raw(&mut all_data, &collection, raw_pair, false) {
         Ok(id) => id,
         Err(e) => return json!({"status": e.0, "message": e.1}),
     };
@@ -406,7 +406,7 @@ pub async fn update(data: Json<UpdateDataInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to update Data in this Collection"});
     }
 
-    let new_data_id = match convert_from_raw(&mut all_data, &collection, raw_pair) {
+    let new_data_id = match convert_from_raw(&mut all_data, &collection, raw_pair, true) {
         Ok(id) => id,
         Err(e) => return json!({"status": e.0, "message": e.1}),
     };
@@ -511,12 +511,14 @@ pub async fn delete(data: Json<DeleteDataInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to delete Data in this Collection"});
     }
 
-    match Data::delete(&mut all_data, &data_id) {
-        Ok(_) => {
-            return json!({"status": 200, "message": "Data successfully deleted!"});
-        }
+    if let Err(e) = Data::delete(&mut all_data, &data_id) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
+    match auto_save_all_data(&mappings, &project_id, &collection_id, &all_data) {
+        Ok(_) => return json!({"status": 200, "message": "Data successfully deleted!"}),
         Err(e) => {
-            return json!({"status": e.0, "message": e.1});
+            json!({"status": 500, "message": e})
         }
     }
 }
