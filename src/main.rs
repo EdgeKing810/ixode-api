@@ -167,7 +167,10 @@ fn rocket() -> _ {
                 routes::data::publish,
             ],
         )
-        .mount(fpath("/misc"), routes![routes::misc::test_mongo])
+        .mount(
+            fpath("/misc"),
+            routes![routes::misc::test_mongo, routes::misc::test_smtp],
+        )
         .register(
             "/",
             catchers![

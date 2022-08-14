@@ -15,7 +15,7 @@ use rocket::serde::{Deserialize, Serialize};
 pub struct RawPair {
     pub structures: Vec<StructurePair>,
     pub custom_structures: Vec<CustomStructurePair>,
-    pub published: bool
+    pub published: bool,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]

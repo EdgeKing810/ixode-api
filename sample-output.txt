@@ -32,6 +32,7 @@ Routes:
    >> (login_jwt) POST /user/login/jwt application/json
    >> (fetch_one) POST /data/fetch/one application/json
    >> (test_mongo) POST /misc/test/mongo application/json
+   >> (test_smtp) POST /misc/test/smtp application/json
    >> (update_role) POST /user/update/role application/json
    >> (fetch_all) POST /media/fetch?<limit>&<offset> application/json
    >> (create) POST /media/create application/json
