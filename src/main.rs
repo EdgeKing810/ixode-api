@@ -164,6 +164,7 @@ fn rocket() -> _ {
                 routes::data::create,
                 routes::data::update,
                 routes::data::delete,
+                routes::data::publish,
             ],
         )
         .mount(fpath("/misc"), routes![routes::misc::test_mongo])

@@ -522,3 +522,102 @@ pub async fn delete(data: Json<DeleteDataInput>, token: Token) -> Value {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct PublishDataInput {
+    uid: String,
+    data_id: String,
+    project_id: String,
+    collection_id: String,
+    publish: bool,
+}
+
+#[post("/publish", format = "json", data = "<data>")]
+pub async fn publish(data: Json<PublishDataInput>, token: Token) -> Value {
+    let uid = &data.uid;
+    let data_id = &data.data_id;
+    let project_id = &data.project_id;
+    let collection_id = &data.collection_id;
+    let publish = &data.publish;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let mut all_data = match auto_fetch_all_data(&mappings, &project_id, &collection_id) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching data"});
+        }
+    };
+
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+
+    let all_projects = match auto_fetch_all_projects(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching projects"});
+        }
+    };
+
+    let all_collections = match auto_fetch_all_collections(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching collections"});
+        }
+    };
+
+    let project = match Project::get(&all_projects, project_id) {
+        Ok(p) => p,
+        Err(_) => {
+            return json!({"status": 404, "message": "Error: No Project with this project_id found"})
+        }
+    };
+
+    if !Collection::exist(&all_collections, collection_id) {
+        return json!({"status": 404, "message": "Error: No Collection with this collection_id found"});
+    }
+
+    let members = project.members.clone();
+    let mut allowed = false;
+
+    if current_user.role != Role::ROOT {
+        if current_user.role == Role::AUTHOR {
+            for member in members {
+                if member.to_lowercase() == uid.to_string() {
+                    allowed = true;
+                    break;
+                }
+            }
+        }
+    } else {
+        allowed = true;
+    }
+
+    if !allowed {
+        return json!({"status": 403, "message": format!("Error: Not authorized to {}publish Data in this Collection", if *publish { "" } else { "un" })});
+    }
+
+    if let Err(e) = Data::update_published(&mut all_data, &data_id, *publish) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
+    match auto_save_all_data(&mappings, &project_id, &collection_id, &all_data) {
+        Ok(_) => {
+            return json!({"status": 200, "message": format!("Data successfully {}published!", if *publish { "" } else { "un" } )})
+        }
+        Err(e) => {
+            json!({"status": 500, "message": e})
+        }
+    }
+}

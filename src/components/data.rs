@@ -9,6 +9,7 @@ pub struct Data {
     pub project_id: String,
     pub collection_id: String,
     pub pairs: Vec<DataPair>,
+    pub published: bool,
 }
 
 impl Data {
@@ -17,6 +18,7 @@ impl Data {
         id: &str,
         project_id: &str,
         collection_id: &str,
+        published: bool,
     ) -> Result<(), (usize, String)> {
         let tmp_id = String::from("test;");
         let mut new_id = String::from(id);
@@ -29,6 +31,7 @@ impl Data {
             project_id: "".to_string(),
             collection_id: "".to_string(),
             pairs: vec![],
+            published: false,
         };
         all_data.push(new_data);
 
@@ -52,6 +55,15 @@ impl Data {
         if !has_error {
             let collection_id_update = Self::update_collection_id(all_data, &new_id, collection_id);
             if let Err(e) = collection_id_update {
+                has_error = true;
+                println!("{}", e.1);
+                latest_error = e;
+            }
+        }
+
+        if !has_error {
+            let published_update = Self::update_published(all_data, &new_id, published);
+            if let Err(e) = published_update {
                 has_error = true;
                 println!("{}", e.1);
                 latest_error = e;
@@ -240,6 +252,28 @@ impl Data {
             if data.id == *id {
                 found_data = Some(data.clone());
                 data.collection_id = collection_id.trim().to_string();
+                break;
+            }
+        }
+
+        if let None = found_data {
+            return Err((404, String::from("Error: Data not found")));
+        }
+
+        Ok(())
+    }
+
+    pub fn update_published(
+        all_data: &mut Vec<Data>,
+        id: &String,
+        published: bool,
+    ) -> Result<(), (usize, String)> {
+        let mut found_data: Option<Data> = None;
+
+        for data in all_data.iter_mut() {
+            if data.id == *id {
+                found_data = Some(data.clone());
+                data.published = published;
                 break;
             }
         }
@@ -536,6 +570,7 @@ impl Data {
                 project_id: data.project_id.clone(),
                 collection_id: data.collection_id.clone(),
                 pairs: data.pairs.clone(),
+                published: data.published,
             })
             .collect::<Vec<Data>>();
 
@@ -553,6 +588,7 @@ impl Data {
                 project_id: data.project_id.clone(),
                 collection_id: data.collection_id.clone(),
                 pairs: data.pairs.clone(),
+                published: data.published,
             })
             .collect::<Vec<Data>>();
 
@@ -568,6 +604,7 @@ impl Data {
                 project_id: data.project_id.clone(),
                 collection_id: data.collection_id.clone(),
                 pairs: data.pairs.clone(),
+                published: data.published,
             })
             .collect::<Vec<Data>>();
 
@@ -576,15 +613,17 @@ impl Data {
 
     pub fn to_string(data: Data) -> String {
         let stringified_pairs = DataPair::to_string(&data.pairs);
+        let publish_num = if data.published { "1" } else { "0" };
 
         format!(
-            "{};{};{};{}",
-            data.id, data.project_id, data.collection_id, stringified_pairs,
+            "{};{};{};{};{}",
+            data.id, data.project_id, data.collection_id, publish_num, stringified_pairs,
         )
     }
 
     pub fn from_string(mut all_data: &mut Vec<Data>, data_str: &str) -> String {
         let current_data = data_str.split(";").collect::<Vec<&str>>();
+        let published = if current_data[3] == "1" { true } else { false };
 
         let data_id = current_data[0];
         let create_data = Data::create(
@@ -592,12 +631,13 @@ impl Data {
             current_data[0],
             current_data[1],
             current_data[2],
+            published,
         );
         if let Err(e) = create_data {
             return e.1;
         }
 
-        let current_pairs = current_data[3..].join(";");
+        let current_pairs = current_data[4..].join(";");
         let mut final_pairs: Vec<DataPair> = vec![];
         DataPair::from_string(&mut final_pairs, &current_pairs);
 

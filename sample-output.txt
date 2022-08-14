@@ -25,6 +25,7 @@ Routes:
    >> (create) POST /data/create application/json
    >> (update) POST /data/update application/json
    >> (delete) POST /data/delete application/json
+   >> (publish) POST /data/publish application/json
    >> (register) POST /user/register application/json
    >> GET /cors/<status>
    >> (fetch_one) POST /user/fetch/one application/json

@@ -12,10 +12,10 @@ fn test_data() {
     let mut all_data = fetch_all_data(file_name.to_string(), &String::new());
     println!("{:#?}", all_data);
 
-    let test_data = Data::create(&mut all_data, "test", "test", "test");
+    let test_data = Data::create(&mut all_data, "test", "test", "test", false);
     assert_eq!(test_data, Ok(()));
 
-    let test_data2 = Data::create(&mut all_data, "test ", "test", "test");
+    let test_data2 = Data::create(&mut all_data, "test ", "test", "test", false);
     assert_eq!(
         test_data2,
         Err((
@@ -24,7 +24,7 @@ fn test_data() {
         ))
     );
 
-    let test_data2 = Data::create(&mut all_data, "test2", "test ***", "test");
+    let test_data2 = Data::create(&mut all_data, "test2", "test ***", "test", false);
     assert_eq!(
         test_data2,
         Err((
@@ -33,7 +33,7 @@ fn test_data() {
         ))
     );
 
-    let test_data2 = Data::create(&mut all_data, "test2", "test2", "test2.");
+    let test_data2 = Data::create(&mut all_data, "test2", "test2", "test2.", false);
     assert_eq!(
         test_data2,
         Err((
@@ -42,13 +42,13 @@ fn test_data() {
         ))
     );
 
-    let test_data2 = Data::create(&mut all_data, "test", "test2", "test2");
+    let test_data2 = Data::create(&mut all_data, "test", "test2", "test2", false);
     assert_eq!(
         test_data2,
         Err((403, String::from("Error: id is already in use")))
     );
 
-    let test_data2 = Data::create(&mut all_data, "test2", "test2", "test2");
+    let test_data2 = Data::create(&mut all_data, "test2", "test2", "test2", false);
     assert_eq!(test_data2, Ok(()));
 
     let test2_id = String::from("test2");

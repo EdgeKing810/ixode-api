@@ -15,6 +15,7 @@ use rocket::serde::{Deserialize, Serialize};
 pub struct RawPair {
     pub structures: Vec<StructurePair>,
     pub custom_structures: Vec<CustomStructurePair>,
+    pub published: bool
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -82,7 +83,13 @@ pub fn convert_from_raw(
     }
 
     let data_id = EncryptionKey::generate_uuid(16);
-    match Data::create(all_data, &data_id, &collection.project_id, &collection.id) {
+    match Data::create(
+        all_data,
+        &data_id,
+        &collection.project_id,
+        &collection.id,
+        raw_pair.published,
+    ) {
         Err(e) => {
             return Err(e);
         }
@@ -316,6 +323,7 @@ pub fn convert_to_raw(data: &Data, collection: &Collection) -> Result<RawPair, (
     let raw_pair = RawPair {
         structures: structure_pairs,
         custom_structures: custom_structure_pairs,
+        published: data.published,
     };
 
     Ok(raw_pair)

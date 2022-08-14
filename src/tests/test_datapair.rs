@@ -88,7 +88,7 @@ fn test_datapair() {
         Err((404, String::from("Error: Data not found")))
     );
 
-    let create_data = Data::create(&mut all_data, "test", "test", "test");
+    let create_data = Data::create(&mut all_data, "test", "test", "test", false);
     assert_eq!(create_data, Ok(()));
 
     let test_pair4 = Data::add_pair(&mut all_data, &String::from("test"), all_pairs[0].clone());
