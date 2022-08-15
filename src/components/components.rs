@@ -33,3 +33,6 @@ pub mod data;
 
 #[path = "datapair.rs"]
 pub mod datapair;
+
+#[path = "event.rs"]
+pub mod event;

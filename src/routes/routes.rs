@@ -28,5 +28,8 @@ pub mod misc;
 #[path = "data.rs"]
 pub mod data;
 
+#[path = "event.rs"]
+pub mod event;
+
 #[path = "upload.rs"]
 pub mod upload;

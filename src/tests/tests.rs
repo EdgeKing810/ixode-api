@@ -24,5 +24,8 @@ mod test_medias;
 #[path = "test_data.rs"]
 mod test_data;
 
+#[path = "test_event.rs"]
+mod test_event;
+
 #[path = "test_datapair.rs"]
 mod test_datapair;

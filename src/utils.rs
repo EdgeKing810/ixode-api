@@ -4,6 +4,9 @@ use crate::components::collection::{
 };
 use crate::components::config::{fetch_all_configs, save_all_configs, Config};
 use crate::components::data::{fetch_all_data, save_all_data, stringify_data, unwrap_data, Data};
+use crate::components::event::{
+    fetch_all_events, save_all_events, stringify_events, unwrap_events, Event,
+};
 use crate::components::io::{
     ensure_directory_exists, fetch_file, remove_directory, remove_file, rename_directory, save_file,
 };
@@ -114,6 +117,17 @@ pub fn init_redis() -> String {
     redis::cmd("SET")
         .arg("collections")
         .arg(stringified_collections)
+        .execute(&mut connection);
+
+    let events = match auto_fetch_all_events(&mappings) {
+        Ok(e) => e,
+        _ => Vec::<Event>::new(),
+    };
+
+    let stringified_events = stringify_events(&events);
+    redis::cmd("SET")
+        .arg("events")
+        .arg(stringified_events)
         .execute(&mut connection);
 
     String::from("Redis Connection Successful!")
@@ -383,7 +397,7 @@ pub fn auto_fetch_all_medias(mappings: &Vec<Mapping>) -> Result<Vec<Media>, Stri
 
     if let Ok(mut con) = connection {
         let stringified_medias = match redis::pipe().cmd("GET").arg("medias").query(&mut con) {
-            Ok(p) => Some(p),
+            Ok(m) => Some(m),
             _ => None,
         };
 
@@ -507,6 +521,64 @@ pub fn auto_save_all_data(
     }
 
     save_all_data(data, all_data_path, &encryption_key);
+
+    Ok(())
+}
+
+pub fn auto_fetch_all_events(mappings: &Vec<Mapping>) -> Result<Vec<Event>, String> {
+    let connection = get_redis_connection();
+
+    if let Ok(mut con) = connection {
+        let stringified_events = match redis::pipe().cmd("GET").arg("events").query(&mut con) {
+            Ok(e) => Some(e),
+            _ => None,
+        };
+
+        if let Some(se) = stringified_events {
+            return Ok(unwrap_events(se));
+        }
+    }
+
+    let all_events_path = match get_file_name("events", mappings) {
+        Ok(path) => path,
+        Err(e) => return Err(e),
+    };
+
+    let tmp_password = match std::env::var("TMP_PASSWORD") {
+        Ok(pass) => pass,
+        _ => "password".to_string(),
+    };
+
+    let all_events = fetch_all_events(
+        all_events_path.clone(),
+        &get_encryption_key(&mappings, &tmp_password),
+    );
+
+    Ok(all_events)
+}
+
+pub fn auto_save_all_events(mappings: &Vec<Mapping>, events: &Vec<Event>) -> Result<(), String> {
+    let all_events_path = match get_file_name("events", mappings) {
+        Ok(path) => path,
+        Err(e) => return Err(e),
+    };
+
+    let tmp_password = match std::env::var("TMP_PASSWORD") {
+        Ok(pass) => pass,
+        _ => "password".to_string(),
+    };
+
+    let encryption_key = get_encryption_key(mappings, &tmp_password);
+
+    let connection = get_redis_connection();
+    if let Ok(mut con) = connection {
+        redis::cmd("SET")
+            .arg("events")
+            .arg(stringify_events(events))
+            .execute(&mut con);
+    }
+
+    save_all_events(events, all_events_path, &encryption_key);
 
     Ok(())
 }

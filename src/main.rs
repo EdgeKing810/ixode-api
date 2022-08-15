@@ -168,6 +168,14 @@ fn rocket() -> _ {
             ],
         )
         .mount(
+            fpath("/event"),
+            routes![
+                routes::event::fetch_all,
+                routes::event::fetch_one,
+                routes::event::delete,
+            ],
+        )
+        .mount(
             fpath("/misc"),
             routes![routes::misc::test_mongo, routes::misc::test_smtp],
         )

@@ -2,6 +2,7 @@ use crate::components::collection::{fetch_all_collections, save_all_collections,
 use crate::components::config::{fetch_all_configs, save_all_configs, Config};
 use crate::components::custom_structures::CustomStructure;
 use crate::components::encryption::{fetch_encryption_key, save_encryption_key, EncryptionKey};
+use crate::components::event::{fetch_all_events, save_all_events, Event};
 use crate::components::mappings::{fetch_all_mappings, get_file_name, save_all_mappings, Mapping};
 use crate::components::media::{fetch_all_medias, save_all_medias, Media};
 use crate::components::project::{fetch_all_projects, save_all_projects, Project};
@@ -42,6 +43,7 @@ pub fn initialize() {
     let _all_configs: Vec<Config> = initialize_configs(&all_mappings);
     let all_collections: Vec<Collection> = initialize_collections(&all_mappings);
     let _all_medias: Vec<Media> = initialize_medias(&all_mappings);
+    let _all_events: Vec<Event> = initialize_events(&all_mappings);
 
     println!(
         "{:#?}",
@@ -107,6 +109,13 @@ fn initialize_mappings() -> Vec<Mapping> {
             "data/encryption_key.txt",
         );
         if let Err(e) = encryption_key_mapping {
+            println!("{}", e);
+        }
+    }
+
+    if !Mapping::exist(&fetched_mappings, "events") {
+        let event_mapping = Mapping::create(&mut fetched_mappings, "events", "data/events.txt");
+        if let Err(e) = event_mapping {
             println!("{}", e);
         }
     }
@@ -531,11 +540,6 @@ fn initialize_medias(mappings: &Vec<Mapping>) -> Vec<Media> {
         }
     }
 
-    let pass = match std::env::var("TMP_PASSWORD") {
-        Ok(p) => p,
-        _ => "Test123*".to_string(),
-    };
-
     save_all_medias(
         &all_medias,
         all_medias_path.unwrap(),
@@ -543,4 +547,32 @@ fn initialize_medias(mappings: &Vec<Mapping>) -> Vec<Media> {
     );
 
     all_medias
+}
+
+fn initialize_events(mappings: &Vec<Mapping>) -> Vec<Event> {
+    let all_events_path = get_file_name("events", mappings);
+    let mut all_events = Vec::<Event>::new();
+
+    if let Err(e) = all_events_path {
+        println!("{}", e);
+        return all_events;
+    }
+
+    let pass = match std::env::var("TMP_PASSWORD") {
+        Ok(p) => p,
+        _ => "Test123*".to_string(),
+    };
+
+    all_events = fetch_all_events(
+        all_events_path.clone().unwrap(),
+        &get_encryption_key(&mappings, &pass),
+    );
+
+    save_all_events(
+        &all_events,
+        all_events_path.unwrap(),
+        &get_encryption_key(&mappings, &pass),
+    );
+
+    all_events
 }

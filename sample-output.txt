@@ -1,3 +1,4 @@
+Redis Connection Successful!
 Configured for debug.
    >> address: 0.0.0.0
    >> port: 8080
@@ -13,9 +14,11 @@ Configured for debug.
 Routes:
    >> (welcome) GET /
    >> OPTIONS /<catch_all_options_route..> [9223372036854775807]
+   >> (call_initialize) GET /init/code?<code>
+   >> GET /cors/<status>
+   >> (FileServer: public/) GET /public/<path..> [10]
    >> (world) GET /tmp/hello/world
    >> (wave) GET /tmp/wave/<name>/<age>
-   >> (call_initialize) GET /init/code?<code>
    >> (fetch_all) POST /user/fetch?<limit>&<offset> application/json
    >> (login) POST /user/login application/json
    >> (fetch) POST /data/fetch application/json
@@ -27,24 +30,25 @@ Routes:
    >> (delete) POST /data/delete application/json
    >> (publish) POST /data/publish application/json
    >> (register) POST /user/register application/json
-   >> GET /cors/<status>
    >> (fetch_one) POST /user/fetch/one application/json
    >> (login_jwt) POST /user/login/jwt application/json
    >> (fetch_one) POST /data/fetch/one application/json
-   >> (test_mongo) POST /misc/test/mongo application/json
    >> (test_smtp) POST /misc/test/smtp application/json
+   >> (test_mongo) POST /misc/test/mongo application/json
    >> (update_role) POST /user/update/role application/json
    >> (fetch_all) POST /media/fetch?<limit>&<offset> application/json
+   >> (fetch_all) POST /event/fetch?<limit>&<offset> application/json
    >> (create) POST /media/create application/json
    >> (update) POST /media/update application/json
    >> (delete) POST /media/delete application/json
+   >> (delete) POST /event/delete application/json
    >> (fetch_one) POST /media/fetch/one application/json
+   >> (fetch_one) POST /event/fetch/one application/json
    >> (upload) POST /upload/
    >> (add) POST /config/add application/json
    >> (fetch_all) POST /config/fetch?<limit>&<offset> application/json
    >> (update) POST /config/update application/json
    >> (delete) POST /config/delete application/json
-   >> (FileServer: public/) GET /public/<path..> [10]
    >> (fetch_one) POST /config/fetch/one application/json
    >> (fetch_all) POST /project/fetch?<limit>&<offset> application/json
    >> (create) POST /project/create application/json
@@ -71,12 +75,12 @@ Catchers:
    >> (malformed_request) 422
    >> (internal_server_error) 500
 Fairings:
-   >> CORS (ignite, request, response)
    >> Templating (ignite, liftoff, request)
    >> Shield (liftoff, response, singleton)
+   >> CORS (ignite, request, response)
 Shield:
-   >> X-Content-Type-Options: nosniff
    >> Permissions-Policy: interest-cohort=()
+   >> X-Content-Type-Options: nosniff
    >> X-Frame-Options: SAMEORIGIN
 Templating:
    >> directory: templates
