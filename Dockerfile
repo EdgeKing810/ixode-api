@@ -12,5 +12,8 @@ RUN rustc -V
 RUN cargo --version
 RUN mkdir -p /db/data
 
+RUN cargo fetch
+RUN cargo build --release
+
 EXPOSE 8080
 CMD ["cargo", "run", "--release"]
