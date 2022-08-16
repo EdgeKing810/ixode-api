@@ -7,7 +7,8 @@ use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_configs, auto_fetch_all_mappings, auto_fetch_all_users, auto_save_all_configs,
+    auto_create_event, auto_fetch_all_configs, auto_fetch_all_mappings, auto_fetch_all_users,
+    auto_save_all_configs,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -160,6 +161,15 @@ pub async fn add(data: Json<AddConfigInput>, token: Token) -> Value {
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "config_create",
+        format!("The config <{}> was created by usr[{}]", key, uid),
+        format!("/configs"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_configs(&mappings, &all_configs) {
         Ok(_) => return json!({"status": 200, "message": "Config successfully created!"}),
         Err(e) => {
@@ -208,6 +218,15 @@ pub async fn update(data: Json<AddConfigInput>, token: Token) -> Value {
     match Config::update_value(&mut all_configs, key, value) {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "config_update",
+        format!("The config <{}> was updated by usr[{}]", key, uid),
+        format!("/configs"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     match auto_save_all_configs(&mappings, &all_configs) {
@@ -264,6 +283,15 @@ pub async fn delete(data: Json<DeleteConfigInput>, token: Token) -> Value {
     match Config::delete(&mut all_configs, key) {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "config_delete",
+        format!("The config <{}> was deleted by usr[{}]", key, uid),
+        format!("/configs"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     match auto_save_all_configs(&mappings, &all_configs) {

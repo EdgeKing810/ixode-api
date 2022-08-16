@@ -583,6 +583,32 @@ pub fn auto_save_all_events(mappings: &Vec<Mapping>, events: &Vec<Event>) -> Res
     Ok(())
 }
 
+pub fn auto_create_event(
+    mappings: &Vec<Mapping>,
+    event_type: &str,
+    description: String,
+    redirect: String,
+) -> Result<(), (usize, String)> {
+    let mut all_events = match auto_fetch_all_events(mappings) {
+        Ok(events) => events,
+        Err(e) => {
+            println!("{}", e);
+            return Err((500, "Error: Failed fetching events".to_string()));
+        }
+    };
+
+    if let Err(e) = Event::create(&mut all_events, event_type, &description, &redirect) {
+        return Err(e);
+    }
+
+    if let Err(e) = auto_save_all_events(mappings, &all_events) {
+        println!("{}", e);
+        return Err((500, "Error: Failed to save events".to_string()));
+    }
+
+    Ok(())
+}
+
 pub fn get_config_value(mappings: &Vec<Mapping>, id: &str, default: &str) -> String {
     let all_configs = match auto_fetch_all_configs(mappings) {
         Ok(configs) => configs,

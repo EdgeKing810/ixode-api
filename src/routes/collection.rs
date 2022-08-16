@@ -8,7 +8,7 @@ use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
     auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
 };
 
@@ -252,6 +252,21 @@ pub async fn create(data: Json<CreateCollectionInput>, token: Token) -> Value {
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "collection_create",
+        format!(
+            "A new collection named col[{}] was created under pro[{}] by usr[{}]",
+            collection.id, collection.project_id, uid
+        ),
+        format!(
+            "/project/{}/collection/{}",
+            collection.project_id, collection.id
+        ),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_collections(&mappings, &all_collections) {
         Ok(_) => return json!({"status": 200, "message": "Collection successfully created!"}),
         Err(e) => {
@@ -336,6 +351,17 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
                     break;
                 }
             }
+            if let Err(e) = auto_create_event(
+                &mappings,
+                "collection_update_id",
+                format!(
+                    "The id of the collection col[{}] under pro[{}] was changed from <{}> to <{}> by usr[{}]",
+                    data, project_id, collection_id, data, uid
+                ),
+                format!("/project/{}/collection/{}", project_id, data),
+            ) {
+                return json!({"status": e.0, "message": e.1});
+            }
         }
     } else {
         allowed = true;
@@ -350,6 +376,11 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
         _ => {
             return json!({"status": 500, "message": "Error: Failed fetching data"});
         }
+    };
+
+    let current_col = match Collection::get(&all_collections, project_id, collection_id) {
+        Ok(col) => col,
+        Err(e) => return json!({"status": e.0, "message": e.1}),
     };
 
     match match change.clone() {
@@ -371,6 +402,42 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
             Err(e) => {
                 return json!({"status": 500, "message": e});
             }
+        }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "collection_update_id",
+            format!(
+                "The id of the collection col[{}] under pro[{}] was updated from <{}> to <{}> by usr[{}]",
+                data, project_id, collection_id, data, uid
+            ),
+            format!("/project/{}/collection/{}", project_id, data),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
+    } else if change.clone() == &UpdateType::NAME {
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "collection_update_name",
+            format!(
+                "The name of the collection col[{}] under pro[{}] was updated from <{}> to <{}> by usr[{}]",
+                collection_id, project_id, current_col.name, data, uid
+            ),
+            format!("/project/{}/collection/{}", project_id, collection_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
+    } else if change.clone() == &UpdateType::DESCRIPTION {
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "collection_update_description",
+            format!(
+                "The description of the collection col[{}] under pro[{}] was updated by usr[{}]",
+                collection_id, project_id, uid
+            ),
+            format!("/project/{}/collection/{}", project_id, collection_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
         }
     }
 
@@ -455,9 +522,26 @@ pub async fn delete(data: Json<DeleteCollectionInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to delete Collections in this Project"});
     }
 
+    let current_col = match Collection::get(&all_collections, project_id, collection_id) {
+        Ok(col) => col,
+        Err(e) => return json!({"status": e.0, "message": e.1}),
+    };
+
     match Collection::delete(&mut all_collections, collection_id) {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "collection_delete",
+        format!(
+            "The collection <{}> under pro[{}] was deleted by usr[{}]",
+            current_col.name, project_id, uid
+        ),
+        format!("/project/{}", project_id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     match auto_save_all_collections(&mappings, &all_collections) {

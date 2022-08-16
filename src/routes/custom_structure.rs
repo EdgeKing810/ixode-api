@@ -9,7 +9,7 @@ use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
     auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
 };
 
@@ -104,8 +104,23 @@ pub async fn add(data: Json<AddCustomStructureInput>, token: Token) -> Value {
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "custom_structure_create",
+        format!(
+            "A new custom structure with id <{}> was created under pro[{}]/col[{}] by usr[{}]",
+            custom_structure.id, project_id, collection_id, uid
+        ),
+        format!(
+            "/project/{}/collection/{}/custom/{}",
+            project_id, collection_id, custom_structure.id
+        ),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_collections(&mappings, &all_collections) {
-        Ok(_) => return json!({"status": 200, "message": "CustomStructure successfully added!"}),
+        Ok(_) => return json!({"status": 200, "message": "Custom Structure successfully added!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }
@@ -244,8 +259,23 @@ pub async fn update(data: Json<UpdateCustomStructureInput>, token: Token) -> Val
         }
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "custom_structure_update",
+        format!(
+            "A custom structure with id <{}> under pro[{}]/col[{}] was updated by usr[{}]",
+            custom_structure.id, project_id, collection_id, uid
+        ),
+        format!(
+            "/project/{}/collection/{}/custom/{}",
+            project_id, collection_id, custom_structure.id
+        ),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_collections(&mappings, &all_collections) {
-        Ok(_) => return json!({"status": 200, "message": "CustomStructure successfully updated!"}),
+        Ok(_) => return json!({"status": 200, "message": "Custom Structure successfully updated!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }
@@ -347,8 +377,20 @@ pub async fn delete(data: Json<DeleteCustomStructureInput>, token: Token) -> Val
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "custom_structure_delete",
+        format!(
+            "A custom structure with id <{}> under pro[{}]/col[{}] was deleted by usr[{}]",
+            custom_structure_id, project_id, collection_id, uid
+        ),
+        format!("/project/{}/collection/{}", project_id, collection_id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_collections(&mappings, &all_collections) {
-        Ok(_) => return json!({"status": 200, "message": "CustomStructure successfully updated!"}),
+        Ok(_) => return json!({"status": 200, "message": "Custom Structure successfully updated!"}),
         Err(e) => {
             json!({"status": 500, "message": e})
         }

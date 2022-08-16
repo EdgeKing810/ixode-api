@@ -9,8 +9,8 @@ use rocket::serde::{Deserialize, Serialize};
 pub struct Collection {
     pub id: String,
     pub project_id: String,
-    name: String,
-    description: String,
+    pub name: String,
+    pub description: String,
     pub structures: Vec<Structure>,
     pub custom_structures: Vec<CustomStructure>,
 }

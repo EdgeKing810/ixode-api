@@ -9,7 +9,7 @@ use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
     auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
     auto_save_all_projects,
 };
@@ -228,6 +228,18 @@ pub async fn create(data: Json<CreateProjectInput>, token: Token) -> Value {
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "project_create",
+        format!(
+            "A new project named pro[{}] was created by usr[{}]",
+            project.id, uid
+        ),
+        format!("/project/{}", project.id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_projects(&mappings, &all_projects) {
         Ok(_) => return json!({"status": 200, "message": "Project successfully created!"}),
         Err(e) => {
@@ -374,6 +386,54 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
                 return json!({"status": 500, "message": e});
             }
         }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "project_update_id",
+            format!(
+                "The id of the project pro[{}] was updated from <{}> to <{}> by usr[{}]",
+                data, project_id, data, uid
+            ),
+            format!("/project/{}", data),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
+    } else if change.clone() == &UpdateType::NAME {
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "project_update_name",
+            format!(
+                "The name of the project pro[{}] was updated from <{}> to <{}> by usr[{}]",
+                project_id, project.name, data, uid
+            ),
+            format!("/project/{}", project_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
+    } else if change.clone() == &UpdateType::DESCRIPTION {
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "project_update_description",
+            format!(
+                "The description of the project pro[{}] was updated by usr[{}]",
+                project_id, uid
+            ),
+            format!("/project/{}", project_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
+    } else if change.clone() == &UpdateType::APIPATH {
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "project_update_api_path",
+            format!(
+                "The api_path of the project pro[{}] was updated from <{}> to <{}> by usr[{}]",
+                project_id, project.api_path, data, uid
+            ),
+            format!("/project/{}", project_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
     }
 
     match auto_save_all_projects(&mappings, &all_projects) {
@@ -467,6 +527,15 @@ pub async fn delete(data: Json<DeleteProjectInput>, token: Token) -> Value {
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "project_delete",
+        format!("The project <{}> was deleted by usr[{}]", project.name, uid),
+        format!("/projects"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_projects(&mappings, &all_projects) {
         Ok(_) => return json!({"status": 200, "message": "Project successfully deleted!"}),
         Err(e) => {
@@ -546,6 +615,18 @@ pub async fn add_member(data: Json<MemberProjectInput>, token: Token) -> Value {
         _ => {}
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "project_add_member",
+        format!(
+            "The user usr[{}] was added to the project pro[{}] by usr[{}]",
+            target_uid, project_id, uid
+        ),
+        format!("/project/{}", project_id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_projects(&mappings, &all_projects) {
         Ok(_) => return json!({"status": 200, "message": "User successfully added to Project!"}),
         Err(e) => {
@@ -615,6 +696,18 @@ pub async fn remove_member(data: Json<MemberProjectInput>, token: Token) -> Valu
     match Project::remove_member(&mut all_projects, project_id, target_uid) {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "project_remove_member",
+        format!(
+            "The user usr[{}] was removed from the project pro[{}] by usr[{}]",
+            target_uid, project_id, uid
+        ),
+        format!("/project/{}", project_id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     match auto_save_all_projects(&mappings, &all_projects) {

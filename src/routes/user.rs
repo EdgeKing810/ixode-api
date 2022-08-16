@@ -12,8 +12,8 @@ use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{create_jwt, verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_mappings, auto_fetch_all_users, auto_fetch_file, auto_save_all_users,
-    get_config_value,
+    auto_create_event, auto_fetch_all_mappings, auto_fetch_all_users, auto_fetch_file,
+    auto_save_all_users, get_config_value,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -312,7 +312,7 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
 
     println!("{}", email_template);
 
-    let email = Message::builder()
+    let email_to_be_sent = Message::builder()
         .from(format!("Hello <{}>", smtp_username).parse().unwrap())
         .to(format!("{} {} <{}>", first_name, last_name, email)
             .parse()
@@ -333,9 +333,21 @@ pub async fn register(data: Json<RegisterInput>, token: Token) -> Value {
         .build();
 
     // Send the email
-    match mailer.send(&email) {
+    match mailer.send(&email_to_be_sent) {
         Ok(_) => println!("Email successfully sent!"),
         Err(e) => panic!("Could not send email: {:?}", e),
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "user_register",
+        format!(
+            "A new user with the email address <{}> was registered by usr[{}]",
+            email, uid
+        ),
+        format!("/users"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     match auto_save_all_users(&mappings, &users) {
@@ -450,9 +462,35 @@ pub async fn update_role(data: Json<RoleInput>, token: Token) -> Value {
         _ => 3,
     };
 
+    let old_role_str = match target_user.role.clone() {
+        Role::ROOT => "ROOT",
+        Role::ADMIN => "ADMIN",
+        Role::AUTHOR => "AUTHOR",
+        _ => "VIEWER",
+    };
+
+    let new_role_str = match role.clone() {
+        Role::ROOT => "ROOT",
+        Role::ADMIN => "ADMIN",
+        Role::AUTHOR => "AUTHOR",
+        _ => "VIEWER",
+    };
+
     match User::update_role(&mut users, target_uid, role_numeric) {
         Err(e) => return json!({"error": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "user_role_update",
+        format!(
+            "The role of usr[{}] was changed from <{}> to <{}> by usr[{}]",
+            target_uid, old_role_str, new_role_str, uid
+        ),
+        format!("/users"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     return match auto_save_all_users(&mappings, &users) {
@@ -502,6 +540,18 @@ pub async fn delete(data: Json<DeleteInput>, token: Token) -> Value {
     match User::delete(&mut users, target_uid) {
         Err(e) => return json!({"error": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "user_delete",
+        format!(
+            "The user <{}> was deleted by usr[{}]",
+            target_user.username, uid
+        ),
+        format!("/users"),
+    ) {
+        return json!({"status": e.0, "message": e.1});
     }
 
     return match auto_save_all_users(&mappings, &users) {

@@ -7,9 +7,10 @@ use crate::components::data::Data;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::data_converter::{convert_from_raw, convert_to_raw, RawPair};
+use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
     auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_data,
 };
 
@@ -21,11 +22,25 @@ pub struct DataFetchInput {
     collection_id: String,
 }
 
-#[post("/fetch", format = "json", data = "<data>")]
-pub async fn fetch(data: Json<DataFetchInput>, token: Token) -> Value {
+#[post("/fetch?<limit>&<offset>", format = "json", data = "<data>")]
+pub async fn fetch(
+    data: Json<DataFetchInput>,
+    token: Token,
+    offset: Option<usize>,
+    limit: Option<usize>,
+) -> Value {
     let uid = &data.uid;
     let project_id = &data.project_id;
     let collection_id = &data.collection_id;
+
+    let passed_limit = match limit {
+        Some(x) => x,
+        None => 0,
+    };
+    let passed_offset = match offset {
+        Some(x) => x,
+        None => 0,
+    };
 
     match verify_jwt(uid.clone(), token.0).await {
         Err(info) => return json!({"status": info.0, "message": info.1}),
@@ -113,7 +128,11 @@ pub async fn fetch(data: Json<DataFetchInput>, token: Token) -> Value {
         };
     }
 
-    return json!({"status": 200, "message": "Data successfully fetched!", "pairs": raw_pairs, "data_ids": data_ids});
+    let amount = raw_pairs.len();
+    let processed_raw_pairs = paginate(raw_pairs, passed_limit, passed_offset);
+    let processed_data_ids = paginate(data_ids, passed_limit, passed_offset);
+
+    return json!({"status": 200, "message": "Data successfully fetched!", "pairs": processed_raw_pairs, "data_ids": processed_data_ids, "amount": amount});
 }
 
 #[derive(Serialize, Deserialize)]
@@ -308,6 +327,18 @@ pub async fn create(data: Json<CreateDataInput>, token: Token) -> Value {
         Err(e) => return json!({"status": e.0, "message": e.1}),
     };
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "data_create",
+        format!(
+            "A new data with id <{}> was created under pro[{}]/col[{}] by usr[{}]",
+            data_id, project_id, collection_id, uid
+        ),
+        format!("/data/p/{}/c/{}/d/v/{}", project_id, collection_id, data_id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_data(&mappings, &project_id, &collection_id, &all_data) {
         Ok(_) => {
             return json!({"status": 200, "message": "Data successfully created!", "data_id": data_id})
@@ -418,6 +449,21 @@ pub async fn update(data: Json<UpdateDataInput>, token: Token) -> Value {
         }
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "data_update",
+        format!(
+            "An updated data with id <{}> was created under pro[{}]/col[{}] by usr[{}]",
+            new_data_id, project_id, collection_id, uid
+        ),
+        format!(
+            "/data/p/{}/c/{}/d/v/{}",
+            project_id, collection_id, new_data_id
+        ),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_data(&mappings, &project_id, &collection_id, &all_data) {
         Ok(_) => {
             return json!({"status": 200, "message": "Data successfully updated!", "data_id": new_data_id})
@@ -515,6 +561,18 @@ pub async fn delete(data: Json<DeleteDataInput>, token: Token) -> Value {
         return json!({"status": e.0, "message": e.1});
     }
 
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "data_delete",
+        format!(
+            "The data with id <{}> under pro[{}]/col[{}] was deleted by usr[{}]",
+            data_id, project_id, collection_id, uid
+        ),
+        format!("/data/p/{}/c/{}", project_id, collection_id),
+    ) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
     match auto_save_all_data(&mappings, &project_id, &collection_id, &all_data) {
         Ok(_) => return json!({"status": 200, "message": "Data successfully deleted!"}),
         Err(e) => {
@@ -609,6 +667,22 @@ pub async fn publish(data: Json<PublishDataInput>, token: Token) -> Value {
     }
 
     if let Err(e) = Data::update_published(&mut all_data, &data_id, *publish) {
+        return json!({"status": e.0, "message": e.1});
+    }
+
+    if let Err(e) = auto_create_event(
+        &mappings,
+        "data_publish",
+        format!(
+            "The data with id <{}> under pro[{}]/col[{}] was {}published by usr[{}]",
+            data_id,
+            project_id,
+            collection_id,
+            if *publish { "" } else { "un" },
+            uid
+        ),
+        format!("/data/p/{}/c/{}/d/v/{}", project_id, collection_id, data_id),
+    ) {
         return json!({"status": e.0, "message": e.1});
     }
 

@@ -12,7 +12,7 @@ use crate::components::structures::Structure;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
     auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
 };
 
@@ -98,6 +98,18 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
         }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "structure_create",
+            format!(
+                "A new structure with id <{}> was created under pro[{}]/col[{}] by usr[{}]",
+                structure.id, project_id, collection_id, uid
+            ),
+            format!("/project/{}/collection/{}", project_id, collection_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
     } else {
         let current_collection = match all_collections.iter_mut().find(|c| c.id == *collection_id) {
             Some(c) => c,
@@ -123,6 +135,21 @@ pub async fn add(data: Json<AddStructureInput>, token: Token) -> Value {
         ) {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
+        }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "structure_create_custom",
+            format!(
+                "A new structure with id <{}> was created under pro[{}]/col[{}]/<{}> by usr[{}]",
+                structure.id, project_id, collection_id, custom_structure_id, uid
+            ),
+            format!(
+                "/project/{}/collection/{}/custom/{}",
+                project_id, collection_id, custom_structure_id
+            ),
+        ) {
+            return json!({"status": e.0, "message": e.1});
         }
     }
 
@@ -275,6 +302,18 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
         }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "structure_update",
+            format!(
+                "A structure with id <{}> under pro[{}]/col[{}] was updated by usr[{}]",
+                structure.id, project_id, collection_id, uid
+            ),
+            format!("/project/{}/collection/{}", project_id, collection_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
     } else {
         let mut all_custom_structures = col.custom_structures.clone();
         let current_custom_structure = match all_custom_structures
@@ -320,6 +359,21 @@ pub async fn update(data: Json<UpdateStructureInput>, token: Token) -> Value {
         ) {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
+        }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "structure_update_custom",
+            format!(
+                "A structure with id <{}> under pro[{}]/col[{}]/<{}> was updated by usr[{}]",
+                structure.id, project_id, collection_id, custom_structure_id, uid
+            ),
+            format!(
+                "/project/{}/collection/{}/custom/{}",
+                project_id, collection_id, custom_structure_id
+            ),
+        ) {
+            return json!({"status": e.0, "message": e.1});
         }
     }
 
@@ -509,6 +563,18 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
         }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "structure_delete",
+            format!(
+                "A structure with id <{}> under pro[{}]/col[{}] was deleted by usr[{}]",
+                structure_id, project_id, collection_id, uid
+            ),
+            format!("/project/{}/collection/{}", project_id, collection_id),
+        ) {
+            return json!({"status": e.0, "message": e.1});
+        }
     } else {
         let mut all_custom_structures = col.custom_structures.clone();
         let current_custom_structure = match all_custom_structures
@@ -544,6 +610,21 @@ pub async fn delete(data: Json<DeleteStructureInput>, token: Token) -> Value {
         ) {
             Err(e) => return json!({"status": e.0, "message": e.1}),
             _ => {}
+        }
+
+        if let Err(e) = auto_create_event(
+            &mappings,
+            "structure_delete_custom",
+            format!(
+                "A structure with id <{}> under pro[{}]/col[{}]/<{}> was deleted by usr[{}]",
+                structure_id, project_id, collection_id, custom_structure_id, uid
+            ),
+            format!(
+                "/project/{}/collection/{}/custom/{}",
+                project_id, collection_id, custom_structure_id
+            ),
+        ) {
+            return json!({"status": e.0, "message": e.1});
         }
     }
 
