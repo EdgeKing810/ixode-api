@@ -351,17 +351,6 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
                     break;
                 }
             }
-            if let Err(e) = auto_create_event(
-                &mappings,
-                "collection_update_id",
-                format!(
-                    "The id of the collection col[{}] under pro[{}] was changed from <{}> to <{}> by usr[{}]",
-                    data, project_id, collection_id, data, uid
-                ),
-                format!("/project/{}/collection/{}", project_id, data),
-            ) {
-                return json!({"status": e.0, "message": e.1});
-            }
         }
     } else {
         allowed = true;
