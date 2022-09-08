@@ -1,7 +1,7 @@
 use crate::{components::encryption::EncryptionKey, utils::get_root_data_dir};
 use std::{
     fs,
-    fs::{create_dir, read_dir, remove_dir_all, rename, File},
+    fs::{copy, create_dir, read_dir, remove_dir_all, File},
     io::prelude::*,
     io::BufReader,
 };
@@ -122,7 +122,6 @@ pub fn ensure_directory_exists(path: &String) {
 
     match directory {
         Err(_) => {
-            println!("path: {}", path);
             let create_directory = create_dir(&path);
             if let Err(e) = create_directory {
                 println!("Error occured while creating directory at {}: {}", &path, e);
@@ -140,6 +139,13 @@ pub fn remove_directory(path: &String) {
     }
 
     ensure_directory_exists(&path);
+    for entry in read_dir(&path).unwrap() {
+        if let Ok(entry) = entry {
+            let entry_path = entry.path();
+            remove_file(entry_path.to_str().unwrap().to_string());
+        }
+    }
+
     let remove_directory_result = remove_dir_all(&path);
     if let Err(e) = remove_directory_result {
         println!("Error while removing directory: {} ({})", e, path);
@@ -147,11 +153,21 @@ pub fn remove_directory(path: &String) {
 }
 
 pub fn rename_directory(old_path: &String, path: &String) {
-    let rename_directory_result = rename(&old_path, &path);
-    if let Err(e) = rename_directory_result {
-        println!(
-            "Error while renaming directory: {} (from: {}) (to: {})",
-            e, old_path, path
-        );
+    ensure_directory_exists(&path);
+    ensure_directory_exists(&old_path);
+
+    for entry in read_dir(&old_path).unwrap() {
+        if let Ok(entry) = entry {
+            let entry_path = entry.path();
+            let file_name = entry.file_name();
+            let dest = format!("{}/{}", path, file_name.to_str().unwrap());
+            if let Err(e) = copy(entry_path.clone(), dest.clone()) {
+                println!("Error while copying file: {} ({} => {})", e, path, dest);
+            } else {
+                remove_file(entry_path.to_str().unwrap().to_string());
+            }
+        }
     }
+
+    remove_directory(old_path);
 }
