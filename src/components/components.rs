@@ -36,3 +36,6 @@ pub mod datapair;
 
 #[path = "event.rs"]
 pub mod event;
+
+#[path = "routing/routing.rs"]
+mod routing;
