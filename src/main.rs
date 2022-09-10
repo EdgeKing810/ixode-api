@@ -22,6 +22,8 @@ mod middlewares;
 mod components;
 #[path = "routes/routes.rs"]
 mod routes;
+#[path = "components/routing/routing.rs"]
+mod routing;
 #[path = "tests/tests.rs"]
 mod tests;
 

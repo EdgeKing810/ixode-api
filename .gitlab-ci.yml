@@ -12,7 +12,6 @@ test:
     - rustc -V
     - cargo --version
   script:
-    - mkdir -p /tmp/data/projects/konnect
     - cargo test
 
 docker-build:

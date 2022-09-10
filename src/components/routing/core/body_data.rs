@@ -1,33 +1,5 @@
-use std::fmt;
-
+use super::super::submodules::sub_body_data_type::BodyDataType;
 use rocket::serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum BodyDataType {
-    INTEGER,
-    STRING,
-    BOOLEAN,
-    OTHER,
-}
-
-impl Default for BodyDataType {
-    fn default() -> Self {
-        BodyDataType::STRING
-    }
-}
-
-impl fmt::Display for BodyDataType {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bdtype_txt = match self {
-            BodyDataType::INTEGER => "integer",
-            BodyDataType::STRING => "string",
-            BodyDataType::BOOLEAN => "boolean",
-            BodyDataType::OTHER => "other",
-        };
-
-        write!(f, "{}", bdtype_txt)
-    }
-}
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BodyData {
@@ -161,7 +133,7 @@ impl BodyData {
             ));
         }
 
-        let bdtype = BodyData::to_bdtype(bdtype_txt);
+        let bdtype = BodyDataType::from(bdtype_txt);
 
         for body_data in all_pairs.iter_mut() {
             if body_data.id == *id {
@@ -260,26 +232,8 @@ impl BodyData {
         );
     }
 
-    pub fn from_bdtype(bdtype: BodyDataType) -> String {
-        return match bdtype.clone() {
-            BodyDataType::INTEGER => "integer".to_string(),
-            BodyDataType::STRING => "string".to_string(),
-            BodyDataType::BOOLEAN => "boolean".to_string(),
-            BodyDataType::OTHER => "other".to_string(),
-        };
-    }
-
-    pub fn to_bdtype(bdtype_txt: &str) -> BodyDataType {
-        return match bdtype_txt.clone() {
-            "integer" => BodyDataType::INTEGER,
-            "string" => BodyDataType::STRING,
-            "boolean" => BodyDataType::BOOLEAN,
-            _ => BodyDataType::OTHER,
-        };
-    }
-
     pub fn to_string(body_data: BodyData, is_param: bool) -> String {
-        let bdtype_txt = BodyData::from_bdtype(body_data.bdtype);
+        let bdtype_txt = BodyDataType::to(body_data.bdtype);
 
         let pre_string = if is_param {
             "ADD PARAMS pair"

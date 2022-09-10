@@ -2,12 +2,16 @@
 use crate::components::{
     collection::{fetch_all_collections, save_all_collections, Collection},
     custom_structures::CustomStructure,
-    io::remove_file,
+    io::{ensure_directory_exists, remove_file},
     structures::Structure,
 };
 
 #[test]
 fn test_correct_collection() {
+    ensure_directory_exists(&String::from("/tmp/data"));
+    ensure_directory_exists(&String::from("/tmp/data/projects"));
+    ensure_directory_exists(&String::from("/tmp/data/projects/konnect"));
+
     let file_name: &str = "data/collection_ok_test.txt";
     remove_file(file_name.to_string());
 
@@ -171,6 +175,10 @@ fn test_correct_collection() {
 
 #[test]
 fn test_incorrect_collection() {
+    ensure_directory_exists(&String::from("/tmp/data"));
+    ensure_directory_exists(&String::from("/tmp/data/projects"));
+    ensure_directory_exists(&String::from("/tmp/data/projects/konnect"));
+
     let file_name: &str = "data/collection_err_test.txt";
     remove_file(file_name.to_string());
 

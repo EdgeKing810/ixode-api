@@ -1,11 +1,15 @@
 #[cfg(test)]
 use crate::components::{
-    io::remove_file,
+    io::{ensure_directory_exists, remove_file},
     project::{fetch_all_projects, save_all_projects, Project},
 };
 
 #[test]
 fn test_projects() {
+    ensure_directory_exists(&String::from("/tmp/data"));
+    ensure_directory_exists(&String::from("/tmp/data/projects"));
+    ensure_directory_exists(&String::from("/tmp/data/projects/konnect"));
+
     let file_name: &str = "data/projects_test.txt";
     remove_file(file_name.to_string());
 
