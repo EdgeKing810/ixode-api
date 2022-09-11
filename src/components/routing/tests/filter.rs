@@ -12,7 +12,8 @@ pub fn run_routing_filter_one() {
     // FILTER (4,2) [currentProfiles,profiles,uid] ([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)
 
     let mut all_blocks = Vec::<FilterBlock>::new();
-    if let Err(e) = FilterBlock::create(&mut all_blocks, 4, 2, "currentProfiles", "profiles", "uid") {
+    if let Err(e) = FilterBlock::create(&mut all_blocks, 4, 2, "currentProfiles", "profiles", "uid")
+    {
         println!("Error: {:#?}", e);
         return;
     }
@@ -20,15 +21,9 @@ pub fn run_routing_filter_one() {
     let mut all_filters = Vec::<Filter>::new();
 
     let right = RefData::create(true, "STRING", "uid").unwrap();
-    Filter::create(
-        &mut all_filters,
-        right,
-        "EQUAL_TO",
-        false,
-        "NONE",
-    );
+    Filter::create(&mut all_filters, right, "EQUAL_TO", false, "NONE");
 
-    FilterBlock::set_filters(&mut all_blocks, 2, all_filters).unwrap();
+    FilterBlock::set_filters(&mut all_blocks, 4, all_filters).unwrap();
 
     println!("{}", FilterBlock::to_string(all_blocks[0].clone()));
 }

@@ -28,7 +28,7 @@ impl FetchBlock {
         all_blocks.push(new_block);
 
         if !has_error {
-            let local_name_update = Self::update_local_name(all_blocks, block_index, local_name);
+            let local_name_update = Self::update_local_name(all_blocks, global_index, local_name);
             if let Err(e) = local_name_update {
                 has_error = true;
                 println!("{}", e.1);
@@ -37,7 +37,7 @@ impl FetchBlock {
         }
 
         if !has_error {
-            let ref_col_update = Self::update_ref_col(all_blocks, block_index, ref_col);
+            let ref_col_update = Self::update_ref_col(all_blocks, global_index, ref_col);
             if let Err(e) = ref_col_update {
                 has_error = true;
                 println!("{}", e.1);
@@ -46,7 +46,7 @@ impl FetchBlock {
         }
 
         if has_error {
-            let delete_block = Self::delete(all_blocks, block_index);
+            let delete_block = Self::delete(all_blocks, global_index);
             if let Err(e) = delete_block {
                 println!("{}", e.1);
             }
@@ -57,10 +57,10 @@ impl FetchBlock {
         Ok(())
     }
 
-    pub fn exist(all_blocks: &Vec<FetchBlock>, block_index: u32) -> bool {
+    pub fn exist(all_blocks: &Vec<FetchBlock>, global_index: u32) -> bool {
         let mut found = false;
         for block in all_blocks.iter() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found = true;
                 break;
             }
@@ -71,7 +71,7 @@ impl FetchBlock {
 
     pub fn update_local_name(
         all_blocks: &mut Vec<FetchBlock>,
-        block_index: u32,
+        global_index: u32,
         local_name: &str,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FetchBlock> = None;
@@ -99,7 +99,7 @@ impl FetchBlock {
         }
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 block.local_name = local_name.trim().to_string();
                 break;
@@ -115,7 +115,7 @@ impl FetchBlock {
 
     pub fn update_ref_col(
         all_blocks: &mut Vec<FetchBlock>,
-        block_index: u32,
+        global_index: u32,
         ref_col: &str,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FetchBlock> = None;
@@ -143,7 +143,7 @@ impl FetchBlock {
         }
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 block.ref_col = ref_col.trim().to_string();
                 break;
@@ -159,12 +159,12 @@ impl FetchBlock {
 
     pub fn delete(
         all_blocks: &mut Vec<FetchBlock>,
-        block_index: u32,
+        global_index: u32,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FetchBlock> = None;
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 break;
             }
@@ -176,7 +176,7 @@ impl FetchBlock {
 
         let updated_blocks: Vec<FetchBlock> = all_blocks
             .iter_mut()
-            .filter(|block| block.block_index != block_index)
+            .filter(|block| block.global_index != global_index)
             .map(|block| FetchBlock {
                 global_index: block.global_index,
                 block_index: block.block_index,
@@ -228,12 +228,12 @@ impl FetchBlock {
             return Err((500, String::from("Error: Invalid block_str string / 3")));
         }
 
-        let block_index = match current_block[0].trim().parse::<u32>() {
+        let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
             Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
         };
 
-        let global_index = match current_block[1].trim().parse::<u32>() {
+        let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
             Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
         };
@@ -265,7 +265,7 @@ impl FetchBlock {
     pub fn to_string(block: FetchBlock) -> String {
         format!(
             "FETCH ({},{}) [{},{}]",
-            block.block_index, block.global_index, block.local_name, block.ref_col
+            block.global_index, block.block_index, block.local_name, block.ref_col
         )
     }
 }

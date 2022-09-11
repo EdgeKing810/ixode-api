@@ -37,8 +37,8 @@ pub fn run_routing_assignment_one() {
     let right = RefData::create(false, "STRING", " has requested to follow you").unwrap();
     Operation::create(&mut all_operations, left, right, "ADDITION", false, "NONE");
 
-    AssignmentBlock::set_conditions(&mut all_blocks, 9, all_conditions).unwrap();
-    AssignmentBlock::set_operations(&mut all_blocks, 9, all_operations).unwrap();
+    AssignmentBlock::set_conditions(&mut all_blocks, 39, all_conditions).unwrap();
+    AssignmentBlock::set_operations(&mut all_blocks, 39, all_operations).unwrap();
 
     println!("{}", AssignmentBlock::to_string(all_blocks[0].clone()));
 }
@@ -48,8 +48,8 @@ pub fn run_routing_assignment_two() {
     println!("---> Running Routing Assignment Two");
 
     // AssignmentBlock {
-    //     global_index: 9,
-    //     block_index: 39,
+    //     global_index: 39,
+    //     block_index: 9,
     //     local_name: "notificationContent",
     //     conditions: [
     //         Condition {

@@ -84,13 +84,7 @@ impl Filter {
             Err(err) => return Err(err),
         };
 
-        Filter::create(
-            all_filters,
-            right,
-            current_filter[1],
-            not,
-            next_str[1],
-        );
+        Filter::create(all_filters, right, current_filter[1], not, next_str[1]);
 
         Ok(())
     }
@@ -100,11 +94,7 @@ impl Filter {
             "({}|{}|not={}|next={})",
             OperationType::to(filter.operation_type.clone()),
             RefData::to_string(filter.right.clone()),
-            if filter.not == true {
-                "true"
-            } else {
-                "false"
-            },
+            if filter.not == true { "true" } else { "false" },
             NextConditionType::to(filter.next.clone())
         )
     }

@@ -45,7 +45,7 @@ impl ConditionBlock {
         all_blocks.push(new_block);
 
         if has_error {
-            let delete_block = Self::delete(all_blocks, block_index);
+            let delete_block = Self::delete(all_blocks, global_index);
             if let Err(e) = delete_block {
                 println!("{}", e.1);
             }
@@ -56,10 +56,10 @@ impl ConditionBlock {
         Ok(())
     }
 
-    pub fn exist(all_blocks: &Vec<ConditionBlock>, block_index: u32) -> bool {
+    pub fn exist(all_blocks: &Vec<ConditionBlock>, global_index: u32) -> bool {
         let mut found = false;
         for block in all_blocks.iter() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found = true;
                 break;
             }
@@ -70,13 +70,13 @@ impl ConditionBlock {
 
     pub fn update_action(
         all_blocks: &mut Vec<ConditionBlock>,
-        block_index: u32,
+        global_index: u32,
         action: &str,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<ConditionBlock> = None;
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 block.action = ConditionAction::from(action);
                 break;
@@ -92,7 +92,7 @@ impl ConditionBlock {
 
     pub fn update_fail(
         all_blocks: &mut Vec<ConditionBlock>,
-        block_index: u32,
+        global_index: u32,
         fail_status: u32,
         fail_message: &str,
     ) -> Result<(), (usize, String)> {
@@ -106,7 +106,7 @@ impl ConditionBlock {
         };
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 block.fail = fail_obj;
                 break;
@@ -122,13 +122,13 @@ impl ConditionBlock {
 
     pub fn add_condition(
         all_blocks: &mut Vec<ConditionBlock>,
-        block_index: u32,
+        global_index: u32,
         new_condition: Condition,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<ConditionBlock> = None;
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 block.conditions.push(new_condition);
                 break;
@@ -144,13 +144,13 @@ impl ConditionBlock {
 
     pub fn remove_condition(
         all_blocks: &mut Vec<ConditionBlock>,
-        block_index: u32,
+        global_index: u32,
         condition_index: u32,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<ConditionBlock> = None;
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
 
                 let mut updated_conditions = Vec::<Condition>::new();
@@ -181,13 +181,13 @@ impl ConditionBlock {
 
     pub fn set_conditions(
         all_blocks: &mut Vec<ConditionBlock>,
-        block_index: u32,
+        global_index: u32,
         conditions: Vec<Condition>,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<ConditionBlock> = None;
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 block.conditions = conditions;
                 break;
@@ -203,12 +203,12 @@ impl ConditionBlock {
 
     pub fn delete(
         all_blocks: &mut Vec<ConditionBlock>,
-        block_index: u32,
+        global_index: u32,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<ConditionBlock> = None;
 
         for block in all_blocks.iter_mut() {
-            if block.block_index == block_index {
+            if block.global_index == global_index {
                 found_block = Some(block.clone());
                 break;
             }
@@ -220,7 +220,7 @@ impl ConditionBlock {
 
         let updated_blocks: Vec<ConditionBlock> = all_blocks
             .iter_mut()
-            .filter(|block| block.block_index != block_index)
+            .filter(|block| block.global_index != global_index)
             .map(|block| ConditionBlock {
                 global_index: block.global_index,
                 block_index: block.block_index,
@@ -273,12 +273,12 @@ impl ConditionBlock {
             return Err((500, String::from("Error: Invalid block_str string / 3")));
         }
 
-        let block_index = match current_block[0].trim().parse::<u32>() {
+        let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
             Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
         };
 
-        let global_index = match current_block[1].trim().parse::<u32>() {
+        let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
             Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
         };
@@ -344,15 +344,15 @@ impl ConditionBlock {
             return Err(e);
         };
 
-        return ConditionBlock::set_conditions(all_blocks, block_index, all_conditions);
+        return ConditionBlock::set_conditions(all_blocks, global_index, all_conditions);
     }
 
     pub fn to_string(block: ConditionBlock) -> String {
         let conditions_str = Condition::stringify(&block.conditions);
         format!(
             "CONDITION ({},{}) [{}] {} {}",
-            block.block_index,
             block.global_index,
+            block.block_index,
             ConditionAction::to(block.action),
             FailObj::to_string(block.fail),
             conditions_str
