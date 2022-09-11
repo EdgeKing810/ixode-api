@@ -6,16 +6,13 @@ use crate::components::routing::submodules::sub_property::Property;
 #[allow(unused_imports)]
 use crate::components::routing::submodules::sub_ref_data::RefData;
 
-#[test]
-pub fn run_routing_property_one() {
-    println!("---> Running Routing Property One");
-    // PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=blocked)
-
-    let mut all_blocks = Vec::<PropertyBlock>::new();
+fn make_block_one(
+    all_blocks: &mut Vec<crate::components::routing::blocks::property_block::PropertyBlock>,
+) {
     let data = RefData::create(true, "OTHER", "currentProfile").unwrap();
 
-    if let Err(e) = PropertyBlock::create(
-        &mut all_blocks,
+    if let Err(e) = crate::components::routing::blocks::property_block::PropertyBlock::create(
+        all_blocks,
         12,
         4,
         "currentProfile_blocked",
@@ -25,8 +22,48 @@ pub fn run_routing_property_one() {
         println!("Error: {:#?}", e);
         return;
     }
+}
 
-    println!("{}", PropertyBlock::to_string(all_blocks[0].clone()));
+fn get_block_str_one() -> String {
+    "PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=blocked)"
+        .to_string()
+}
+
+fn make_block_two(
+    all_blocks: &mut Vec<crate::components::routing::blocks::property_block::PropertyBlock>,
+) {
+    let data = RefData::create(true, "OTHER", "currentUsers").unwrap();
+
+    if let Err(e) = crate::components::routing::blocks::property_block::PropertyBlock::create(
+        all_blocks,
+        41,
+        9,
+        "currentUser",
+        data,
+        "GET_FIRST",
+    ) {
+        println!("Error: {:#?}", e);
+        return;
+    }
+}
+
+fn get_block_str_two() -> String {
+    "PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST)".to_string()
+}
+
+#[test]
+pub fn run_routing_property_one() {
+    println!("---> Running Routing Property One");
+    // PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=blocked)
+
+    let mut all_blocks = Vec::<PropertyBlock>::new();
+
+    make_block_one(&mut all_blocks);
+
+    assert_eq!(
+        get_block_str_one(),
+        PropertyBlock::to_string(all_blocks[0].clone())
+    );
 }
 
 #[test]
@@ -45,13 +82,13 @@ pub fn run_routing_property_two() {
     //     apply: "blocked",
     // }
 
-    let block_str =
-        "PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=blocked)";
-
     let mut all_blocks = Vec::<PropertyBlock>::new();
-    PropertyBlock::from_string(&mut all_blocks, block_str).unwrap();
+    PropertyBlock::from_string(&mut all_blocks, &get_block_str_one()).unwrap();
 
-    println!("{:#?}", all_blocks[0].clone());
+    let mut all_blocks_duplicate = Vec::<PropertyBlock>::new();
+    make_block_one(&mut all_blocks_duplicate);
+
+    assert_eq!(all_blocks_duplicate[0], all_blocks[0]);
 }
 
 #[test]
@@ -60,15 +97,13 @@ pub fn run_routing_property_three() {
     // PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST)
 
     let mut all_blocks = Vec::<PropertyBlock>::new();
-    let data = RefData::create(true, "OTHER", "currentUsers").unwrap();
 
-    if let Err(e) = PropertyBlock::create(&mut all_blocks, 41, 9, "currentUser", data, "GET_FIRST")
-    {
-        println!("Error: {:#?}", e);
-        return;
-    }
+    make_block_two(&mut all_blocks);
 
-    println!("{}", PropertyBlock::to_string(all_blocks[0].clone()));
+    assert_eq!(
+        get_block_str_two(),
+        PropertyBlock::to_string(all_blocks[0].clone())
+    );
 }
 
 #[test]
@@ -87,10 +122,11 @@ pub fn run_routing_property_four() {
     //     apply: GET_FIRST,
     // }
 
-    let block_str = "PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST)";
-
     let mut all_blocks = Vec::<PropertyBlock>::new();
-    PropertyBlock::from_string(&mut all_blocks, block_str).unwrap();
+    PropertyBlock::from_string(&mut all_blocks, &get_block_str_two()).unwrap();
 
-    println!("{:#?}", all_blocks[0].clone());
+    let mut all_blocks_duplicate = Vec::<PropertyBlock>::new();
+    make_block_two(&mut all_blocks_duplicate);
+
+    assert_eq!(all_blocks_duplicate[0], all_blocks[0]);
 }

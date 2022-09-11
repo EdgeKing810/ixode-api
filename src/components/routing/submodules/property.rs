@@ -1,7 +1,7 @@
 use super::{sub_property_apply::PropertyApply, sub_ref_data::RefData};
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Property {
     pub data: RefData,
     pub apply: PropertyApply,

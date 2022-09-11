@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use super::sub_body_data_type::BodyDataType;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RefData {
     pub ref_var: bool,
     pub rtype: BodyDataType,

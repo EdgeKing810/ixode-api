@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::routing::submodules::sub_filter::Filter;
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FilterBlock {
     pub global_index: u32,
     pub block_index: u32,

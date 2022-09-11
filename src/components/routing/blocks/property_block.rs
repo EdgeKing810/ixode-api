@@ -4,7 +4,7 @@ use crate::components::routing::submodules::{
     sub_property::Property, sub_property_apply::PropertyApply, sub_ref_data::RefData,
 };
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PropertyBlock {
     pub global_index: u32,
     pub block_index: u32,

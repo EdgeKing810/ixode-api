@@ -4,7 +4,7 @@ use super::{
 };
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Filter {
     pub right: RefData,
     pub operation_type: OperationType,
@@ -92,8 +92,8 @@ impl Filter {
     pub fn to_string(filter: Filter) -> String {
         format!(
             "({}|{}|not={}|next={})",
-            OperationType::to(filter.operation_type.clone()),
             RefData::to_string(filter.right.clone()),
+            OperationType::to(filter.operation_type.clone()),
             if filter.not == true { "true" } else { "false" },
             NextConditionType::to(filter.next.clone())
         )

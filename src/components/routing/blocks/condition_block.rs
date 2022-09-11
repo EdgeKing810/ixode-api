@@ -4,7 +4,7 @@ use crate::components::routing::submodules::{
     sub_condition::Condition, sub_condition_action::ConditionAction, sub_fail_obj::FailObj,
 };
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ConditionBlock {
     pub global_index: u32,
     pub block_index: u32,

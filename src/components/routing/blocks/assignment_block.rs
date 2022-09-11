@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::routing::submodules::{sub_condition::Condition, sub_operation::Operation};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AssignmentBlock {
     pub global_index: u32,
     pub block_index: u32,

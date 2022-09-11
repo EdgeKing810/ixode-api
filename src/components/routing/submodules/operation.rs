@@ -4,7 +4,7 @@ use super::{
 };
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Operation {
     pub left: RefData,
     pub right: RefData,
