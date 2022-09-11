@@ -67,12 +67,12 @@ impl Operation {
 
         current_operation = current_operation[0].split("|").collect::<Vec<&str>>();
         if current_operation.len() < 5 {
-            return Err((500, String::from("Error: Invalid condition string / 3")));
+            return Err((500, String::from("Error: Invalid operation string / 3")));
         }
 
         let not_str = current_operation[3].split("not=").collect::<Vec<&str>>();
         if not_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid condition string / 4")));
+            return Err((500, String::from("Error: Invalid operation string / 4")));
         }
 
         let not = not_str[1] == "true";
