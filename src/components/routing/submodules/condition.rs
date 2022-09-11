@@ -65,7 +65,7 @@ impl Condition {
             return Err((500, String::from("Error: Invalid condition string / 2")));
         }
 
-        current_condition = current_condition[0].split(" ").collect::<Vec<&str>>();
+        current_condition = current_condition[0].split("|").collect::<Vec<&str>>();
         if current_condition.len() < 5 {
             return Err((500, String::from("Error: Invalid condition string / 3")));
         }
@@ -106,7 +106,7 @@ impl Condition {
 
     pub fn to_string(condition: Condition) -> String {
         format!(
-            "({} {} {} not={} next={})",
+            "({}|{}|{}|not={}|next={})",
             RefData::to_string(condition.left.clone()),
             ConditionType::to(condition.condition_type.clone()),
             RefData::to_string(condition.right.clone()),

@@ -29,3 +29,6 @@ mod test_event;
 
 #[path = "test_datapair.rs"]
 mod test_datapair;
+
+#[path = "../components/routing/tests/tests.rs"]
+pub mod test_routing;

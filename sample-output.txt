@@ -75,13 +75,13 @@ Catchers:
    >> (malformed_request) 422
    >> (internal_server_error) 500
 Fairings:
-   >> CORS (ignite, request, response)
-   >> Shield (liftoff, response, singleton)
    >> Templating (ignite, liftoff, request)
+   >> Shield (liftoff, response, singleton)
+   >> CORS (ignite, request, response)
 Shield:
-   >> X-Frame-Options: SAMEORIGIN
    >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
+   >> X-Frame-Options: SAMEORIGIN
 Templating:
    >> directory: templates
    >> engines: ["tera"]

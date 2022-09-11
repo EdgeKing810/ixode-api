@@ -316,7 +316,7 @@ impl ConditionBlock {
         };
 
         let mut conditions_list = block_str.split("([").collect::<Vec<&str>>();
-        if current_block.len() <= 1 {
+        if conditions_list.len() <= 1 {
             return Err((500, String::from("Error: Invalid block_str string / 11")));
         }
 

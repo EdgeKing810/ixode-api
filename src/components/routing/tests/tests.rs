@@ -1,7 +1,8 @@
-#![allow(unused_assignments)]
-#[cfg(test)]
 #[path = "fetch.rs"]
-pub mod fetch;
+pub mod test_fetch;
 
 #[path = "condition.rs"]
-pub mod condition;
+pub mod test_condition;
+
+#[path = "assignment.rs"]
+pub mod test_assignment;

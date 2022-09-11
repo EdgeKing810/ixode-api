@@ -18,3 +18,9 @@ pub mod sub_ref_data;
 
 #[path = "condition.rs"]
 pub mod sub_condition;
+
+#[path = "operation_type.rs"]
+pub mod sub_operation_type;
+
+#[path = "operation.rs"]
+pub mod sub_operation;

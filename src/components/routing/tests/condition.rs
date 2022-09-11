@@ -9,7 +9,7 @@ use crate::components::routing::submodules::sub_ref_data::RefData;
 #[test]
 pub fn run_routing_condition_one() {
     println!("---> Running Routing Condition One");
-    // CONDITION (0,0) [FAIL] [403,Error: You cannot follow yourself] ([ref,STRING,uid] EQUAL_TO [ref,STRING,profileID] not=false next=AND)>([ref,BOOLEAN,status] EQUAL_TO [,BOOLEAN,true] not=false next=NONE)
+    // CONDITION (0,0) [FAIL] [403,Error: You cannot follow yourself] ([ref,STRING,uid]|EQUAL_TO|[ref,STRING,profileID]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
 
     let mut all_blocks = Vec::<ConditionBlock>::new();
     if let Err(e) = ConditionBlock::create(
@@ -85,7 +85,7 @@ pub fn run_routing_condition_two() {
     //     },
     // }
 
-    let block_str = "CONDITION (0,0) [FAIL] [403,Error: You cannot follow yourself] ([ref,STRING,uid] EQUAL_TO [ref,STRING,profileID] not=false next=AND)>([ref,BOOLEAN,status] EQUAL_TO [,BOOLEAN,true] not=false next=NONE)";
+    let block_str = "CONDITION (0,0) [FAIL] [403,Error: You cannot follow yourself] ([ref,STRING,uid]|EQUAL_TO|[ref,STRING,profileID]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)";
 
     let mut all_blocks = Vec::<ConditionBlock>::new();
     ConditionBlock::from_string(&mut all_blocks, block_str).unwrap();

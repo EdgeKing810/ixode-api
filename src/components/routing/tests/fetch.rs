@@ -5,10 +5,10 @@ use crate::components::routing::blocks::fetch_block::FetchBlock;
 #[test]
 pub fn run_routing_fetch_one() {
     println!("---> Running Routing Fetcher One");
-    // FETCH (0, 0) ["users", "users"]
+    // FETCH (2,1) [users,users]
 
     let mut all_blocks = Vec::<FetchBlock>::new();
-    if let Err(e) = FetchBlock::create(&mut all_blocks, 0, 0, "users", "users") {
+    if let Err(e) = FetchBlock::create(&mut all_blocks, 2, 1, "users", "users") {
         println!("Error: {:#?}", e);
         return;
     }
@@ -21,13 +21,13 @@ pub fn run_routing_fetch_two() {
     println!("---> Running Routing Fetcher Two");
 
     // FetchBlock {
-    //     global_index: 0,
-    //     block_index: 0,
+    //     global_index: 2,
+    //     block_index: 1,
     //     local_name: "users",
     //     ref_col: "users",
     // }
 
-    let block_str = "FETCH (0,0) [users,users]";
+    let block_str = "FETCH (2,1) [users,users]";
 
     let mut all_blocks = Vec::<FetchBlock>::new();
     FetchBlock::from_string(&mut all_blocks, block_str).unwrap();
