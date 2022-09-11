@@ -27,3 +27,9 @@ pub mod sub_operation;
 
 #[path = "filter.rs"]
 pub mod sub_filter;
+
+#[path = "property_apply.rs"]
+pub mod sub_property_apply;
+
+#[path = "property.rs"]
+pub mod sub_property;

@@ -9,3 +9,6 @@ pub mod test_assignment;
 
 #[path = "filter.rs"]
 pub mod test_filter;
+
+#[path = "property.rs"]
+pub mod test_property;

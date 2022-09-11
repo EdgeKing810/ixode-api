@@ -80,7 +80,7 @@ impl Filter {
         }
 
         let right = match RefData::from_string(current_filter[0]) {
-            Ok(left) => left,
+            Ok(right) => right,
             Err(err) => return Err(err),
         };
 

@@ -9,3 +9,6 @@ pub mod assignment_block;
 
 #[path = "filter_block.rs"]
 pub mod filter_block;
+
+#[path = "property_block.rs"]
+pub mod property_block;

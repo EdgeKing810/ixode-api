@@ -2,11 +2,21 @@ use rocket::serde::{Deserialize, Serialize};
 
 use super::sub_body_data_type::BodyDataType;
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RefData {
     pub ref_var: bool,
     pub rtype: BodyDataType,
     pub data: String,
+}
+
+impl Default for RefData {
+    fn default() -> Self {
+        RefData {
+            ref_var: false,
+            rtype: BodyDataType::default(),
+            data: String::new(),
+        }
+    }
 }
 
 impl RefData {
