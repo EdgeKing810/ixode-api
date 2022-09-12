@@ -72,7 +72,13 @@ impl Property {
             }
         };
 
-        Property::create(right, apply_str[1])
+        match Property::create(right, apply_str[1]) {
+            Ok(property) => Ok(property),
+            Err(err) => Err((
+                500,
+                format!("Error: Invalid property string / 6: {}", err.1),
+            )),
+        }
     }
 
     pub fn to_string(property: Property) -> String {

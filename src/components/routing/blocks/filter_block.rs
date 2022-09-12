@@ -406,6 +406,10 @@ impl FilterBlock {
         let final_filters_list = filters_list_str.trim().split(">").collect::<Vec<&str>>();
 
         for f_str in final_filters_list {
+            if f_str.len() < 1 {
+                continue;
+            }
+
             if let Err(e) = Filter::from_string(&mut all_filters, f_str) {
                 return Err((
                     500,
@@ -428,7 +432,13 @@ impl FilterBlock {
             ));
         };
 
-        return FilterBlock::set_filters(all_blocks, global_index, all_filters);
+        match FilterBlock::set_filters(all_blocks, global_index, all_filters) {
+            Ok(_) => Ok(()),
+            Err(e) => Err((
+                500,
+                format!("Error: Invalid block_str string / 12: {}", e.1),
+            )),
+        }
     }
 
     pub fn to_string(block: FilterBlock) -> String {

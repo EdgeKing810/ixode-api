@@ -635,6 +635,10 @@ impl UpdateBlock {
         let mut all_targets: Vec<UpdateTarget> = Vec::new();
         let targets_list = current_block[0].split("%").collect::<Vec<&str>>();
         for target_str in targets_list {
+            if target_str.len() < 1 {
+                continue;
+            }
+
             if let Err(e) = UpdateTarget::from_string(&mut all_targets, target_str) {
                 return Err(e);
             }
@@ -685,7 +689,13 @@ impl UpdateBlock {
             ));
         };
 
-        return UpdateBlock::set_conditions(all_blocks, global_index, all_conditions);
+        match UpdateBlock::set_conditions(all_blocks, global_index, all_conditions) {
+            Ok(_) => Ok(()),
+            Err(e) => Err((
+                500,
+                format!("Error: Invalid block_str string / 21: {}", e.1),
+            )),
+        }
     }
 
     pub fn to_string(block: UpdateBlock) -> String {

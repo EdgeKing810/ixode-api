@@ -253,6 +253,10 @@ impl UpdateTarget {
         let conditions_list = conditions_list_str.trim().split(">").collect::<Vec<&str>>();
 
         for c_str in conditions_list {
+            if c_str.len() < 1 {
+                continue;
+            }
+
             if let Err(e) = Filter::from_string(&mut all_conditions, c_str) {
                 return Err((
                     500,
@@ -268,11 +272,19 @@ impl UpdateTarget {
             ));
         };
 
-        return UpdateTarget::set_conditions(
+        match UpdateTarget::set_conditions(
             all_targets,
             (all_targets.len() - 1) as u32,
             all_conditions,
-        );
+        ) {
+            Ok(_) => return Ok(()),
+            Err(e) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid target_str string / 6: {}", e.1),
+                ));
+            }
+        };
     }
 
     pub fn to_string(target: UpdateTarget) -> String {

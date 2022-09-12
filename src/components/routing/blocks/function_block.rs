@@ -241,7 +241,13 @@ impl FunctionBlock {
             }
         };
 
-        FunctionBlock::create(all_blocks, global_index, block_index, local_name, func)
+        match FunctionBlock::create(all_blocks, global_index, block_index, local_name, func) {
+            Ok(_) => Ok(()),
+            Err(e) => Err((
+                500,
+                format!("Error: Invalid block_str string / 11: {}", e.1),
+            )),
+        }
     }
 
     pub fn to_string(block: FunctionBlock) -> String {

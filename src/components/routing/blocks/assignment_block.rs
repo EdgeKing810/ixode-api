@@ -370,6 +370,10 @@ impl AssignmentBlock {
             conditions_list = conditions_list_str.split(">").collect::<Vec<&str>>();
 
             for c_str in conditions_list {
+                if c_str.len() < 1 {
+                    continue;
+                }
+
                 if let Err(e) = Condition::from_string(&mut all_conditions, c_str) {
                     return Err((500, format!("Error: Invalid block_str string / 8: {}", e.1)));
                 };
@@ -391,6 +395,10 @@ impl AssignmentBlock {
         operations_list = operations_list_str.split(">").collect::<Vec<&str>>();
 
         for o_str in operations_list {
+            if o_str.len() < 1 {
+                continue;
+            }
+
             if let Err(e) = Operation::from_string(&mut all_operations, o_str) {
                 return Err((
                     500,
@@ -413,7 +421,13 @@ impl AssignmentBlock {
             ));
         }
 
-        return AssignmentBlock::set_operations(all_blocks, global_index, all_operations);
+        match AssignmentBlock::set_operations(all_blocks, global_index, all_operations) {
+            Ok(_) => Ok(()),
+            Err(e) => Err((
+                500,
+                format!("Error: Invalid block_str string / 14: {}", e.1),
+            )),
+        }
     }
 
     pub fn to_string(block: AssignmentBlock) -> String {

@@ -42,3 +42,6 @@ pub mod sub_function_list;
 
 #[path = "function.rs"]
 pub mod sub_function;
+
+#[path = "object_pair.rs"]
+pub mod sub_object_pair;

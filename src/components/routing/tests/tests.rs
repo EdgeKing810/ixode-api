@@ -18,3 +18,6 @@ pub mod test_update;
 
 #[path = "function.rs"]
 pub mod test_function;
+
+#[path = "object.rs"]
+pub mod test_object;

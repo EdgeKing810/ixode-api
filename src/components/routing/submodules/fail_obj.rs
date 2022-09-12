@@ -83,6 +83,9 @@ impl FailObj {
             Err(e) => return Err((500, format!("Error: Invalid fail_obj string / 4: {}", e))),
         };
 
-        return FailObj::create(status, current_fail_obj[1]);
+        match FailObj::create(status, current_fail_obj[1]) {
+            Ok(fail_obj) => Ok(fail_obj),
+            Err(e) => return Err((500, format!("Error: Invalid fail_obj string / 5: {}", e.1))),
+        }
     }
 }

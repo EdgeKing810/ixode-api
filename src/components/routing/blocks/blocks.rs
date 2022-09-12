@@ -18,3 +18,6 @@ pub mod update_block;
 
 #[path = "function_block.rs"]
 pub mod function_block;
+
+#[path = "object_block.rs"]
+pub mod object_block;

@@ -1,44 +1,36 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::components::routing::submodules::sub_object_pair::ObjectPair;
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct FetchBlock {
+pub struct ObjectBlock {
     pub global_index: u32,
     pub block_index: u32,
     pub local_name: String,
-    pub ref_col: String,
+    pub pairs: Vec<ObjectPair>,
 }
 
-impl FetchBlock {
+impl ObjectBlock {
     pub fn create(
-        all_blocks: &mut Vec<FetchBlock>,
+        all_blocks: &mut Vec<ObjectBlock>,
         global_index: u32,
         block_index: u32,
         local_name: &str,
-        ref_col: &str,
     ) -> Result<(), (usize, String)> {
         let mut has_error: bool = false;
         let mut latest_error: (usize, String) = (500, String::new());
 
-        let new_block = FetchBlock {
+        let new_block = ObjectBlock {
             global_index: global_index,
             block_index: block_index,
             local_name: "".to_string(),
-            ref_col: "".to_string(),
+            pairs: vec![],
         };
         all_blocks.push(new_block);
 
         if !has_error {
             let local_name_update = Self::update_local_name(all_blocks, global_index, local_name);
             if let Err(e) = local_name_update {
-                has_error = true;
-                println!("{}", e.1);
-                latest_error = e;
-            }
-        }
-
-        if !has_error {
-            let ref_col_update = Self::update_ref_col(all_blocks, global_index, ref_col);
-            if let Err(e) = ref_col_update {
                 has_error = true;
                 println!("{}", e.1);
                 latest_error = e;
@@ -57,7 +49,7 @@ impl FetchBlock {
         Ok(())
     }
 
-    pub fn exist(all_blocks: &Vec<FetchBlock>, global_index: u32) -> bool {
+    pub fn exist(all_blocks: &Vec<ObjectBlock>, global_index: u32) -> bool {
         let mut found = false;
         for block in all_blocks.iter() {
             if block.global_index == global_index {
@@ -70,11 +62,11 @@ impl FetchBlock {
     }
 
     pub fn update_local_name(
-        all_blocks: &mut Vec<FetchBlock>,
+        all_blocks: &mut Vec<ObjectBlock>,
         global_index: u32,
         local_name: &str,
     ) -> Result<(), (usize, String)> {
-        let mut found_block: Option<FetchBlock> = None;
+        let mut found_block: Option<ObjectBlock> = None;
 
         if !String::from(local_name)
             .chars()
@@ -107,61 +99,98 @@ impl FetchBlock {
         }
 
         if let None = found_block {
-            return Err((404, String::from("Error: Fetch Block not found")));
+            return Err((404, String::from("Error: Object Block not found")));
         }
 
         Ok(())
     }
 
-    pub fn update_ref_col(
-        all_blocks: &mut Vec<FetchBlock>,
+    pub fn add_pair(
+        all_blocks: &mut Vec<ObjectBlock>,
         global_index: u32,
-        ref_col: &str,
+        new_pair: ObjectPair,
     ) -> Result<(), (usize, String)> {
-        let mut found_block: Option<FetchBlock> = None;
-
-        if !String::from(ref_col)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: ref_col contains an invalid character"),
-            ));
-        }
-
-        if String::from(ref_col.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: ref_col does not contain enough characters"),
-            ));
-        } else if String::from(ref_col.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: ref_col contains too many characters"),
-            ));
-        }
+        let mut found_block: Option<ObjectBlock> = None;
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.ref_col = ref_col.trim().to_string();
+                block.pairs.push(new_pair);
                 break;
             }
         }
 
         if let None = found_block {
-            return Err((404, String::from("Error: Fetch Block not found")));
+            return Err((404, String::from("Error: Object Block not found")));
+        }
+
+        Ok(())
+    }
+
+    pub fn remove_pair(
+        all_blocks: &mut Vec<ObjectBlock>,
+        global_index: u32,
+        pair_index: u32,
+    ) -> Result<(), (usize, String)> {
+        let mut found_block: Option<ObjectBlock> = None;
+
+        for block in all_blocks.iter_mut() {
+            if block.global_index == global_index {
+                found_block = Some(block.clone());
+
+                let mut updated_pairs = Vec::<ObjectPair>::new();
+                if pair_index >= block.pairs.len() as u32 {
+                    return Err((
+                        400,
+                        String::from("Error: Index goes over the amount of pairs present"),
+                    ));
+                }
+
+                for n in 0..block.pairs.len() {
+                    if n as u32 != pair_index {
+                        updated_pairs.push(block.pairs[n].clone());
+                    }
+                }
+
+                block.pairs = updated_pairs;
+                break;
+            }
+        }
+
+        if let None = found_block {
+            return Err((404, String::from("Error: Object Block not found")));
+        }
+
+        Ok(())
+    }
+
+    pub fn set_pairs(
+        all_blocks: &mut Vec<ObjectBlock>,
+        global_index: u32,
+        pairs: Vec<ObjectPair>,
+    ) -> Result<(), (usize, String)> {
+        let mut found_block: Option<ObjectBlock> = None;
+
+        for block in all_blocks.iter_mut() {
+            if block.global_index == global_index {
+                found_block = Some(block.clone());
+                block.pairs = pairs;
+                break;
+            }
+        }
+
+        if let None = found_block {
+            return Err((404, String::from("Error: Object Block not found")));
         }
 
         Ok(())
     }
 
     pub fn delete(
-        all_blocks: &mut Vec<FetchBlock>,
+        all_blocks: &mut Vec<ObjectBlock>,
         global_index: u32,
     ) -> Result<(), (usize, String)> {
-        let mut found_block: Option<FetchBlock> = None;
+        let mut found_block: Option<ObjectBlock> = None;
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
@@ -171,26 +200,26 @@ impl FetchBlock {
         }
 
         if let None = found_block {
-            return Err((404, String::from("Error: Fetch Block not found")));
+            return Err((404, String::from("Error: Object Block not found")));
         }
 
-        let updated_blocks: Vec<FetchBlock> = all_blocks
+        let updated_blocks: Vec<ObjectBlock> = all_blocks
             .iter_mut()
             .filter(|block| block.global_index != global_index)
-            .map(|block| FetchBlock {
+            .map(|block| ObjectBlock {
                 global_index: block.global_index,
                 block_index: block.block_index,
                 local_name: block.local_name.clone(),
-                ref_col: block.ref_col.clone(),
+                pairs: block.pairs.clone(),
             })
-            .collect::<Vec<FetchBlock>>();
+            .collect::<Vec<ObjectBlock>>();
 
         *all_blocks = updated_blocks;
 
         Ok(())
     }
 
-    pub fn stringify(all_blocks: &Vec<FetchBlock>) -> String {
+    pub fn stringify(all_blocks: &Vec<ObjectBlock>) -> String {
         let mut stringified_blocks = String::new();
 
         for block in all_blocks {
@@ -202,7 +231,7 @@ impl FetchBlock {
                 } else {
                     ""
                 },
-                FetchBlock::to_string(block.clone()),
+                ObjectBlock::to_string(block.clone()),
             );
         }
 
@@ -210,10 +239,10 @@ impl FetchBlock {
     }
 
     pub fn from_string(
-        all_blocks: &mut Vec<FetchBlock>,
+        all_blocks: &mut Vec<ObjectBlock>,
         block_str: &str,
     ) -> Result<(), (usize, String)> {
-        let mut current_block = block_str.split("FETCH (").collect::<Vec<&str>>();
+        let mut current_block = block_str.split("OBJECT (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
             return Err((500, String::from("Error: Invalid block_str string / 1")));
         }
@@ -248,27 +277,53 @@ impl FetchBlock {
             return Err((500, String::from("Error: Invalid block_str string / 7")));
         }
 
-        current_block = current_block[0].split(",").collect::<Vec<&str>>();
-        if current_block.len() < 2 {
+        let local_name = current_block[0];
+
+        let mut all_pairs: Vec<ObjectPair> = Vec::new();
+
+        current_block = block_str.split("]").collect::<Vec<&str>>();
+        if current_block.len() <= 1 {
             return Err((500, String::from("Error: Invalid block_str string / 8")));
         }
+        let pairs_list_tmp = current_block[1..].join("]");
 
-        match FetchBlock::create(
-            all_blocks,
-            global_index,
-            block_index,
-            current_block[0],
-            current_block[1],
-        ) {
+        let pairs_list = pairs_list_tmp.trim().split(">").collect::<Vec<&str>>();
+
+        for p_str in pairs_list {
+            if p_str.len() < 1 {
+                continue;
+            }
+
+            if let Err(e) = ObjectPair::from_string(&mut all_pairs, p_str) {
+                return Err((500, format!("Error: Invalid block_str string / 9: {}", e.1)));
+            };
+        }
+
+        match ObjectBlock::create(all_blocks, global_index, block_index, local_name) {
+            Ok(f) => f,
+            Err(e) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid block_str string / 10: {}", e.1),
+                ))
+            }
+        };
+
+        match ObjectBlock::set_pairs(all_blocks, global_index, all_pairs) {
             Ok(_) => Ok(()),
-            Err(e) => Err((500, format!("Error: Invalid block_str string / 9: {}", e.1))),
+            Err(e) => Err((
+                500,
+                format!("Error: Invalid block_str string / 11: {}", e.1),
+            )),
         }
     }
 
-    pub fn to_string(block: FetchBlock) -> String {
+    pub fn to_string(block: ObjectBlock) -> String {
+        let pairs_str = ObjectPair::stringify(&block.pairs);
+
         format!(
-            "FETCH ({},{}) [{},{}]",
-            block.global_index, block.block_index, block.local_name, block.ref_col
+            "OBJECT ({},{}) [{}] {}",
+            block.global_index, block.block_index, block.local_name, pairs_str,
         )
     }
 }

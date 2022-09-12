@@ -273,14 +273,22 @@ impl PropertyBlock {
             Err(e) => return Err((500, format!("Error: Invalid block_str string / 9: {}", e.1))),
         };
 
-        PropertyBlock::create(
+        match PropertyBlock::create(
             all_blocks,
             global_index,
             block_index,
             local_name,
             property.data,
             &PropertyApply::to(property.apply),
-        )
+        ) {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid block_str string / 10: {}", e.1),
+                ))
+            }
+        }
     }
 
     pub fn to_string(block: PropertyBlock) -> String {
