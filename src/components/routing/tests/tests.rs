@@ -12,3 +12,6 @@ pub mod test_filter;
 
 #[path = "property.rs"]
 pub mod test_property;
+
+#[path = "update.rs"]
+pub mod test_update;

@@ -12,3 +12,6 @@ pub mod filter_block;
 
 #[path = "property_block.rs"]
 pub mod property_block;
+
+#[path = "update_block.rs"]
+pub mod update_block;

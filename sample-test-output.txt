@@ -1,28 +1,31 @@
 
-running 23 tests
-test tests::test_configs::test_configs ... ok
-test tests::test_datapair::test_datapair ... ok
-test tests::test_data::test_data ... ok
-test tests::test_mappings::test_mappings ... ok
+running 27 tests
 test tests::test_routing::test_assignment::run_routing_assignment_one ... ok
+test tests::test_mappings::test_mappings ... ok
+test tests::test_configs::test_configs ... ok
+test tests::test_routing::test_assignment::run_routing_assignment_two ... ok
+test tests::test_data::test_data ... ok
 test tests::test_medias::test_medias ... ok
 test tests::test_routing::test_condition::run_routing_condition_one ... ok
+test tests::test_datapair::test_datapair ... ok
 test tests::test_routing::test_fetch::run_routing_fetch_one ... ok
-test tests::test_routing::test_fetch::run_routing_fetch_two ... ok
-test tests::test_routing::test_assignment::run_routing_assignment_two ... ok
 test tests::test_routing::test_condition::run_routing_condition_two ... ok
-test tests::test_routing::test_filter::run_routing_filter_one ... ok
-test tests::test_routing::test_property::run_routing_property_one ... ok
-test tests::test_routing::test_filter::run_routing_filter_two ... ok
-test tests::test_routing::test_property::run_routing_property_three ... ok
-test tests::test_routing::test_property::run_routing_property_four ... ok
-test tests::test_routing::test_property::run_routing_property_two ... ok
 test tests::test_event::test_events ... ok
+test tests::test_routing::test_fetch::run_routing_fetch_two ... ok
+test tests::test_routing::test_filter::run_routing_filter_one ... ok
+test tests::test_routing::test_filter::run_routing_filter_two ... ok
+test tests::test_routing::test_property::run_routing_property_four ... ok
+test tests::test_routing::test_property::run_routing_property_one ... ok
+test tests::test_routing::test_property::run_routing_property_three ... ok
 test tests::test_encryption::test_encryption ... ok
+test tests::test_routing::test_property::run_routing_property_two ... ok
+test tests::test_routing::test_update::run_routing_update_three ... ok
+test tests::test_routing::test_update::run_routing_update_one ... ok
+test tests::test_routing::test_update::run_routing_update_four ... ok
+test tests::test_routing::test_update::run_routing_update_two ... ok
 test tests::test_projects::test_projects ... ok
 test tests::test_collections::test_incorrect_collection ... ok
 test tests::test_collections::test_correct_collection ... ok
 test tests::test_users::test_users ... ok
 
-test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.68s
-
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.51s

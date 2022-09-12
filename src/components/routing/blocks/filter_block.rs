@@ -235,7 +235,7 @@ impl FilterBlock {
         Ok(())
     }
 
-    pub fn remove_condition(
+    pub fn remove_filter(
         all_blocks: &mut Vec<FilterBlock>,
         global_index: u32,
         filter_index: u32,
