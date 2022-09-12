@@ -84,12 +84,22 @@ impl Operation {
 
         let left = match RefData::from_string(current_operation[0]) {
             Ok(left) => left,
-            Err(err) => return Err(err),
+            Err(err) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid operation string / 6: {}", err.1),
+                ))
+            }
         };
 
         let right = match RefData::from_string(current_operation[2]) {
             Ok(right) => right,
-            Err(err) => return Err(err),
+            Err(err) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid operation string / 7: {}", err.1),
+                ))
+            }
         };
 
         Operation::create(

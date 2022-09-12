@@ -15,3 +15,6 @@ pub mod property_block;
 
 #[path = "update_block.rs"]
 pub mod update_block;
+
+#[path = "function_block.rs"]
+pub mod function_block;

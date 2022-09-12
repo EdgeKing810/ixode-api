@@ -262,7 +262,10 @@ impl UpdateTarget {
         }
 
         if let Err(e) = UpdateTarget::create(all_targets, field) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid target_str string / 5: {}", e.1),
+            ));
         };
 
         return UpdateTarget::set_conditions(

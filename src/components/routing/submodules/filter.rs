@@ -81,7 +81,7 @@ impl Filter {
 
         let right = match RefData::from_string(current_filter[0]) {
             Ok(right) => right,
-            Err(err) => return Err(err),
+            Err(err) => return Err((500, format!("Error: Invalid filter string / 6: {}", err.1))),
         };
 
         Filter::create(all_filters, right, current_filter[1], not, next_str[1]);

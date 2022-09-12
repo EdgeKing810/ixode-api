@@ -15,3 +15,6 @@ pub mod test_property;
 
 #[path = "update.rs"]
 pub mod test_update;
+
+#[path = "function.rs"]
+pub mod test_function;

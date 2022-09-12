@@ -422,7 +422,10 @@ impl FilterBlock {
             ref_var,
             ref_property,
         ) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid block_str string / 11: {}", e.1),
+            ));
         };
 
         return FilterBlock::set_filters(all_blocks, global_index, all_filters);

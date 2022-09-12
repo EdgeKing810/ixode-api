@@ -400,11 +400,17 @@ impl AssignmentBlock {
         }
 
         if let Err(e) = AssignmentBlock::create(all_blocks, global_index, block_index, local_name) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid block_str string / 12: {}", e.1),
+            ));
         };
 
         if let Err(e) = AssignmentBlock::set_conditions(all_blocks, global_index, all_conditions) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid block_str string / 13: {}", e.1),
+            ));
         }
 
         return AssignmentBlock::set_operations(all_blocks, global_index, all_operations);

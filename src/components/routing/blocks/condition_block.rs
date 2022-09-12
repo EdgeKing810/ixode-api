@@ -341,7 +341,10 @@ impl ConditionBlock {
             fail_obj.status,
             &fail_obj.message,
         ) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid block_str string / 13: {}", e.1),
+            ));
         };
 
         return ConditionBlock::set_conditions(all_blocks, global_index, all_conditions);

@@ -672,11 +672,17 @@ impl UpdateBlock {
             set,
             filter,
         ) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid block_str string / 19: {}", e.1),
+            ));
         };
 
         if let Err(e) = UpdateBlock::set_targets(all_blocks, global_index, all_targets) {
-            return Err(e);
+            return Err((
+                500,
+                format!("Error: Invalid block_str string / 20: {}", e.1),
+            ));
         };
 
         return UpdateBlock::set_conditions(all_blocks, global_index, all_conditions);

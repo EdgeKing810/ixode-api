@@ -154,16 +154,26 @@ impl ParamData {
                     delimiter = current_delimiter[1];
                 } else if line.starts_with("ADD PARAMS") {
                     if let Err(e) = BodyData::from_string(&mut all_pairs, line, true) {
-                        return Err(e);
+                        return Err((
+                            500,
+                            format!("Error: Invalid param_data_str string / 2: {}", e.1),
+                        ));
                     }
                 }
             }
         }
 
-        let param_data = ParamData {
-            delimiter: delimiter.to_string(),
-            pairs: all_pairs,
+        let mut param_data = match ParamData::create(delimiter) {
+            Ok(p) => p,
+            Err(e) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid param_data_str string / 3: {}", e.1),
+                ))
+            }
         };
+
+        ParamData::set_body_data_pairs(&mut param_data, all_pairs);
 
         Ok(param_data)
     }

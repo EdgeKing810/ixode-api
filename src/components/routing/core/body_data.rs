@@ -222,14 +222,14 @@ impl BodyData {
 
         current_body_data_obj = current_body_data_obj[0].split(",").collect::<Vec<&str>>();
         if current_body_data_obj.len() < 2 {
-            return Err((500, String::from("Error: Invalid auth_jwt string / 3")));
+            return Err((500, String::from("Error: Invalid body_data string / 3")));
         }
 
-        return BodyData::create(
+        BodyData::create(
             all_pairs,
             current_body_data_obj[0],
             current_body_data_obj[1],
-        );
+        )
     }
 
     pub fn to_string(body_data: BodyData, is_param: bool) -> String {

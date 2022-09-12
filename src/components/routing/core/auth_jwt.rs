@@ -118,12 +118,10 @@ impl AuthJWT {
             return Err((500, String::from("Error: Invalid auth_jwt string / 3")));
         }
 
-        let auth_obj = AuthJWT {
-            active: current_auth_obj[0] == "true",
-            field: current_auth_obj[1].to_string(),
-            ref_col: current_auth_obj[2].to_string(),
-        };
-
-        Ok(auth_obj)
+        AuthJWT::create(
+            current_auth_obj[0] == "true",
+            current_auth_obj[1],
+            current_auth_obj[2],
+        )
     }
 }

@@ -84,12 +84,22 @@ impl Condition {
 
         let left = match RefData::from_string(current_condition[0]) {
             Ok(left) => left,
-            Err(err) => return Err(err),
+            Err(err) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid condition string / 6: {}", err.1),
+                ))
+            }
         };
 
         let right = match RefData::from_string(current_condition[2]) {
             Ok(right) => right,
-            Err(err) => return Err(err),
+            Err(err) => {
+                return Err((
+                    500,
+                    format!("Error: Invalid condition string / 7: {}", err.1),
+                ))
+            }
         };
 
         Condition::create(

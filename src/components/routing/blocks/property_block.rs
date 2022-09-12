@@ -270,7 +270,7 @@ impl PropertyBlock {
 
         let property = match Property::from_string(&property_str) {
             Ok(p) => p,
-            Err(e) => return Err(e),
+            Err(e) => return Err((500, format!("Error: Invalid block_str string / 9: {}", e.1))),
         };
 
         PropertyBlock::create(
