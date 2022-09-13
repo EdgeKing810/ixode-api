@@ -27,3 +27,6 @@ pub mod create_block;
 
 #[path = "return_block.rs"]
 pub mod return_block;
+
+#[path = "loop_block.rs"]
+pub mod loop_block;

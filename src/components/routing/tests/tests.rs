@@ -36,3 +36,6 @@ pub mod test_create;
 
 #[path = "return.rs"]
 pub mod test_return;
+
+#[path = "loop.rs"]
+pub mod test_loop;
