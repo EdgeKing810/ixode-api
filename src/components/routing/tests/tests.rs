@@ -21,3 +21,6 @@ pub mod test_function;
 
 #[path = "object.rs"]
 pub mod test_object;
+
+#[path = "create.rs"]
+pub mod test_create;
