@@ -24,3 +24,6 @@ pub mod object_block;
 
 #[path = "create_block.rs"]
 pub mod create_block;
+
+#[path = "return_block.rs"]
+pub mod return_block;

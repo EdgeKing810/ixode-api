@@ -33,3 +33,6 @@ pub mod test_object;
 
 #[path = "create.rs"]
 pub mod test_create;
+
+#[path = "return.rs"]
+pub mod test_return;
