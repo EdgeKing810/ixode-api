@@ -30,3 +30,6 @@ pub mod return_block;
 
 #[path = "loop_block.rs"]
 pub mod loop_block;
+
+#[path = "template_block.rs"]
+pub mod template_block;

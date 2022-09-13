@@ -39,3 +39,6 @@ pub mod test_return;
 
 #[path = "loop.rs"]
 pub mod test_loop;
+
+#[path = "template.rs"]
+pub mod test_template;
