@@ -2,7 +2,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 use super::core_body_data::BodyData;
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ParamData {
     pub delimiter: String,
     pub pairs: Vec<BodyData>,

@@ -1,3 +1,12 @@
+#[path = "auth_jwt.rs"]
+pub mod test_auth_jwt;
+
+#[path = "body_data.rs"]
+pub mod test_body_data;
+
+#[path = "param_data.rs"]
+pub mod test_param_data;
+
 #[path = "fetch.rs"]
 pub mod test_fetch;
 

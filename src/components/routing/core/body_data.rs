@@ -1,7 +1,7 @@
 use super::super::submodules::sub_body_data_type::BodyDataType;
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct BodyData {
     pub id: String,
     pub bdtype: BodyDataType,

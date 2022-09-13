@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AuthJWT {
     pub active: bool,
     pub field: String,
