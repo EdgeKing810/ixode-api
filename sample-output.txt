@@ -33,6 +33,10 @@ Routes:
    >> (fetch_one) POST /api/v2/user/fetch/one application/json
    >> (login_jwt) POST /api/v2/user/login/jwt application/json
    >> (fetch_one) POST /api/v2/data/fetch/one application/json
+   >> (fetch) POST /api/v2/routing/fetch?<limit>&<offset> application/json
+   >> (create) POST /api/v2/routing/create application/json
+   >> (delete) POST /api/v2/routing/delete application/json
+   >> (fetch_one) POST /api/v2/routing/fetch/one application/json
    >> (test_smtp) POST /api/v2/misc/test/smtp application/json
    >> (test_mongo) POST /api/v2/misc/test/mongo application/json
    >> (update_role) POST /api/v2/user/update/role application/json

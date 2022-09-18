@@ -46,6 +46,7 @@ impl FailObj {
                 || c == ';'
                 || c == ' '
                 || c == '.'
+                || c == '/'
         }) {
             return Err((
                 400,

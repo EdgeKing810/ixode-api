@@ -554,7 +554,7 @@ impl RouteFlow {
         let mut blocks_str = String::new();
 
         blocks_str = format!(
-            "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+            "{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}\n\n{}",
             blocks_str,
             FetchBlock::stringify(&route_flow.fetchers),
             AssignmentBlock::stringify(&route_flow.assignments),

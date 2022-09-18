@@ -31,5 +31,8 @@ pub mod data;
 #[path = "event.rs"]
 pub mod event;
 
+#[path = "routing.rs"]
+pub mod routing;
+
 #[path = "upload.rs"]
 pub mod upload;

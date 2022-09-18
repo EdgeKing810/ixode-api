@@ -178,6 +178,15 @@ fn rocket() -> _ {
             ],
         )
         .mount(
+            fpath("/routing"),
+            routes![
+                routes::routing::fetch,
+                routes::routing::fetch_one,
+                routes::routing::create,
+                routes::routing::delete,
+            ],
+        )
+        .mount(
             fpath("/misc"),
             routes![routes::misc::test_mongo, routes::misc::test_smtp],
         )

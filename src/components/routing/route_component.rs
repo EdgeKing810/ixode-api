@@ -82,7 +82,7 @@ impl RouteComponent {
         Ok(())
     }
 
-    pub fn exist(all_routes: &mut Vec<RouteComponent>, route_id: &str) -> bool {
+    pub fn exists(all_routes: &Vec<RouteComponent>, route_id: &str) -> bool {
         let mut found = false;
         for route in all_routes.iter() {
             if route.route_id == route_id {
@@ -92,6 +92,22 @@ impl RouteComponent {
         }
 
         found
+    }
+
+    pub fn get(
+        all_routes: &Vec<RouteComponent>,
+        project_id: &str,
+        route_id: &str,
+    ) -> Result<RouteComponent, (usize, String)> {
+        for route in all_routes.iter() {
+            if route.route_id.to_lowercase() == route_id.to_lowercase()
+                && route.project_id.to_lowercase() == project_id.to_lowercase()
+            {
+                return Ok(route.clone());
+            }
+        }
+
+        Err((404, String::from("Error: Route not found")))
     }
 
     pub fn update_route_id(
@@ -107,25 +123,25 @@ impl RouteComponent {
             }
         }
 
-        if !String::from(route_id)
+        if !String::from(new_route_id)
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
             return Err((
                 400,
-                String::from("Error: route_id contains an invalid character"),
+                String::from("Error: new_route_id contains an invalid character"),
             ));
         }
 
-        if String::from(route_id.trim()).len() < 1 {
+        if String::from(new_route_id.trim()).len() < 1 {
             return Err((
                 400,
-                String::from("Error: route_id does not contain enough characters"),
+                String::from("Error: new_route_id does not contain enough characters"),
             ));
-        } else if String::from(route_id.trim()).len() > 100 {
+        } else if String::from(new_route_id.trim()).len() > 100 {
             return Err((
                 400,
-                String::from("Error: route_id contains too many characters"),
+                String::from("Error: new_route_id contains too many characters"),
             ));
         }
 
@@ -510,7 +526,7 @@ impl RouteComponent {
 
         for route in all_routes {
             stringified_routes = format!(
-                "{}{}=============== DEFINE ROUTE ===============\n{}",
+                "{}{}=============== DEFINE ROUTE ===============\n\n{}",
                 stringified_routes,
                 if stringified_routes.chars().count() > 1 {
                     "\n"
@@ -534,8 +550,13 @@ impl RouteComponent {
         }
 
         current_route = current_route[1].split("]").collect::<Vec<&str>>();
-        if current_route.len() <= 3 {
+        if current_route.len() <= 1 {
             return Err((500, String::from("Error: Invalid route_str string / 2")));
+        }
+
+        current_route = current_route[0].split(",").collect::<Vec<&str>>();
+        if current_route.len() < 3 {
+            return Err((500, String::from("Error: Invalid route_str string / 3")));
         }
 
         let project_id = current_route[0];
@@ -544,7 +565,7 @@ impl RouteComponent {
 
         current_route = route_str.split("START FLOW").collect::<Vec<&str>>();
         if current_route.len() <= 1 {
-            return Err((500, String::from("Error: Invalid route_str string / 3")));
+            return Err((500, String::from("Error: Invalid route_str string / 4")));
         }
 
         let flow_str = current_route[1];
@@ -568,12 +589,12 @@ impl RouteComponent {
                         auth_jwt = Some(aj);
                     }
                     Err(e) => {
-                        return Err((500, format!("Error: Invalid route_str string / 4: {}", e.1)));
+                        return Err((500, format!("Error: Invalid route_str string / 5: {}", e.1)));
                     }
                 }
             } else if line.starts_with("ADD BODY pair") {
                 if let Err(e) = BodyData::from_string(&mut body_data, line, false) {
-                    return Err((500, format!("Error: Invalid route_str string / 5: {}", e.1)));
+                    return Err((500, format!("Error: Invalid route_str string / 6: {}", e.1)));
                 }
             } else if line.starts_with("DEFINE PARAMS") || line.starts_with("ADD PARAMS") {
                 param_arr.push(line.to_string());
@@ -585,38 +606,41 @@ impl RouteComponent {
         params = match ParamData::from_string(&param_arr_str) {
             Ok(p) => Some(p),
             Err(e) => {
-                return Err((500, format!("Error: Invalid route_str string / 6: {}", e.1)));
+                return Err((500, format!("Error: Invalid route_str string / 7: {}", e.1)));
             }
         };
 
         let flow = match RouteFlow::from_string(flow_str) {
             Ok(f) => f,
             Err(e) => {
-                return Err((500, format!("Error: Invalid route_str string / 7: {}", e.1)));
+                return Err((500, format!("Error: Invalid route_str string / 8: {}", e.1)));
             }
         };
 
         if let Err(e) =
             RouteComponent::create(all_routes, &route_id, route_path, project_id, flow.clone())
         {
-            return Err((500, format!("Error: Invalid route_str string / 8: {}", e.1)));
-        }
-
-        if let Err(e) = RouteComponent::update_auth_jwt(all_routes, &route_id, auth_jwt) {
             return Err((500, format!("Error: Invalid route_str string / 9: {}", e.1)));
         }
 
-        if let Err(e) = RouteComponent::set_body(all_routes, &route_id, body_data) {
+        if let Err(e) = RouteComponent::update_auth_jwt(all_routes, &route_id, auth_jwt) {
             return Err((
                 500,
                 format!("Error: Invalid route_str string / 10: {}", e.1),
             ));
         }
 
-        if let Err(e) = RouteComponent::update_params(all_routes, &route_id, params) {
+        if let Err(e) = RouteComponent::set_body(all_routes, &route_id, body_data) {
             return Err((
                 500,
                 format!("Error: Invalid route_str string / 11: {}", e.1),
+            ));
+        }
+
+        if let Err(e) = RouteComponent::update_params(all_routes, &route_id, params) {
+            return Err((
+                500,
+                format!("Error: Invalid route_str string / 12: {}", e.1),
             ));
         }
 
@@ -624,7 +648,7 @@ impl RouteComponent {
             Ok(_) => Ok(()),
             Err(e) => Err((
                 500,
-                format!("Error: Invalid route_str string / 12: {}", e.1),
+                format!("Error: Invalid route_str string / 13: {}", e.1),
             )),
         }
     }
@@ -636,17 +660,21 @@ impl RouteComponent {
         );
 
         if let Some(auth_jwt) = route.auth_jwt {
-            route_str = format!("{}\n{}", route_str, AuthJWT::to_string(auth_jwt));
-        }
-
-        route_str = format!("{}\n{}", route_str, BodyData::stringify(&route.body, false));
-
-        if let Some(param) = route.params {
-            route_str = format!("{}\n{}", route_str, ParamData::to_string(param));
+            route_str = format!("{}\n\n{}", route_str, AuthJWT::to_string(auth_jwt));
         }
 
         route_str = format!(
-            "{}\nSTART FLOW\n{}",
+            "{}\n\n{}",
+            route_str,
+            BodyData::stringify(&route.body, false)
+        );
+
+        if let Some(param) = route.params {
+            route_str = format!("{}\n\n{}", route_str, ParamData::to_string(param));
+        }
+
+        route_str = format!(
+            "{}\nSTART FLOW{}",
             route_str,
             RouteFlow::to_string(route.flow)
         );
