@@ -17,6 +17,9 @@ use crate::components::media::{
 use crate::components::project::{
     fetch_all_projects, save_all_projects, stringify_projects, unwrap_projects, Project,
 };
+use crate::components::routing::mod_route::{
+    fetch_all_routes, save_all_routes, stringify_routes, unwrap_routes, RouteComponent,
+};
 use crate::components::user::{
     fetch_all_users, save_all_users, stringify_users, unwrap_users, User,
 };
@@ -605,6 +608,83 @@ pub fn auto_create_event(
         println!("{}", e);
         return Err((500, "Error: Failed to save events".to_string()));
     }
+
+    Ok(())
+}
+
+pub fn auto_fetch_all_routes(
+    // mappings: &Vec<Mapping>,
+    project_id: &str,
+) -> Result<Vec<RouteComponent>, String> {
+    let connection = get_redis_connection();
+
+    if let Ok(mut con) = connection {
+        let stringified_routes = match redis::pipe()
+            .cmd("GET")
+            .arg(format!("routes_{}", project_id))
+            .query(&mut con)
+        {
+            Ok(d) => Some(d),
+            _ => None,
+        };
+
+        if let Some(sr) = stringified_routes {
+            return Ok(unwrap_routes(sr));
+        }
+    }
+
+    let all_routes_path = format!(
+        "{}/data/projects/{}/routes.txt",
+        get_root_data_dir(),
+        project_id,
+    );
+
+    // let tmp_password = match std::env::var("TMP_PASSWORD") {
+    //     Ok(pass) => pass,
+    //     _ => "password".to_string(),
+    // };
+
+    let all_routes = fetch_all_routes(
+        all_routes_path.clone(),
+        // &get_encryption_key(&mappings, &tmp_password),
+        &"".to_string(),
+    );
+
+    Ok(all_routes)
+}
+
+pub fn auto_save_all_routes(
+    // mappings: &Vec<Mapping>,
+    project_id: &str,
+    routes: &Vec<RouteComponent>,
+) -> Result<(), String> {
+    let all_routes_path = format!(
+        "{}/data/projects/{}/routes.txt",
+        get_root_data_dir(),
+        project_id
+    );
+
+    // let tmp_password = match std::env::var("TMP_PASSWORD") {
+    //     Ok(pass) => pass,
+    //     _ => "password".to_string(),
+    // };
+
+    // let encryption_key = get_encryption_key(mappings, &tmp_password);
+
+    let connection = get_redis_connection();
+    if let Ok(mut con) = connection {
+        redis::cmd("SET")
+            .arg(format!("routes_{}", project_id))
+            .arg(stringify_routes(routes))
+            .execute(&mut con);
+    }
+
+    save_all_routes(
+        routes,
+        all_routes_path,
+        // &encryption_key
+        &"".to_string(),
+    );
 
     Ok(())
 }

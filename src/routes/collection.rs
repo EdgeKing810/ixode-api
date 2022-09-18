@@ -5,11 +5,13 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::collection::Collection;
 use crate::components::data::Data;
 use crate::components::project::Project;
+use crate::components::routing::mod_route::RouteComponent;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
     auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
+    auto_fetch_all_projects, auto_fetch_all_routes, auto_fetch_all_users,
+    auto_save_all_collections, auto_save_all_data, auto_save_all_routes,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -367,6 +369,13 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
         }
     };
 
+    let mut all_routes = match auto_fetch_all_routes(&project_id) {
+        Ok(r) => r,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching routes"});
+        }
+    };
+
     let current_col = match Collection::get(&all_collections, project_id, collection_id) {
         Ok(col) => col,
         Err(e) => return json!({"status": e.0, "message": e.1}),
@@ -386,7 +395,19 @@ pub async fn update(data: Json<UpdateCollectionInput>, token: Token) -> Value {
     if change.clone() == &UpdateType::ID {
         Data::bulk_update_collection_id(&mut all_data, collection_id, data);
 
-        match auto_save_all_data(&mappings, project_id, data, &all_data) {
+        match RouteComponent::bulk_update_collection_id(&mut all_routes, collection_id, data) {
+            Err(e) => return json!({"status": e.0, "message": e.1}),
+            _ => {}
+        }
+
+        match auto_save_all_data(&mappings, project_id, &data, &all_data) {
+            Ok(_) => {}
+            Err(e) => {
+                return json!({"status": 500, "message": e});
+            }
+        }
+
+        match auto_save_all_routes(&project_id, &all_routes) {
             Ok(_) => {}
             Err(e) => {
                 return json!({"status": 500, "message": e});

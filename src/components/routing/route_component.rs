@@ -1,6 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::components::io::{fetch_file, save_file};
+
 use super::{
+    blocks::{create_block::CreateBlock, fetch_block::FetchBlock, update_block::UpdateBlock},
     core::{core_auth_jwt::AuthJWT, core_body_data::BodyData, core_param_data::ParamData},
     mod_route_flow::RouteFlow,
 };
@@ -418,12 +421,96 @@ impl RouteComponent {
         Ok(())
     }
 
+    pub fn bulk_update_collection_id(
+        all_routes: &mut Vec<RouteComponent>,
+        collection_id: &str,
+        new_collection_id: &str,
+    ) -> Result<(), (usize, String)> {
+        let mut updated_routes = all_routes.clone();
+        for route in all_routes.iter_mut() {
+            if let Some(auth_jwt) = route.auth_jwt.clone() {
+                if auth_jwt.ref_col == collection_id {
+                    let new_auth_jwt = match AuthJWT::create(
+                        auth_jwt.active,
+                        &auth_jwt.field,
+                        new_collection_id,
+                    ) {
+                        Ok(auth_jwt) => auth_jwt,
+                        Err(err) => return Err(err),
+                    };
+
+                    if let Err(e) = RouteComponent::update_auth_jwt(
+                        &mut updated_routes,
+                        &route.route_id,
+                        Some(new_auth_jwt),
+                    ) {
+                        return Err(e);
+                    }
+                }
+            }
+
+            let mut updated_flow = route.flow.clone();
+
+            let mut updated_fetch_blocks = route.flow.fetchers.clone();
+            for fetch_block in route.flow.fetchers.iter() {
+                if fetch_block.ref_col == collection_id {
+                    if let Err(e) = FetchBlock::update_ref_col(
+                        &mut updated_fetch_blocks,
+                        fetch_block.global_index,
+                        new_collection_id,
+                    ) {
+                        return Err(e);
+                    }
+                }
+            }
+            RouteFlow::set_fetch_blocks(&mut updated_flow, updated_fetch_blocks);
+
+            let mut updated_update_blocks = route.flow.updates.clone();
+            for update_block in route.flow.updates.iter() {
+                if update_block.ref_col == collection_id {
+                    if let Err(e) = UpdateBlock::update_ref_col(
+                        &mut updated_update_blocks,
+                        update_block.global_index,
+                        new_collection_id,
+                    ) {
+                        return Err(e);
+                    }
+                }
+            }
+            RouteFlow::set_update_blocks(&mut updated_flow, updated_update_blocks);
+
+            let mut updated_create_blocks = route.flow.creates.clone();
+            for create_block in route.flow.creates.iter() {
+                if create_block.ref_col == collection_id {
+                    if let Err(e) = CreateBlock::update_ref_col(
+                        &mut updated_create_blocks,
+                        create_block.global_index,
+                        new_collection_id,
+                    ) {
+                        return Err(e);
+                    }
+                }
+            }
+            RouteFlow::set_create_blocks(&mut updated_flow, updated_create_blocks);
+
+            if let Err(e) =
+                RouteComponent::update_flow(&mut updated_routes, &route.route_id, updated_flow)
+            {
+                return Err(e);
+            }
+        }
+
+        *all_routes = updated_routes;
+
+        Ok(())
+    }
+
     pub fn stringify(all_routes: &Vec<RouteComponent>) -> String {
         let mut stringified_routes = String::new();
 
         for route in all_routes {
             stringified_routes = format!(
-                "{}{}{}",
+                "{}{}=============== DEFINE ROUTE ===============\n{}",
                 stringified_routes,
                 if stringified_routes.chars().count() > 1 {
                     "\n"
@@ -566,4 +653,36 @@ impl RouteComponent {
 
         route_str
     }
+}
+
+pub fn stringify_routes(all_routes: &Vec<RouteComponent>) -> String {
+    RouteComponent::stringify(all_routes)
+}
+
+pub fn unwrap_routes(all_routes_raw: String) -> Vec<RouteComponent> {
+    let individual_routes = all_routes_raw
+        .split("=============== DEFINE ROUTE ===============")
+        .filter(|line| line.chars().count() >= 3);
+
+    let mut final_routes: Vec<RouteComponent> = Vec::<RouteComponent>::new();
+
+    for route in individual_routes {
+        if let Err(e) = RouteComponent::from_string(&mut final_routes, route) {
+            println!("Error while unwrapping route: {}", e.1);
+        }
+    }
+
+    final_routes
+}
+
+pub fn fetch_all_routes(path: String, encryption_key: &String) -> Vec<RouteComponent> {
+    let all_routes_raw = fetch_file(path.clone(), encryption_key);
+    let final_routes = unwrap_routes(all_routes_raw);
+    final_routes
+}
+
+pub fn save_all_routes(all_routes: &Vec<RouteComponent>, path: String, encryption_key: &String) {
+    let stringified_routes = stringify_routes(all_routes);
+    save_file(path, stringified_routes, encryption_key);
+    println!("Routes saved!");
 }

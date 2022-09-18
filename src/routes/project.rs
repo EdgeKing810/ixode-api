@@ -5,13 +5,14 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::collection::Collection;
 use crate::components::data::Data;
 use crate::components::project::Project;
+use crate::components::routing::mod_route::RouteComponent;
 use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
     auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
-    auto_save_all_projects,
+    auto_fetch_all_projects, auto_fetch_all_routes, auto_fetch_all_users,
+    auto_save_all_collections, auto_save_all_data, auto_save_all_projects, auto_save_all_routes,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -306,9 +307,16 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
     };
 
     let mut all_collections = match auto_fetch_all_collections(&mappings) {
-        Ok(u) => u,
+        Ok(c) => c,
         _ => {
             return json!({"status": 500, "message": "Error: Failed fetching collections"});
+        }
+    };
+
+    let mut all_routes = match auto_fetch_all_routes(&project_id) {
+        Ok(r) => r,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching routes"});
         }
     };
 
@@ -358,6 +366,13 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
     if change.clone() == &UpdateType::ID {
         Data::bulk_update_project_id(&mut all_project_data, project_id, data);
 
+        for route in all_routes.clone().iter() {
+            match RouteComponent::update_project_id(&mut all_routes, &route.route_id, data) {
+                Err(e) => return json!({"status": e.0, "message": e.1}),
+                _ => {}
+            }
+        }
+
         for col in all_collections.clone().iter() {
             if col.project_id == *project_id {
                 match Collection::update_project_id(&mut all_collections, &col.id, data) {
@@ -371,12 +386,19 @@ pub async fn update(data: Json<UpdateProjectInput>, token: Token) -> Value {
                     .cloned()
                     .collect::<Vec<Data>>();
 
-                match auto_save_all_data(&mappings, data, &col.id, &current_data) {
+                match auto_save_all_data(&mappings, &data, &col.id, &current_data) {
                     Ok(_) => {}
                     Err(e) => {
                         return json!({"status": 500, "message": e});
                     }
                 }
+            }
+        }
+
+        match auto_save_all_routes(&data, &all_routes) {
+            Ok(_) => {}
+            Err(e) => {
+                return json!({"status": 500, "message": e});
             }
         }
 
