@@ -139,15 +139,38 @@ pub fn remove_directory(path: &String) {
     }
 
     ensure_directory_exists(&path);
+
     for entry in read_dir(&path).unwrap() {
         if let Ok(entry) = entry {
             let entry_path = entry.path();
-            remove_file(entry_path.to_str().unwrap().to_string());
+
+            if let Ok(ft) = entry.file_type() {
+                if ft.is_dir() {
+                    for int_entry in read_dir(&entry_path.to_str().unwrap().to_string()).unwrap() {
+                        if let Ok(int_entry) = int_entry {
+                            let int_entry_path = int_entry.path();
+
+                            if let Ok(ift) = int_entry.file_type() {
+                                if ift.is_dir() {
+                                    remove_directory(&int_entry_path.to_str().unwrap().to_string());
+                                } else {
+                                    remove_file(int_entry_path.to_str().unwrap().to_string());
+                                }
+                            }
+                        }
+                    }
+
+                    if let Err(e) = remove_dir_all(entry_path.clone()) {
+                        println!("Error while removing directory: {} ({:?})", e, entry_path);
+                    }
+                } else {
+                    remove_file(entry_path.to_str().unwrap().to_string());
+                }
+            }
         }
     }
 
-    let remove_directory_result = remove_dir_all(&path);
-    if let Err(e) = remove_directory_result {
+    if let Err(e) = remove_dir_all(path) {
         println!("Error while removing directory: {} ({})", e, path);
     }
 }
@@ -161,10 +184,44 @@ pub fn rename_directory(old_path: &String, path: &String) {
             let entry_path = entry.path();
             let file_name = entry.file_name();
             let dest = format!("{}/{}", path, file_name.to_str().unwrap());
-            if let Err(e) = copy(entry_path.clone(), dest.clone()) {
-                println!("Error while copying file: {} ({} => {})", e, path, dest);
-            } else {
-                remove_file(entry_path.to_str().unwrap().to_string());
+
+            if let Ok(ft) = entry.file_type() {
+                if ft.is_dir() {
+                    ensure_directory_exists(&dest);
+                    for int_entry in read_dir(&entry_path.to_str().unwrap().to_string()).unwrap() {
+                        if let Ok(int_entry) = int_entry {
+                            let int_entry_path = int_entry.path();
+                            let int_file_name = int_entry.file_name();
+                            let int_file_dest =
+                                format!("{}/{}", dest, int_file_name.to_str().unwrap());
+
+                            if let Ok(ift) = int_entry.file_type() {
+                                if !ift.is_dir() {
+                                    if let Err(e) =
+                                        copy(int_entry_path.clone(), int_file_dest.clone())
+                                    {
+                                        println!(
+                                            "Error while copying file: {} ({:?} => {})",
+                                            e, int_entry_path, dest
+                                        );
+                                    } else {
+                                        remove_file(int_entry_path.to_str().unwrap().to_string());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    remove_directory(&entry_path.to_str().unwrap().to_string())
+                } else {
+                    if let Err(e) = copy(entry_path.clone(), dest.clone()) {
+                        println!(
+                            "Error while copying file: {} ({:?} => {})",
+                            e, entry_path, dest
+                        );
+                    } else {
+                        remove_file(entry_path.to_str().unwrap().to_string());
+                    }
+                }
             }
         }
     }

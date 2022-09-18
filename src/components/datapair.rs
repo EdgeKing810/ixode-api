@@ -468,6 +468,7 @@ impl DataPair {
         let current_pairs = pairs_str.split("§").collect::<Vec<&str>>();
         for pair in current_pairs {
             let current_pair = pair.split("=").collect::<Vec<&str>>();
+            println!("{:#?}", current_pair);
 
             let pair_id = current_pair[0];
             let pair_structure_id = current_pair[1];

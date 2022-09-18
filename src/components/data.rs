@@ -624,6 +624,7 @@ impl Data {
     pub fn from_string(mut all_data: &mut Vec<Data>, data_str: &str) -> String {
         let current_data = data_str.split(";").collect::<Vec<&str>>();
         let published = if current_data[3] == "1" { true } else { false };
+        println!("current data: {:#?}", current_data);
 
         let data_id = current_data[0];
         let create_data = Data::create(
