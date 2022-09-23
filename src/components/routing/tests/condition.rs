@@ -4,18 +4,27 @@ use crate::components::routing::blocks::condition_block::ConditionBlock;
 #[allow(unused_imports)]
 use crate::components::routing::submodules::sub_condition::Condition;
 #[allow(unused_imports)]
+use crate::components::routing::submodules::sub_fail_obj::FailObj;
+#[allow(unused_imports)]
 use crate::components::routing::submodules::sub_ref_data::RefData;
 
 fn make_block_one(
     all_blocks: &mut Vec<crate::components::routing::blocks::condition_block::ConditionBlock>,
 ) {
+    let fail_obj = match FailObj::create(403, "Error: You cannot follow yourself") {
+        Ok(fail_obj) => fail_obj,
+        Err(e) => {
+            println!("{}", e.1);
+            FailObj::default()
+        }
+    };
+
     if let Err(e) = crate::components::routing::blocks::condition_block::ConditionBlock::create(
         all_blocks,
         0,
         0,
         "FAIL",
-        403,
-        "Error: You cannot follow yourself",
+        Some(fail_obj),
     ) {
         println!("Error: {:#?}", e);
         return;

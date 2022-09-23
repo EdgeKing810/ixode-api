@@ -10,7 +10,7 @@ pub struct ConditionBlock {
     pub block_index: u32,
     pub conditions: Vec<Condition>,
     pub action: ConditionAction,
-    pub fail: FailObj,
+    pub fail: Option<FailObj>,
 }
 
 impl ConditionBlock {
@@ -19,22 +19,8 @@ impl ConditionBlock {
         global_index: u32,
         block_index: u32,
         action: &str,
-        fail_status: u32,
-        fail_message: &str,
+        fail_obj: Option<FailObj>,
     ) -> Result<(), (usize, String)> {
-        let mut has_error: bool = false;
-        let mut latest_error: (usize, String) = (500, String::new());
-
-        let fail_obj = match FailObj::create(fail_status, fail_message) {
-            Ok(fail_obj) => fail_obj,
-            Err(e) => {
-                has_error = true;
-                println!("{}", e.1);
-                latest_error = e;
-                FailObj::default()
-            }
-        };
-
         let new_block = ConditionBlock {
             global_index: global_index,
             block_index: block_index,
@@ -43,15 +29,6 @@ impl ConditionBlock {
             fail: fail_obj,
         };
         all_blocks.push(new_block);
-
-        if has_error {
-            let delete_block = Self::delete(all_blocks, global_index);
-            if let Err(e) = delete_block {
-                println!("{}", e.1);
-            }
-
-            return Err(latest_error);
-        }
 
         Ok(())
     }
@@ -93,17 +70,9 @@ impl ConditionBlock {
     pub fn update_fail(
         all_blocks: &mut Vec<ConditionBlock>,
         global_index: u32,
-        fail_status: u32,
-        fail_message: &str,
+        fail_obj: Option<FailObj>,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<ConditionBlock> = None;
-
-        let fail_obj = match FailObj::create(fail_status, fail_message) {
-            Ok(fail_obj) => fail_obj,
-            Err(e) => {
-                return Err(e);
-            }
-        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
@@ -305,15 +274,19 @@ impl ConditionBlock {
             return Err((500, String::from("Error: Invalid block_str string / 9")));
         }
 
-        let fail_obj = match FailObj::from_string(&format!("[{}]", current_block[0])) {
-            Ok(fail_obj) => fail_obj,
-            Err(e) => {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 10: {}", e.1),
-                ))
-            }
-        };
+        let mut fail_obj: Option<FailObj> = None;
+
+        if current_block[0].trim().len() > 0 {
+            fail_obj = match FailObj::from_string(&format!("[{}]", current_block[0])) {
+                Ok(fail_obj) => Some(fail_obj),
+                Err(e) => {
+                    return Err((
+                        500,
+                        format!("Error: Invalid block_str string / 10: {}", e.1),
+                    ))
+                }
+            };
+        }
 
         let mut conditions_list = block_str.split("([").collect::<Vec<&str>>();
         if conditions_list.len() <= 1 {
@@ -337,14 +310,9 @@ impl ConditionBlock {
             };
         }
 
-        if let Err(e) = ConditionBlock::create(
-            all_blocks,
-            global_index,
-            block_index,
-            action_str,
-            fail_obj.status,
-            &fail_obj.message,
-        ) {
+        if let Err(e) =
+            ConditionBlock::create(all_blocks, global_index, block_index, action_str, fail_obj)
+        {
             return Err((
                 500,
                 format!("Error: Invalid block_str string / 13: {}", e.1),
@@ -367,7 +335,10 @@ impl ConditionBlock {
             block.global_index,
             block.block_index,
             ConditionAction::to(block.action),
-            FailObj::to_string(block.fail),
+            match block.fail {
+                Some(fail) => FailObj::to_string(fail),
+                None => String::from("[]"),
+            },
             conditions_str
         )
     }
