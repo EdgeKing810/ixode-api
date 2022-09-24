@@ -5,6 +5,7 @@ use rocket::serde::{Deserialize, Serialize};
 pub struct Property {
     pub data: RefData,
     pub apply: PropertyApply,
+    pub additional: String,
 }
 
 impl Default for Property {
@@ -12,12 +13,17 @@ impl Default for Property {
         Property {
             data: RefData::default(),
             apply: PropertyApply::default(),
+            additional: "".to_string(),
         }
     }
 }
 
 impl Property {
-    pub fn create(data: RefData, apply: &str) -> Result<Property, (usize, String)> {
+    pub fn create(
+        data: RefData,
+        apply: &str,
+        additional: &str,
+    ) -> Result<Property, (usize, String)> {
         if apply.trim().len() > 100 {
             return Err((
                 400,
@@ -35,9 +41,27 @@ impl Property {
             ));
         }
 
+        if !additional
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.')
+        {
+            return Err((
+                400,
+                String::from("Error: additional contains an invalid character"),
+            ));
+        }
+
+        if additional.trim().len() > 100 {
+            return Err((
+                400,
+                String::from("Error: additional contains too many characters"),
+            ));
+        }
+
         Ok(Property {
             data: data,
             apply: PropertyApply::from(apply),
+            additional: additional.trim().to_string(),
         })
     }
 
@@ -57,9 +81,14 @@ impl Property {
             return Err((500, String::from("Error: Invalid property string / 3")));
         }
 
-        let apply_str = current_property[1].split("apply=").collect::<Vec<&str>>();
+        let mut apply_str = current_property[1].split("apply=").collect::<Vec<&str>>();
         if apply_str.len() <= 1 {
             return Err((500, String::from("Error: Invalid property string / 4")));
+        }
+
+        apply_str = apply_str[1].split(">").collect::<Vec<&str>>();
+        if apply_str.len() <= 1 {
+            return Err((500, String::from("Error: Invalid property string / 5")));
         }
 
         let right = match RefData::from_string(current_property[0]) {
@@ -67,25 +96,26 @@ impl Property {
             Err(err) => {
                 return Err((
                     500,
-                    format!("Error: Invalid property string / 5: {}", err.1),
+                    format!("Error: Invalid property string / 6: {}", err.1),
                 ))
             }
         };
 
-        match Property::create(right, apply_str[1]) {
+        match Property::create(right, apply_str[0], apply_str[1]) {
             Ok(property) => Ok(property),
             Err(err) => Err((
                 500,
-                format!("Error: Invalid property string / 6: {}", err.1),
+                format!("Error: Invalid property string / 7: {}", err.1),
             )),
         }
     }
 
     pub fn to_string(property: Property) -> String {
         format!(
-            "({}|apply={})",
+            "({}|apply={}>{})",
             RefData::to_string(property.data.clone()),
-            PropertyApply::to(property.apply.clone())
+            PropertyApply::to(property.apply.clone()),
+            property.additional
         )
     }
 }

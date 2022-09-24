@@ -17,6 +17,7 @@ fn make_block_one(
         4,
         "currentProfile_blocked",
         data,
+        "GET_PROPERTY",
         "blocked",
     ) {
         println!("Error: {:#?}", e);
@@ -25,7 +26,7 @@ fn make_block_one(
 }
 
 fn get_block_str_one() -> String {
-    "PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=blocked)"
+    "PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>blocked)"
         .to_string()
 }
 
@@ -41,6 +42,7 @@ fn make_block_two(
         "currentUser",
         data,
         "GET_FIRST",
+        "",
     ) {
         println!("Error: {:#?}", e);
         return;
@@ -48,13 +50,13 @@ fn make_block_two(
 }
 
 fn get_block_str_two() -> String {
-    "PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST)".to_string()
+    "PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST>)".to_string()
 }
 
 #[test]
 pub fn run_routing_property_one() {
     println!("---> Running Routing Property One");
-    // PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=blocked)
+    // PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>blocked)
 
     let mut all_blocks = Vec::<PropertyBlock>::new();
 
@@ -74,12 +76,15 @@ pub fn run_routing_property_two() {
     //     global_index: 12,
     //     block_index: 4,
     //     local_name: "currentProfile_blocked",
-    //     data: RefData {
-    //         ref_var: true,
-    //         rtype: OTHER,
-    //         data: "currentProfile",
-    //     },
-    //     apply: "blocked",
+    //     property: Property {
+    //         data: RefData {
+    //             ref_var: true,
+    //             rtype: OTHER,
+    //             data: "currentProfile"
+    //         },
+    //         apply: GET_PROPERTY,
+    //         additional: "blocked"
+    //     }
     // }
 
     let mut all_blocks = Vec::<PropertyBlock>::new();
@@ -94,7 +99,7 @@ pub fn run_routing_property_two() {
 #[test]
 pub fn run_routing_property_three() {
     println!("---> Running Routing Property Three");
-    // PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST)
+    // PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST>)
 
     let mut all_blocks = Vec::<PropertyBlock>::new();
 
@@ -114,12 +119,16 @@ pub fn run_routing_property_four() {
     //     global_index: 41,
     //     block_index: 9,
     //     local_name: "currentUser",
-    //     data: RefData {
-    //         ref_var: true,
-    //         rtype: OTHER,
-    //         data: "currentUsers",
-    //     },
-    //     apply: GET_FIRST,
+    //     property: Property {
+    //         data: RefData {
+    //             ref_var: true,
+    //             rtype: OTHER,
+    //             data: "currentUsers"
+    //         },
+    //         apply:
+    //         GET_FIRST,
+    //         additional: ""
+    //     }
     // }
 
     let mut all_blocks = Vec::<PropertyBlock>::new();

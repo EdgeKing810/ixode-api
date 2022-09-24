@@ -9,8 +9,8 @@ pub enum PropertyApply {
     GET_FIRST,
     GET_LAST,
     LENGTH,
-    GET_INDEX(u32),
-    GET_PROPERTY(String),
+    GET_INDEX,
+    GET_PROPERTY,
 }
 
 impl Default for PropertyApply {
@@ -25,8 +25,8 @@ impl fmt::Display for PropertyApply {
             PropertyApply::GET_FIRST => "GET_FIRST".to_string(),
             PropertyApply::GET_LAST => "GET_LAST".to_string(),
             PropertyApply::LENGTH => "LENGTH".to_string(),
-            PropertyApply::GET_INDEX(x) => x.to_string(),
-            PropertyApply::GET_PROPERTY(x) => x.clone(),
+            PropertyApply::GET_INDEX => "GET_INDEX".to_string(),
+            PropertyApply::GET_PROPERTY => "GET_PROPERTY".to_string(),
         };
 
         write!(f, "{}", pa_txt)
@@ -39,8 +39,8 @@ impl PropertyApply {
             PropertyApply::GET_FIRST => "GET_FIRST".to_string(),
             PropertyApply::GET_LAST => "GET_LAST".to_string(),
             PropertyApply::LENGTH => "LENGTH".to_string(),
-            PropertyApply::GET_INDEX(x) => x.to_string(),
-            PropertyApply::GET_PROPERTY(x) => x.clone(),
+            PropertyApply::GET_INDEX => "GET_INDEX".to_string(),
+            PropertyApply::GET_PROPERTY => "GET_PROPERTY".to_string(),
         };
     }
 
@@ -49,13 +49,9 @@ impl PropertyApply {
             "GET_FIRST" => PropertyApply::GET_FIRST,
             "GET_LAST" => PropertyApply::GET_LAST,
             "LENGTH" => PropertyApply::LENGTH,
-            _ => {
-                if let Ok(val) = pa_txt.parse::<u32>() {
-                    PropertyApply::GET_INDEX(val)
-                } else {
-                    PropertyApply::GET_PROPERTY(pa_txt.to_string())
-                }
-            }
+            "GET_INDEX" => PropertyApply::GET_INDEX,
+            "GET_PROPERTY" => PropertyApply::GET_PROPERTY,
+            _ => PropertyApply::LENGTH,
         };
     }
 }

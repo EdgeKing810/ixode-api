@@ -20,6 +20,7 @@ impl PropertyBlock {
         local_name: &str,
         data: RefData,
         apply: &str,
+        additional: &str,
     ) -> Result<(), (usize, String)> {
         let mut has_error: bool = false;
         let mut latest_error: (usize, String) = (500, String::new());
@@ -42,7 +43,8 @@ impl PropertyBlock {
         }
 
         if !has_error {
-            let property_update = Self::update_property(all_blocks, global_index, data, apply);
+            let property_update =
+                Self::update_property(all_blocks, global_index, data, apply, additional);
             if let Err(e) = property_update {
                 has_error = true;
                 println!("{}", e.1);
@@ -123,6 +125,7 @@ impl PropertyBlock {
         global_index: u32,
         data: RefData,
         apply: &str,
+        additional: &str,
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<PropertyBlock> = None;
 
@@ -130,7 +133,7 @@ impl PropertyBlock {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
 
-                match Property::create(data, apply) {
+                match Property::create(data, apply, additional) {
                     Ok(p) => block.property = p,
                     Err(e) => return Err(e),
                 };
@@ -280,6 +283,7 @@ impl PropertyBlock {
             local_name,
             property.data,
             &PropertyApply::to(property.apply),
+            &property.additional,
         ) {
             Ok(_) => Ok(()),
             Err(e) => {
