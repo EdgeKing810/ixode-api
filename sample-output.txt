@@ -60,7 +60,10 @@ Routes:
    >> (fetch_one) POST /project/fetch/one application/json
    >> (fetch_one) POST /routing/fetch/one application/json
    >> (add_member) POST /project/member/add application/json
+   >> (convert_kdl) POST /routing/convert/kdl application/json
    >> (remove_member) POST /project/member/remove application/json
+   >> (convert_blocks) POST /routing/convert/blocks application/json
+   >> (fetch_one_kdl) POST /routing/fetch/one/kdl application/json
    >> (add) POST /structure/add application/json
    >> (update) POST /structure/update application/json
    >> (delete) POST /structure/delete application/json
@@ -79,13 +82,13 @@ Catchers:
    >> (malformed_request) 422
    >> (internal_server_error) 500
 Fairings:
+   >> CORS (ignite, request, response)
    >> Shield (liftoff, response, singleton)
    >> Templating (ignite, liftoff, request)
-   >> CORS (ignite, request, response)
 Shield:
+   >> X-Content-Type-Options: nosniff
    >> X-Frame-Options: SAMEORIGIN
    >> Permissions-Policy: interest-cohort=()
-   >> X-Content-Type-Options: nosniff
 Templating:
    >> directory: templates
    >> engines: ["tera"]

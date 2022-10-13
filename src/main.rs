@@ -182,7 +182,10 @@ fn rocket() -> _ {
             routes![
                 routes::routing::fetch,
                 routes::routing::fetch_one,
+                routes::routing::fetch_one_kdl,
                 routes::routing::create,
+                routes::routing::convert_blocks,
+                routes::routing::convert_kdl,
                 routes::routing::delete,
             ],
         )
