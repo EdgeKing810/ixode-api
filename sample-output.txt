@@ -14,64 +14,64 @@ Configured for debug.
 Routes:
    >> (welcome) GET /
    >> OPTIONS /<catch_all_options_route..> [9223372036854775807]
+   >> (world) GET /tmp/hello/world
+   >> (wave) GET /tmp/wave/<name>/<age>
    >> (call_initialize) GET /init/code?<code>
+   >> (fetch_all) POST /user/fetch?<limit>&<offset> application/json
+   >> (login) POST /user/login application/json
+   >> (fetch) POST /data/fetch?<limit>&<offset> application/json
+   >> (verify) POST /user/verify application/json
+   >> (update) POST /user/update application/json
+   >> (delete) POST /user/delete application/json
+   >> (create) POST /data/create application/json
+   >> (update) POST /data/update application/json
+   >> (delete) POST /data/delete application/json
+   >> (publish) POST /data/publish application/json
+   >> (register) POST /user/register application/json
    >> GET /cors/<status>
+   >> (fetch_one) POST /user/fetch/one application/json
+   >> (login_jwt) POST /user/login/jwt application/json
+   >> (fetch_one) POST /data/fetch/one application/json
+   >> (test_smtp) POST /misc/test/smtp application/json
+   >> (test_mongo) POST /misc/test/mongo application/json
+   >> (update_role) POST /user/update/role application/json
+   >> (fetch_all) POST /media/fetch?<limit>&<offset> application/json
+   >> (fetch_all) POST /event/fetch?<limit>&<offset> application/json
+   >> (create) POST /media/create application/json
+   >> (update) POST /media/update application/json
+   >> (delete) POST /media/delete application/json
+   >> (delete) POST /event/delete application/json
+   >> (fetch_one) POST /media/fetch/one application/json
+   >> (fetch_one) POST /event/fetch/one application/json
+   >> (upload) POST /upload/
+   >> (add) POST /config/add application/json
+   >> (fetch_all) POST /config/fetch?<limit>&<offset> application/json
+   >> (update) POST /config/update application/json
+   >> (delete) POST /config/delete application/json
    >> (FileServer: public/) GET /public/<path..> [10]
-   >> (world) GET /api/v2/tmp/hello/world
-   >> (wave) GET /api/v2/tmp/wave/<name>/<age>
-   >> (fetch_all) POST /api/v2/user/fetch?<limit>&<offset> application/json
-   >> (login) POST /api/v2/user/login application/json
-   >> (fetch) POST /api/v2/data/fetch?<limit>&<offset> application/json
-   >> (verify) POST /api/v2/user/verify application/json
-   >> (update) POST /api/v2/user/update application/json
-   >> (delete) POST /api/v2/user/delete application/json
-   >> (create) POST /api/v2/data/create application/json
-   >> (update) POST /api/v2/data/update application/json
-   >> (delete) POST /api/v2/data/delete application/json
-   >> (publish) POST /api/v2/data/publish application/json
-   >> (register) POST /api/v2/user/register application/json
-   >> (fetch_one) POST /api/v2/user/fetch/one application/json
-   >> (login_jwt) POST /api/v2/user/login/jwt application/json
-   >> (fetch_one) POST /api/v2/data/fetch/one application/json
-   >> (fetch) POST /api/v2/routing/fetch?<limit>&<offset> application/json
-   >> (create) POST /api/v2/routing/create application/json
-   >> (delete) POST /api/v2/routing/delete application/json
-   >> (fetch_one) POST /api/v2/routing/fetch/one application/json
-   >> (test_smtp) POST /api/v2/misc/test/smtp application/json
-   >> (test_mongo) POST /api/v2/misc/test/mongo application/json
-   >> (update_role) POST /api/v2/user/update/role application/json
-   >> (fetch_all) POST /api/v2/media/fetch?<limit>&<offset> application/json
-   >> (fetch_all) POST /api/v2/event/fetch?<limit>&<offset> application/json
-   >> (create) POST /api/v2/media/create application/json
-   >> (update) POST /api/v2/media/update application/json
-   >> (delete) POST /api/v2/media/delete application/json
-   >> (delete) POST /api/v2/event/delete application/json
-   >> (fetch_one) POST /api/v2/media/fetch/one application/json
-   >> (fetch_one) POST /api/v2/event/fetch/one application/json
-   >> (upload) POST /api/v2/upload/
-   >> (add) POST /api/v2/config/add application/json
-   >> (fetch_all) POST /api/v2/config/fetch?<limit>&<offset> application/json
-   >> (update) POST /api/v2/config/update application/json
-   >> (delete) POST /api/v2/config/delete application/json
-   >> (fetch_one) POST /api/v2/config/fetch/one application/json
-   >> (fetch_all) POST /api/v2/project/fetch?<limit>&<offset> application/json
-   >> (create) POST /api/v2/project/create application/json
-   >> (update) POST /api/v2/project/update application/json
-   >> (delete) POST /api/v2/project/delete application/json
-   >> (fetch_one) POST /api/v2/project/fetch/one application/json
-   >> (add_member) POST /api/v2/project/member/add application/json
-   >> (remove_member) POST /api/v2/project/member/remove application/json
-   >> (add) POST /api/v2/structure/add application/json
-   >> (update) POST /api/v2/structure/update application/json
-   >> (delete) POST /api/v2/structure/delete application/json
-   >> (fetch) POST /api/v2/collection/fetch application/json
-   >> (create) POST /api/v2/collection/create application/json
-   >> (update) POST /api/v2/collection/update application/json
-   >> (delete) POST /api/v2/collection/delete application/json
-   >> (fetch_one) POST /api/v2/collection/fetch/one application/json
-   >> (add) POST /api/v2/custom_structure/add application/json
-   >> (update) POST /api/v2/custom_structure/update application/json
-   >> (delete) POST /api/v2/custom_structure/delete application/json
+   >> (fetch_one) POST /config/fetch/one application/json
+   >> (fetch_all) POST /project/fetch?<limit>&<offset> application/json
+   >> (fetch) POST /routing/fetch?<limit>&<offset> application/json
+   >> (create) POST /project/create application/json
+   >> (update) POST /project/update application/json
+   >> (delete) POST /project/delete application/json
+   >> (create) POST /routing/create application/json
+   >> (delete) POST /routing/delete application/json
+   >> (fetch_one) POST /project/fetch/one application/json
+   >> (fetch_one) POST /routing/fetch/one application/json
+   >> (add_member) POST /project/member/add application/json
+   >> (remove_member) POST /project/member/remove application/json
+   >> (add) POST /structure/add application/json
+   >> (update) POST /structure/update application/json
+   >> (delete) POST /structure/delete application/json
+   >> (fetch) POST /collection/fetch application/json
+   >> (create) POST /collection/create application/json
+   >> (update) POST /collection/update application/json
+   >> (delete) POST /collection/delete application/json
+   >> (fetch_one) POST /collection/fetch/one application/json
+   >> (add) POST /custom_structure/add application/json
+   >> (update) POST /custom_structure/update application/json
+   >> (delete) POST /custom_structure/delete application/json
 Catchers:
    >> (bad_request) 400
    >> (unauthorized) 401
@@ -79,13 +79,13 @@ Catchers:
    >> (malformed_request) 422
    >> (internal_server_error) 500
 Fairings:
-   >> Templating (ignite, liftoff, request)
    >> Shield (liftoff, response, singleton)
+   >> Templating (ignite, liftoff, request)
    >> CORS (ignite, request, response)
 Shield:
+   >> X-Frame-Options: SAMEORIGIN
    >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
-   >> X-Frame-Options: SAMEORIGIN
 Templating:
    >> directory: templates
    >> engines: ["tera"]

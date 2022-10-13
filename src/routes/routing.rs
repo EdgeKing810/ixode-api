@@ -176,6 +176,78 @@ pub async fn fetch_one(data: Json<RouteFetchOneInput>, token: Token) -> Value {
     return json!({"status": 200, "message": "Route successfully fetched!", "route": current_route, "route_id": route_id});
 }
 
+#[post("/fetch/one/kdl", format = "json", data = "<data>")]
+pub async fn fetch_one_kdl(data: Json<RouteFetchOneInput>, token: Token) -> Value {
+    let uid = &data.uid;
+    let project_id = &data.project_id;
+    let route_id = &data.route_id;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+
+    let all_projects = match auto_fetch_all_projects(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching projects"});
+        }
+    };
+
+    let project = match Project::get(&all_projects, project_id) {
+        Ok(p) => p,
+        Err(_) => {
+            return json!({"status": 404, "message": "Error: No Project with this project_id found"})
+        }
+    };
+
+    let members = project.members.clone();
+    let mut allowed = false;
+
+    if current_user.role != Role::ROOT {
+        for member in members {
+            if member.to_lowercase() == uid.to_string() {
+                allowed = true;
+                break;
+            }
+        }
+    } else {
+        allowed = true;
+    }
+
+    if !allowed {
+        return json!({"status": 403, "message": "Error: Not authorized to view Routes for this Project"});
+    }
+
+    let all_routes = match auto_fetch_all_routes(&project_id) {
+        Ok(d) => d,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching routes"});
+        }
+    };
+
+    let current_route = match RouteComponent::get(&all_routes, project_id, route_id) {
+        Ok(r) => r,
+        Err(_) => {
+            return json!({"status": 404, "message": "Error: No Route with this route_id found"})
+        }
+    };
+
+    let current_route_kdl = RouteComponent::to_string(current_route);
+
+    return json!({"status": 200, "message": "Route successfully fetched!", "route": current_route_kdl, "route_id": route_id});
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CreateRouteInput {
@@ -293,6 +365,164 @@ pub async fn create(data: Json<CreateRouteInput>, token: Token) -> Value {
             json!({"status": 500, "message": e})
         }
     }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ConvertRouteBlocks {
+    uid: String,
+    project_id: String,
+    route: RouteComponent,
+}
+
+#[post("/convert/blocks", format = "json", data = "<data>")]
+pub async fn convert_blocks(data: Json<ConvertRouteBlocks>, token: Token) -> Value {
+    let uid = &data.uid;
+    let project_id = &data.project_id;
+    let tmp_route = &data.route;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let mut all_routes = match auto_fetch_all_routes(&project_id) {
+        Ok(r) => r,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching routes"});
+        }
+    };
+
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+
+    let all_projects = match auto_fetch_all_projects(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching projects"});
+        }
+    };
+
+    let project = match Project::get(&all_projects, project_id) {
+        Ok(p) => p,
+        Err(_) => {
+            return json!({"status": 404, "message": "Error: No Project with this project_id found"})
+        }
+    };
+
+    let members = project.members.clone();
+    let mut allowed = false;
+
+    if current_user.role != Role::ROOT {
+        if current_user.role == Role::ADMIN {
+            for member in members {
+                if member.to_lowercase() == uid.to_string() {
+                    allowed = true;
+                    break;
+                }
+            }
+        }
+    } else {
+        allowed = true;
+    }
+
+    if !allowed {
+        return json!({"status": 403, "message": "Error: Not authorized to work with Routes for this Project"});
+    }
+
+    let stringified_route = RouteComponent::to_string(tmp_route.clone());
+    if let Err(e) = RouteComponent::from_string(&mut all_routes, &stringified_route) {
+        return json!({"status": e.0, "message": e.1, "success": false });
+    }
+
+    return json!({"status": 200, "message": "Route blocks successfully converted to KDL!", "route": stringified_route, "success": true });
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ConvertRouteKDL {
+    uid: String,
+    project_id: String,
+    route: String,
+}
+
+#[post("/convert/kdl", format = "json", data = "<data>")]
+pub async fn convert_kdl(data: Json<ConvertRouteKDL>, token: Token) -> Value {
+    let uid = &data.uid;
+    let project_id = &data.project_id;
+    let tmp_route = &data.route;
+
+    match verify_jwt(uid.clone(), token.0).await {
+        Err(info) => return json!({"status": info.0, "message": info.1}),
+        _ => {}
+    };
+
+    let mappings = auto_fetch_all_mappings();
+    let mut all_routes = match auto_fetch_all_routes(&project_id) {
+        Ok(r) => r,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching routes"});
+        }
+    };
+
+    let users = match auto_fetch_all_users(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching users"});
+        }
+    };
+
+    let current_user = User::get(&users, uid).unwrap();
+
+    let all_projects = match auto_fetch_all_projects(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return json!({"status": 500, "message": "Error: Failed fetching projects"});
+        }
+    };
+
+    let project = match Project::get(&all_projects, project_id) {
+        Ok(p) => p,
+        Err(_) => {
+            return json!({"status": 404, "message": "Error: No Project with this project_id found"})
+        }
+    };
+
+    let members = project.members.clone();
+    let mut allowed = false;
+
+    if current_user.role != Role::ROOT {
+        if current_user.role == Role::ADMIN {
+            for member in members {
+                if member.to_lowercase() == uid.to_string() {
+                    allowed = true;
+                    break;
+                }
+            }
+        }
+    } else {
+        allowed = true;
+    }
+
+    if !allowed {
+        return json!({"status": 403, "message": "Error: Not authorized to work with Routes for this Project"});
+    }
+
+    let converted_route = match RouteComponent::from_string(&mut all_routes, &tmp_route) {
+        Ok(r) => r,
+        Err(e) => {
+            return json!({"status": e.0, "message": e.1, "success": false });
+        }
+    };
+
+    return json!({"status": 200, "message": "Route KDL successfully converted to blocks!", "route": converted_route, "success": true });
 }
 
 #[derive(Serialize, Deserialize)]
