@@ -505,14 +505,11 @@ pub async fn convert_kdl(data: Json<ConvertRouteKDL>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to work with Routes for this Project"});
     }
 
-    let converted_route = match RouteComponent::from_string(&mut all_routes, &tmp_route) {
-        Ok(r) => r,
-        Err(e) => {
-            return json!({"status": e.0, "message": e.1, "success": false });
-        }
+    if let Err(e) = RouteComponent::from_string(&mut all_routes, &tmp_route) {
+        return json!({"status": e.0, "message": e.1, "success": false });
     };
 
-    return json!({"status": 200, "message": "Route KDL successfully converted to blocks!", "route": converted_route, "success": true });
+    return json!({"status": 200, "message": "Route KDL successfully converted to blocks!", "route": all_routes[0], "success": true });
 }
 
 #[derive(Serialize, Deserialize)]
