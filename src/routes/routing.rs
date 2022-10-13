@@ -387,12 +387,7 @@ pub async fn convert_blocks(data: Json<ConvertRouteBlocks>, token: Token) -> Val
     };
 
     let mappings = auto_fetch_all_mappings();
-    let mut all_routes = match auto_fetch_all_routes(&project_id) {
-        Ok(r) => r,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching routes"});
-        }
-    };
+    let mut all_routes = Vec::<RouteComponent>::new();
 
     let users = match auto_fetch_all_users(&mappings) {
         Ok(u) => u,
@@ -465,12 +460,7 @@ pub async fn convert_kdl(data: Json<ConvertRouteKDL>, token: Token) -> Value {
     };
 
     let mappings = auto_fetch_all_mappings();
-    let mut all_routes = match auto_fetch_all_routes(&project_id) {
-        Ok(r) => r,
-        _ => {
-            return json!({"status": 500, "message": "Error: Failed fetching routes"});
-        }
-    };
+    let mut all_routes = Vec::<RouteComponent>::new();
 
     let users = match auto_fetch_all_users(&mappings) {
         Ok(u) => u,
