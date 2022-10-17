@@ -189,6 +189,7 @@ fn rocket() -> _ {
                 routes::routing::delete,
             ],
         )
+        .mount(fpath("/x"), routes![routes::x::handle])
         .mount(
             fpath("/misc"),
             routes![routes::misc::test_mongo, routes::misc::test_smtp],

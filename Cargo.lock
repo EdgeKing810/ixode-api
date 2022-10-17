@@ -994,6 +994,7 @@ dependencies = [
  "rocket_dyn_templates",
  "rust-argon2",
  "serde",
+ "serde_json",
  "uuid",
 ]
 
