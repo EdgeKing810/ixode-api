@@ -1,17 +1,12 @@
-use chrono::Local;
 use rocket::data::ToByteUnit;
-use rocket::serde::json::{json, Json};
+use rocket::post;
+use rocket::serde::json::json;
 use rocket::serde::{Deserialize, Serialize};
-use rocket::{post, serde};
 
-use crate::components::project::Project;
 use crate::components::routing::mod_route::RouteComponent;
-use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
-use crate::middlewares::token::{verify_jwt, Token};
-use crate::utils::{
-    auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_routes, auto_fetch_all_users,
-};
+use crate::middlewares::token::{verify_jwt_x, Token};
+use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_routes};
 
 use rocket::http::uri::Origin;
 use rocket::http::uri::{fmt::Path, Segments};
@@ -170,45 +165,34 @@ pub async fn handle<'r>(
         body_data = bd;
     }
 
-    // println!("{}", body_data["uid"] == serde_json::Value::Null);
+    if let Some(aj) = current_route.unwrap().auth_jwt {
+        if aj.active {
+            let payload = match body_data[aj.field.clone()].as_str() {
+                Some(p) => p,
+                None => {
+                    return json!({
+                        "status": 400,
+                        "message": format!("Error: Lack of a value for {}", &aj.field)
+                    });
+                }
+            };
 
-    // if Value::is_array(&body_data["tmp_arr"]) {
-    //     println!("Running");
-    //     for v in Value::as_array(&body_data["tmp_arr"]).unwrap() {
-    //         println!("Current Var: {}", v);
-    //     }
-    // }
+            if let Err(e) = verify_jwt_x(
+                String::from(payload),
+                token.0,
+                &project_id,
+                &aj.ref_col,
+                &aj.field,
+            )
+            .await
+            {
+                return json!({
+                    "status": e.0,
+                    "message": e.1
+                });
+            }
+        }
+    }
 
     return json!({"status": 1000, "project_id": project_id, "api_path": api_path, "route": route, "params": all_params, "body": body_data});
-
-    // let uid = &data.uid;
-    // let project_id = &data.project_id;
-
-    // let passed_limit = match limit {
-    //     Some(x) => x,
-    //     None => 0,
-    // };
-    // let passed_offset = match offset {
-    //     Some(x) => x,
-    //     None => 0,
-    // };
-
-    // match verify_jwt(uid.clone(), token.0).await {
-    //     Err(info) => return json!({"status": info.0, "message": info.1}),
-    //     _ => {}
-    // };
-
-    // let users = match auto_fetch_all_users(&mappings) {
-    //     Ok(u) => u,
-    //     _ => {
-    //         return json!({"status": 500, "message": "Error: Failed fetching users"});
-    //     }
-    // };
-
-    // let current_user = User::get(&users, uid).unwrap();
-
-    // let amount = all_routes.len();
-    // let processed_routes = paginate(all_routes, passed_limit, passed_offset);
-
-    // return json!({"status": 200, "message": "Routes successfully fetched!", "routes": processed_routes,"amount": amount});
 }

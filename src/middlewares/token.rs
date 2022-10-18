@@ -8,8 +8,11 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    components::{mappings::Mapping, user::User},
-    utils::{auto_fetch_all_mappings, auto_fetch_all_users, get_config_value},
+    components::{collection::Collection, mappings::Mapping, user::User},
+    utils::{
+        auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
+        auto_fetch_all_users, get_config_value,
+    },
 };
 
 pub struct Token(pub String);
@@ -22,7 +25,7 @@ pub enum ApiTokenError {
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Claims {
-    uid: String,
+    payload: String,
     exp: usize,
 }
 
@@ -46,7 +49,7 @@ impl Display for Token {
     }
 }
 
-pub fn create_jwt(mappings: &Vec<Mapping>, uid: String) -> Result<String, String> {
+pub fn create_jwt(mappings: &Vec<Mapping>, payload: String) -> Result<String, String> {
     let expire = match get_config_value(mappings, "JWT_EXPIRE", "900").parse::<i64>() {
         Ok(val) => val,
         _ => 900,
@@ -59,7 +62,7 @@ pub fn create_jwt(mappings: &Vec<Mapping>, uid: String) -> Result<String, String
         .timestamp();
 
     let claims = Claims {
-        uid: uid.to_owned(),
+        payload: payload.to_owned(),
         exp: expiration as usize,
     };
 
@@ -75,7 +78,7 @@ pub fn create_jwt(mappings: &Vec<Mapping>, uid: String) -> Result<String, String
     };
 }
 
-pub async fn verify_jwt(uid: String, token: String) -> Result<String, (usize, String)> {
+pub async fn verify_jwt(payload: String, token: String) -> Result<String, (usize, String)> {
     let mappings = auto_fetch_all_mappings();
     let secret = get_config_value(&mappings, "TOKEN_KEY", "secret");
     let users = match auto_fetch_all_users(&mappings) {
@@ -85,7 +88,7 @@ pub async fn verify_jwt(uid: String, token: String) -> Result<String, (usize, St
         }
     };
 
-    if !User::exist(&users, &uid) {
+    if !User::exist(&users, &payload) {
         return Err((404, String::from("Error: Account with this uid not found")));
     }
 
@@ -108,8 +111,105 @@ pub async fn verify_jwt(uid: String, token: String) -> Result<String, (usize, St
         }
     };
 
-    if decoded.claims.uid != uid {
+    if decoded.claims.payload != payload {
         return Err((403, String::from("Error: Incorrect UID")));
+    }
+
+    Ok(String::from("Successfully Authenticated!"))
+}
+
+pub async fn verify_jwt_x(
+    payload: String,
+    token: String,
+    project_id: &str,
+    ref_col: &str,
+    field: &str,
+) -> Result<String, (usize, String)> {
+    let mappings = auto_fetch_all_mappings();
+    let secret = get_config_value(&mappings, "TOKEN_KEY", "secret");
+
+    if ref_col.trim().len() < 1 || field.trim().len() < 1 {
+        return Err((500, String::from("Error: Invalid field or ref_col")));
+    }
+
+    let all_collections = match auto_fetch_all_collections(&mappings) {
+        Ok(u) => u,
+        _ => {
+            return Err((500, String::from("Error: Failed fetching collections")));
+        }
+    };
+
+    let collection = match Collection::get(&all_collections, project_id, ref_col) {
+        Ok(col) => col,
+        Err(_) => {
+            return Err((
+                404,
+                String::from("Error: No Collection with this collection_id found"),
+            ));
+        }
+    };
+
+    let mut exists = false;
+    for structure in collection.structures {
+        if structure.id == field {
+            exists = true;
+            break;
+        }
+    }
+
+    if !exists {
+        return Err((
+            404,
+            format!("Error: No Structure corresponding to {} found", field),
+        ));
+    }
+
+    let all_data = match auto_fetch_all_data(&mappings, &project_id, ref_col) {
+        Ok(d) => d,
+        _ => {
+            return Err((500, String::from("Error: Failed fetching data")));
+        }
+    };
+
+    let mut found = false;
+    for d in all_data {
+        for pair in d.pairs {
+            if pair.structure_id == field && pair.value == payload {
+                found = true;
+                break;
+            }
+        }
+
+        if found {
+            break;
+        }
+    }
+
+    if !found {
+        return Err((404, format!("Error: Data with this {} not found", field)));
+    }
+
+    let mut proper_token = "";
+    for v in token.split(" ") {
+        proper_token = v;
+    }
+
+    let decoded = match decode::<Claims>(
+        &proper_token,
+        &DecodingKey::from_secret(secret.as_bytes()),
+        &Validation::new(Algorithm::HS512),
+    ) {
+        Ok(dec) => dec,
+        Err(e) => {
+            return Err((
+                500,
+                format!("{} ({})", String::from("Error: Failed decoding JWT"), e),
+            ));
+        }
+    };
+
+    if decoded.claims.payload != payload {
+        return Err((403, format!("Error: Incorrect {}", field)));
     }
 
     Ok(String::from("Successfully Authenticated!"))
