@@ -14,6 +14,7 @@ Configured for debug.
 Routes:
    >> (welcome) GET /
    >> OPTIONS /<catch_all_options_route..> [9223372036854775807]
+   >> (handle) POST /x/<_path..> application/json
    >> (world) GET /tmp/hello/world
    >> (wave) GET /tmp/wave/<name>/<age>
    >> (call_initialize) GET /init/code?<code>

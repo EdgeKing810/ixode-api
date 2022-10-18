@@ -1,0 +1,34 @@
+=============== DEFINE ROUTE ===============
+
+INIT ROUTE [konnect,fetch_users,/users/fetch/all]
+
+ADD BODY pair [uid,STRING]
+
+DEFINE PARAMS delimiter &
+ADD PARAMS pair [limit,INTEGER]
+ADD PARAMS pair [offset,INTEGER]
+START FLOW
+
+FETCH (0,0) [users,users]
+
+ASSIGN (1,0) [random] {([ref,INTEGER,count]|MULTIPLICATION|[,INTEGER,10]|not=false|next=NONE)} ([,INTEGER,aaaa]|NOT_EQUAL_TO|[,STRING,bbbb]|not=false|next=AND)
+
+TEMPLATE (2,0) [abcd] (data=[,STRING,ijkl]>[ref,STRING,mnop]) {conditions=([,STRING,aaa]|EQUAL_TO|[,STRING,bbb]|not=false|next=NONE)} template=efgh
+
+CONDITION (3,0) [FAIL] [500,Internal Server Error] ([,STRING,123]|NOT_EQUAL_TO|[,STRING,456]|not=false|next=OR)
+
+LOOP (4,1) [my_first_loop] ([,INTEGER,0]|[,INTEGER,10])
+
+FILTER (5,1) [abcd,efgha,ijkl] ([ref,STRING,lol]|MODULAR|not=true|next=AND)
+
+PROPERTY (6,1) [abcd] ([,STRING,lol]|apply=GET_PROPERTY>wow)
+
+FUNCTION (7,1) [my_shiny_new_func] {PAGINATE=[ref,STRING,offset]>[ref,STRING,limit]>[,STRING,aaa]>[ref,STRING,bbb]>[,STRING,ccc]}
+
+OBJECT (8,2) [test] (newNotification=[ref,STRING,profileID])>(content=[ref,STRING,notificationContent])
+
+UPDATE (9,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|NONE|not=true|next=AND)}%{efgh|([,BOOLEAN,wow]|EQUAL_TO|not=true|next=NONE)} (add=[ref,STRING,lol]) (set=[,BOOLEAN,false]) {filter=([ref,BOOLEAN,isFollowing]|NOT_EQUAL_TO|not=false|next=AND)} conditions=([ref,INTEGER,123]|LESS_THAN|[,INTEGER,count]|not=true|next=NONE)
+
+CREATE (10,2) [testing,woop_woop,true] ([ref,INTEGER,456]|NOT_EQUAL_TO|[,BOOLEAN,false]|not=true|next=NONE)
+
+RETURN (11,2) (success=[ref,BOOLEAN,true])>(data=[ref,OTHER,data]) conditions=([ref,BOOLEAN,finished]|EQUAL_TO|[,STRING,true]|not=false|next=OR)
