@@ -4,7 +4,8 @@ use rocket::serde::json::json;
 use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::routing::mod_route::RouteComponent;
-use crate::middlewares::paginate::paginate;
+use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
+// use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt_x, Token};
 use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_routes};
 
@@ -63,6 +64,75 @@ impl<'r> FromSegments<'r> for CompleteRoute {
 pub struct LocalParamData {
     key: String,
     value: String,
+}
+
+pub fn validate_body_data(
+    id: &str,
+    data: Value,
+    bdtype: BodyDataType,
+    required: bool,
+) -> Result<Value, (usize, String)> {
+    if required && Value::Null == data {
+        return Err((400, format!("Error: {} should not be undefined", id)));
+    }
+
+    if bdtype == BodyDataType::STRING {
+        if let Value::String(_) = data {
+            return Ok(data);
+        } else if let Value::Number(num) = data.clone() {
+            return Ok(Value::String(num.to_string()));
+        } else {
+            return Err((400, format!("Error: {} should be a string", id)));
+        }
+    } else if bdtype == BodyDataType::INTEGER {
+        if let Value::Number(num) = data.clone() {
+            if num.is_i64() {
+                return Ok(data);
+            } else {
+                return Err((400, format!("Error: {} should be an integer", id)));
+            }
+        } else if let Value::String(num) = data.clone() {
+            if let Ok(_) = num.parse::<i64>() {
+                return Ok(data);
+            } else {
+                return Err((400, format!("Error: {} should be an integer", id)));
+            }
+        } else {
+            return Err((400, format!("Error: {} should be an integer", id)));
+        }
+    } else if bdtype == BodyDataType::FLOAT {
+        if let Value::Number(_) = data {
+            return Ok(data);
+        } else if let Value::String(num) = data.clone() {
+            if let Ok(_) = num.parse::<f64>() {
+                return Ok(data);
+            } else {
+                return Err((400, format!("Error: {} should be a number", id)));
+            }
+        } else {
+            return Err((400, format!("Error: {} should be a number", id)));
+        }
+    } else if bdtype == BodyDataType::BOOLEAN {
+        if let Value::Bool(_) = data {
+            return Ok(data);
+        } else if let Value::String(val) = data.clone() {
+            return Ok(Value::Bool(val.to_lowercase().trim() == "true"));
+        } else {
+            return Err((400, format!("Error: {} should be a boolean", id)));
+        }
+    } else if bdtype == BodyDataType::OTHER {
+        if let Value::Array(_) = data {
+            return Ok(data);
+        } else {
+            if let Value::Object(_) = data {
+                return Ok(data);
+            } else {
+                return Err((400, format!("Error: {} has an invalid type", id)));
+            }
+        }
+    }
+
+    Ok(data)
 }
 
 #[post("/<_path..>", format = "json", data = "<data>")]
@@ -127,17 +197,6 @@ pub async fn handle<'r>(
         });
     }
 
-    let broken_str_params = full_query.split("&").collect::<Vec<&str>>();
-    let mut all_params = Vec::<LocalParamData>::new();
-    for param in broken_str_params {
-        let broken_param = param.split("=").collect::<Vec<&str>>();
-        if broken_param.len() == 2 {
-            let key = broken_param[0].to_string();
-            let value = broken_param[1].to_string();
-            all_params.push(LocalParamData { key, value });
-        }
-    }
-
     let all_routes = match auto_fetch_all_routes(&project_id) {
         Ok(d) => d,
         _ => {
@@ -160,12 +219,50 @@ pub async fn handle<'r>(
         });
     }
 
+    let mut delimiter = "&".to_string();
+    if let Some(params) = current_route.clone().unwrap().params {
+        delimiter = params.delimiter;
+    }
+
+    let broken_str_params = full_query.split(&delimiter).collect::<Vec<&str>>();
+    let mut all_params = Vec::<LocalParamData>::new();
+    for param in broken_str_params {
+        let broken_param = param.split("=").collect::<Vec<&str>>();
+        if broken_param.len() == 2 {
+            let key = broken_param[0].to_string();
+            let value = broken_param[1].to_string();
+            all_params.push(LocalParamData { key, value });
+        }
+    }
+
+    if let Some(params) = current_route.clone().unwrap().params {
+        for pair in params.pairs {
+            for current_param in all_params.clone() {
+                if current_param.key == pair.id {
+                    if let Err(e) = validate_body_data(
+                        &pair.id.clone(),
+                        Value::String(current_param.value.clone()),
+                        pair.bdtype,
+                        false,
+                    ) {
+                        return json!({
+                            "status": e.0,
+                            "message": e.1
+                        });
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
     let mut body_data = Value::Null;
     if let Ok(bd) = serde_json::from_str::<Value>(&stream) {
         body_data = bd;
     }
 
-    if let Some(aj) = current_route.unwrap().auth_jwt {
+    if let Some(aj) = current_route.clone().unwrap().auth_jwt {
         if aj.active {
             let payload = match body_data[aj.field.clone()].as_str() {
                 Some(p) => p,
@@ -186,6 +283,29 @@ pub async fn handle<'r>(
             )
             .await
             {
+                return json!({
+                    "status": e.0,
+                    "message": e.1
+                });
+            }
+        }
+    }
+
+    if current_route.clone().unwrap().body.len() > 0 {
+        for bdata in current_route.clone().unwrap().body {
+            if !body_data.is_object() {
+                return json!({
+                    "status": 400,
+                    "message": "Error: Invalid body"
+                });
+            }
+
+            if let Err(e) = validate_body_data(
+                &bdata.id.clone(),
+                body_data[bdata.id].clone(),
+                bdata.bdtype,
+                true,
+            ) {
                 return json!({
                     "status": e.0,
                     "message": e.1

@@ -1,0 +1,2 @@
+60345ad5-7efb-4c5a-b60e-82d7ce65436e;Test;Tester;test;test@test.com;$argon2i$v=19$m=4096,t=3,p=1$ArmKgWc6QLCfcSOVS6Tcbg$TzlK5kkt0PrvrnUWOVv7wUFQokrDA1kuHsxTNsVxdXc;0
+58022159-bd35-4b02-92f4-26e4561a1da1;Test;Tester;test2;test2@test.com;$argon2i$v=19$m=4096,t=3,p=1$3UYET8hSTmuc4K/rBASjxw$N+WO2tpUctzQQu9gb1yh3MaDZnOwYj9sHXiXWlWFlnY;2
