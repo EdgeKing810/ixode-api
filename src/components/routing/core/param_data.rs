@@ -147,17 +147,14 @@ impl ParamData {
                     if current_delimiter.len() <= 1 {
                         return Err((
                             500,
-                            String::from("Error: Invalid param_data_str string / 1"),
+                            String::from("Invalid param_data (at declaration start)"),
                         ));
                     }
 
                     delimiter = current_delimiter[1];
                 } else if line.starts_with("ADD PARAMS") {
                     if let Err(e) = BodyData::from_string(&mut all_pairs, line, true) {
-                        return Err((
-                            500,
-                            format!("Error: Invalid param_data_str string / 2: {}", e.1),
-                        ));
+                        return Err((500, format!("Invalid param in param_data -> {}", e.1)));
                     }
                 }
             }
@@ -168,7 +165,7 @@ impl ParamData {
             Err(e) => {
                 return Err((
                     500,
-                    format!("Error: Invalid param_data_str string / 3: {}", e.1),
+                    format!("Invalid param_data (while processing) ->  {}", e.1),
                 ))
             }
         };

@@ -54,34 +54,39 @@ impl Filter {
     ) -> Result<(), (usize, String)> {
         let mut current_filter = filter_str.split("(").collect::<Vec<&str>>();
         if current_filter.len() <= 1 {
-            return Err((500, String::from("Error: Invalid filter string / 1")));
+            return Err((500, String::from("Invalid filter (at declaration start)")));
         }
 
         current_filter = current_filter[1].split(")").collect::<Vec<&str>>();
         if current_filter.len() <= 1 {
-            return Err((500, String::from("Error: Invalid filter string / 2")));
+            return Err((500, String::from("Invalid filter (at declaration end)")));
         }
 
         current_filter = current_filter[0].split("|").collect::<Vec<&str>>();
         if current_filter.len() < 4 {
-            return Err((500, String::from("Error: Invalid filter string / 3")));
+            return Err((500, String::from("Invalid filter (in format)")));
         }
 
         let not_str = current_filter[2].split("not=").collect::<Vec<&str>>();
         if not_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid filter string / 4")));
+            return Err((500, String::from("Invalid filter (in 'not' format)")));
         }
 
         let not = not_str[1] == "true";
 
         let next_str = current_filter[3].split("next=").collect::<Vec<&str>>();
         if next_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid filter string / 5")));
+            return Err((500, String::from("Invalid filter (in 'next' format)")));
         }
 
         let right = match RefData::from_string(current_filter[0]) {
             Ok(right) => right,
-            Err(err) => return Err((500, format!("Error: Invalid filter string / 6: {}", err.1))),
+            Err(err) => {
+                return Err((
+                    500,
+                    format!("Invalid filter (in 'right' format) -> {}", err.1),
+                ))
+            }
         };
 
         Filter::create(all_filters, right, current_filter[1], not, next_str[1]);

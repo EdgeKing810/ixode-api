@@ -229,51 +229,51 @@ impl PropertyBlock {
     ) -> Result<(), (usize, String)> {
         let mut current_block = block_str.split("PROPERTY (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 1")));
+            return Err((500, String::from("at start of indexes declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 2")));
+            return Err((500, String::from("at end of indexes declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 3")));
+            return Err((500, String::from("in format of indexes declaration")));
         }
 
         let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
+            Err(e) => return Err((500, format!("at global_index -> {}", e))),
         };
 
         let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
+            Err(e) => return Err((500, format!("at local_index -> {}", e))),
         };
 
         current_block = block_str.split("[").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 6")));
+            return Err((500, String::from("at start of local_name declaration")));
         }
 
         current_block = current_block[1].split("]").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 7")));
+            return Err((500, String::from("at end of local_name declaration")));
         }
 
         let local_name = current_block[0];
 
         let property_tmp_str = block_str.split("]").collect::<Vec<&str>>();
         if property_tmp_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 8")));
+            return Err((500, String::from("at start of property declaration")));
         }
 
         let property_str = property_tmp_str[1..].join("]");
 
         let property = match Property::from_string(&property_str) {
             Ok(p) => p,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 9: {}", e.1))),
+            Err(e) => return Err((500, format!("while processing property -> {}", e.1))),
         };
 
         match PropertyBlock::create(
@@ -286,12 +286,7 @@ impl PropertyBlock {
             &property.additional,
         ) {
             Ok(_) => Ok(()),
-            Err(e) => {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 10: {}", e.1),
-                ))
-            }
+            Err(e) => return Err((500, format!("while processing block -> {}", e.1))),
         }
     }
 

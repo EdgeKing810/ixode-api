@@ -381,37 +381,37 @@ impl TemplateBlock {
     ) -> Result<(), (usize, String)> {
         let mut current_block = block_str.split("TEMPLATE (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 1")));
+            return Err((500, String::from("at start of indexes declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 2")));
+            return Err((500, String::from("at end of indexes declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 3")));
+            return Err((500, String::from("in format of indexes declaration")));
         }
 
         let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
+            Err(e) => return Err((500, format!("at global_index -> {}", e))),
         };
 
         let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
+            Err(e) => return Err((500, format!("at local_index -> {}", e))),
         };
 
         current_block = block_str.split("[").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 6")));
+            return Err((500, String::from("at start of local_name declaration")));
         }
 
         current_block = current_block[1].split("]").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 7")));
+            return Err((500, String::from("at end of local_name declaration")));
         }
 
         let local_name = current_block[0];
@@ -420,12 +420,12 @@ impl TemplateBlock {
 
         current_block = block_str.split("{conditions=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 8")));
+            return Err((500, String::from("at start of conditions declaration")));
         }
 
         current_block = current_block[1].split("}").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 9")));
+            return Err((500, String::from("at end of conditions declaration")));
         }
 
         let conditions_list = current_block[0].trim().split(">").collect::<Vec<&str>>();
@@ -436,10 +436,7 @@ impl TemplateBlock {
             }
 
             if let Err(e) = Condition::from_string(&mut all_conditions, c_str) {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 10: {}", e.1),
-                ));
+                return Err((500, format!("while processing condition -> {}", e.1)));
             };
         }
 
@@ -447,12 +444,12 @@ impl TemplateBlock {
 
         current_block = block_str.split("(data=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 11")));
+            return Err((500, String::from("at start of data declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 12")));
+            return Err((500, String::from("at end of data declaration")));
         }
 
         let data_list = current_block[0].trim().split(">").collect::<Vec<&str>>();
@@ -464,45 +461,29 @@ impl TemplateBlock {
 
             match RefData::from_string(d_str) {
                 Ok(rfd) => all_data.push(rfd),
-                Err(e) => {
-                    return Err((
-                        500,
-                        format!("Error: Invalid block_str string / 13: {}", e.1),
-                    ))
-                }
+                Err(e) => return Err((500, format!("while processing data -> {}", e.1))),
             }
         }
 
         current_block = block_str.split("template=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 14")));
+            return Err((500, String::from("at start of template declaration")));
         }
 
         let template = current_block[1].trim();
 
         match TemplateBlock::create(all_blocks, global_index, block_index, local_name, template) {
             Ok(f) => f,
-            Err(e) => {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 15: {}", e.1),
-                ))
-            }
+            Err(e) => return Err((500, format!("while processing template -> {}", e.1))),
         };
 
         if let Err(e) = TemplateBlock::set_data(all_blocks, global_index, all_data) {
-            return Err((
-                500,
-                format!("Error: Invalid block_str string / 16: {}", e.1),
-            ));
+            return Err((500, format!("while processing block -> {}", e.1)));
         }
 
         match TemplateBlock::set_conditions(all_blocks, global_index, all_conditions) {
             Ok(_) => Ok(()),
-            Err(e) => Err((
-                500,
-                format!("Error: Invalid block_str string / 17: {}", e.1),
-            )),
+            Err(e) => Err((500, format!("while processing block -> {}", e.1))),
         }
     }
 

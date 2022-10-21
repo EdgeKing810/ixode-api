@@ -57,29 +57,32 @@ impl Operation {
     ) -> Result<(), (usize, String)> {
         let mut current_operation = operation_str.split("(").collect::<Vec<&str>>();
         if current_operation.len() <= 1 {
-            return Err((500, String::from("Error: Invalid operation string / 1")));
+            return Err((
+                500,
+                String::from("Invalid operation (at declaration start)"),
+            ));
         }
 
         current_operation = current_operation[1].split(")").collect::<Vec<&str>>();
         if current_operation.len() <= 1 {
-            return Err((500, String::from("Error: Invalid operation string / 2")));
+            return Err((500, String::from("Invalid operation (at declaration end)")));
         }
 
         current_operation = current_operation[0].split("|").collect::<Vec<&str>>();
         if current_operation.len() < 5 {
-            return Err((500, String::from("Error: Invalid operation string / 3")));
+            return Err((500, String::from("Invalid operation (in format)")));
         }
 
         let not_str = current_operation[3].split("not=").collect::<Vec<&str>>();
         if not_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid operation string / 4")));
+            return Err((500, String::from("Invalid operation (in 'not' format)")));
         }
 
         let not = not_str[1] == "true";
 
         let next_str = current_operation[4].split("next=").collect::<Vec<&str>>();
         if next_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid operation string / 5")));
+            return Err((500, String::from("Invalid operation (in 'next' format)")));
         }
 
         let left = match RefData::from_string(current_operation[0]) {
@@ -87,7 +90,7 @@ impl Operation {
             Err(err) => {
                 return Err((
                     500,
-                    format!("Error: Invalid operation string / 6: {}", err.1),
+                    format!("Invalid operation (in 'left' format) ->  {}", err.1),
                 ))
             }
         };
@@ -97,7 +100,7 @@ impl Operation {
             Err(err) => {
                 return Err((
                     500,
-                    format!("Error: Invalid operation string / 7: {}", err.1),
+                    format!("Invalid operation (in 'right' format) ->  {}", err.1),
                 ))
             }
         };

@@ -88,17 +88,17 @@ impl RefData {
     pub fn from_string(ref_data_obj_str: &str) -> Result<RefData, (usize, String)> {
         let mut current_data_obj_str = ref_data_obj_str.split("[").collect::<Vec<&str>>();
         if current_data_obj_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid ref_data string / 1")));
+            return Err((500, String::from("Invalid ref_data (at declaration start)")));
         }
 
         current_data_obj_str = current_data_obj_str[1].split("]").collect::<Vec<&str>>();
         if current_data_obj_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid ref_data string / 2")));
+            return Err((500, String::from("Invalid ref_data (at declaration end)")));
         }
 
         current_data_obj_str = current_data_obj_str[0].split(",").collect::<Vec<&str>>();
         if current_data_obj_str.len() < 3 {
-            return Err((500, String::from("Error: Invalid ref_data string / 3")));
+            return Err((500, String::from("Invalid ref_data (in format)")));
         }
 
         let ref_data = RefData {

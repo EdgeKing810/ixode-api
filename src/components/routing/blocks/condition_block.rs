@@ -229,49 +229,49 @@ impl ConditionBlock {
     ) -> Result<(), (usize, String)> {
         let mut current_block = block_str.split("CONDITION (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 1")));
+            return Err((500, String::from("at start of indexes declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 2")));
+            return Err((500, String::from("at end of indexes declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 3")));
+            return Err((500, String::from("in format of indexes declaration")));
         }
 
         let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
+            Err(e) => return Err((500, format!("at global_index -> {}", e))),
         };
 
         let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
+            Err(e) => return Err((500, format!("at local_index -> {}", e))),
         };
 
         current_block = block_str.split("[").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 6")));
+            return Err((500, String::from("at start of action declaration")));
         }
 
         current_block = current_block[1].split("]").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 7")));
+            return Err((500, String::from("at end of action declaration")));
         }
 
         let action_str = current_block[0];
 
         current_block = block_str.split("[").collect::<Vec<&str>>();
         if current_block.len() <= 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 8")));
+            return Err((500, String::from("at start of fail_obj declaration")));
         }
 
         current_block = current_block[2].split("]").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 9")));
+            return Err((500, String::from("at end of fail_obj declaration")));
         }
 
         let mut fail_obj: Option<FailObj> = None;
@@ -279,18 +279,13 @@ impl ConditionBlock {
         if current_block[0].trim().len() > 0 {
             fail_obj = match FailObj::from_string(&format!("[{}]", current_block[0])) {
                 Ok(fail_obj) => Some(fail_obj),
-                Err(e) => {
-                    return Err((
-                        500,
-                        format!("Error: Invalid block_str string / 10: {}", e.1),
-                    ))
-                }
+                Err(e) => return Err((500, format!("while processing fail_obj -> {}", e.1))),
             };
         }
 
         let mut conditions_list = block_str.split("([").collect::<Vec<&str>>();
         if conditions_list.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 11")));
+            return Err((500, String::from("at start of conditions declaration")));
         }
 
         let conditions_list_str = format!("([{}", conditions_list[1..].join("(["));
@@ -303,28 +298,19 @@ impl ConditionBlock {
             }
 
             if let Err(e) = Condition::from_string(&mut all_conditions, c_str) {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 12: {}", e.1),
-                ));
+                return Err((500, format!("while processing condition -> {}", e.1)));
             };
         }
 
         if let Err(e) =
             ConditionBlock::create(all_blocks, global_index, block_index, action_str, fail_obj)
         {
-            return Err((
-                500,
-                format!("Error: Invalid block_str string / 13: {}", e.1),
-            ));
+            return Err((500, format!("while processing block -> {}", e.1)));
         };
 
         match ConditionBlock::set_conditions(all_blocks, global_index, all_conditions) {
             Ok(_) => Ok(()),
-            Err(e) => Err((
-                500,
-                format!("Error: Invalid block_str string / 14: {}", e.1),
-            )),
+            Err(e) => Err((500, format!("while processing block -> {}", e.1))),
         }
     }
 

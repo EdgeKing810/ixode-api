@@ -105,17 +105,17 @@ impl AuthJWT {
             .split("DEFINE auth_jwt [")
             .collect::<Vec<&str>>();
         if current_auth_obj.len() <= 1 {
-            return Err((500, String::from("Error: Invalid auth_jwt string / 1")));
+            return Err((500, String::from("Invalid auth_jwt (at declaration start)")));
         }
 
         current_auth_obj = current_auth_obj[1].split("]").collect::<Vec<&str>>();
         if current_auth_obj.len() <= 1 {
-            return Err((500, String::from("Error: Invalid auth_jwt string / 2")));
+            return Err((500, String::from("Invalid auth_jwt (at declaration end)")));
         }
 
         current_auth_obj = current_auth_obj[0].split(",").collect::<Vec<&str>>();
         if current_auth_obj.len() < 3 {
-            return Err((500, String::from("Error: Invalid auth_jwt string / 3")));
+            return Err((500, String::from("Invalid auth_jwt (in format)")));
         }
 
         AuthJWT::create(

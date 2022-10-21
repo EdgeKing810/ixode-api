@@ -449,87 +449,51 @@ impl RouteFlow {
 
             if line.starts_with("FETCH") {
                 if let Err(e) = FetchBlock::from_string(&mut fetch_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 1: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid FETCH block -> {}", e.1)));
                 }
             } else if line.starts_with("ASSIGN") {
                 if let Err(e) = AssignmentBlock::from_string(&mut assignment_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 2: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid ASSIGN block -> {}", e.1)));
                 }
             } else if line.starts_with("TEMPLATE") {
                 if let Err(e) = TemplateBlock::from_string(&mut template_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 3: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid TEMPLATE block -> {}", e.1)));
                 }
             } else if line.starts_with("CONDITION") {
                 if let Err(e) = ConditionBlock::from_string(&mut condition_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 4: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid CONDITION block -> {}", e.1)));
                 }
             } else if line.starts_with("LOOP") {
                 if let Err(e) = LoopBlock::from_string(&mut loop_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 5: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid LOOP block -> {}", e.1)));
                 }
             } else if line.starts_with("FILTER") {
                 if let Err(e) = FilterBlock::from_string(&mut filter_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 6: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid FILTER block -> {}", e.1)));
                 }
             } else if line.starts_with("PROPERTY") {
                 if let Err(e) = PropertyBlock::from_string(&mut property_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 7: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid PROPERTY block -> {}", e.1)));
                 }
             } else if line.starts_with("FUNCTION") {
                 if let Err(e) = FunctionBlock::from_string(&mut function_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 8: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid FUNCTION block -> {}", e.1)));
                 }
             } else if line.starts_with("OBJECT") {
                 if let Err(e) = ObjectBlock::from_string(&mut object_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 9: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid OBJECT block -> {}", e.1)));
                 }
             } else if line.starts_with("UPDATE") {
                 if let Err(e) = UpdateBlock::from_string(&mut update_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 10: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid UPDATE block -> {}", e.1)));
                 }
             } else if line.starts_with("CREATE") {
                 if let Err(e) = CreateBlock::from_string(&mut create_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 11: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid CREATE block -> {}", e.1)));
                 }
             } else if line.starts_with("RETURN") {
                 if let Err(e) = ReturnBlock::from_string(&mut return_blocks, line) {
-                    return Err((
-                        500,
-                        format!("Error: Invalid blocks_str string / 12: {}", e.1),
-                    ));
+                    return Err((500, format!("Invalid RETURN block -> {}", e.1)));
                 }
             }
         }

@@ -212,17 +212,20 @@ impl BodyData {
             .split(&format!("{} [", pre_string))
             .collect::<Vec<&str>>();
         if current_body_data_obj.len() <= 1 {
-            return Err((500, String::from("Error: Invalid body_data string / 1")));
+            return Err((
+                500,
+                String::from("Invalid body_data (at declaration start)"),
+            ));
         }
 
         current_body_data_obj = current_body_data_obj[1].split("]").collect::<Vec<&str>>();
         if current_body_data_obj.len() <= 1 {
-            return Err((500, String::from("Error: Invalid body_data string / 2")));
+            return Err((500, String::from("Invalid body_data (at declaration end)")));
         }
 
         current_body_data_obj = current_body_data_obj[0].split(",").collect::<Vec<&str>>();
         if current_body_data_obj.len() < 2 {
-            return Err((500, String::from("Error: Invalid body_data string / 3")));
+            return Err((500, String::from("Invalid body_data (in format)")));
         }
 
         BodyData::create(

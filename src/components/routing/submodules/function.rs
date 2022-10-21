@@ -69,7 +69,7 @@ impl Function {
     pub fn from_string(function_str: &str) -> Result<Function, (usize, String)> {
         let current_function = function_str.split("=").collect::<Vec<&str>>();
         if current_function.len() <= 1 {
-            return Err((500, String::from("Error: Invalid function_str string / 1")));
+            return Err((500, String::from("Invalid function (in format)")));
         }
 
         let flist_txt = current_function[0];
@@ -84,12 +84,7 @@ impl Function {
 
             match RefData::from_string(p_str) {
                 Ok(p) => params.push(p),
-                Err(e) => {
-                    return Err((
-                        500,
-                        format!("Error: Invalid function_str string / 2: {}", e.1),
-                    ))
-                }
+                Err(e) => return Err((500, format!("Invalid param in filter -> {}", e.1))),
             }
         }
 

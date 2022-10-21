@@ -524,42 +524,42 @@ impl UpdateBlock {
     ) -> Result<(), (usize, String)> {
         let mut current_block = block_str.split("UPDATE (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 1")));
+            return Err((500, String::from("at start of indexes declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 2")));
+            return Err((500, String::from("at end of indexes declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 3")));
+            return Err((500, String::from("in format of indexes declaration")));
         }
 
         let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
+            Err(e) => return Err((500, format!("at global_index -> {}", e))),
         };
 
         let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
+            Err(e) => return Err((500, format!("at local_index -> {}", e))),
         };
 
         current_block = block_str.split("[").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 6")));
+            return Err((500, String::from("at start of ref declaration")));
         }
 
         current_block = current_block[1].split("]").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 7")));
+            return Err((500, String::from("at end of ref declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 3 {
-            return Err((500, String::from("Error: Invalid block_str string / 8")));
+            return Err((500, String::from("in format of ref declaration")));
         }
 
         let ref_col = current_block[0];
@@ -568,48 +568,48 @@ impl UpdateBlock {
 
         current_block = block_str.split("(add=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 9")));
+            return Err((500, String::from("at start of add declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 10")));
+            return Err((500, String::from("at end of add declaration")));
         }
 
         let mut add: Option<RefData> = None;
         if current_block[0].trim().len() > 0 {
             match RefData::from_string(current_block[0]) {
                 Ok(ref_data) => add = Some(ref_data),
-                Err(e) => return Err(e),
+                Err(e) => return Err((500, format!("while processing add -> {}", e.1))),
             }
         }
 
         current_block = block_str.split("(set=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 11")));
+            return Err((500, String::from("at start of set declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 12")));
+            return Err((500, String::from("at end of set declaration")));
         }
 
         let mut set: Option<RefData> = None;
         if current_block[0].trim().len() > 0 {
             match RefData::from_string(current_block[0]) {
                 Ok(ref_data) => set = Some(ref_data),
-                Err(e) => return Err(e),
+                Err(e) => return Err((500, format!("while processing set -> {}", e.1))),
             }
         }
 
         current_block = block_str.split("{filter=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 13")));
+            return Err((500, String::from("at start of filter declaration")));
         }
 
         current_block = current_block[1].split("}").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 14")));
+            return Err((500, String::from("at end of filter declaration")));
         }
 
         let mut all_filters = Vec::<Filter>::new();
@@ -617,19 +617,19 @@ impl UpdateBlock {
         if current_block[0].trim().len() > 0 {
             match Filter::from_string(&mut all_filters, current_block[0]) {
                 Ok(_) => filter = Some(all_filters[0].clone()),
-                Err(e) => return Err(e),
+                Err(e) => return Err((500, format!("while processing filter -> {}", e.1))),
             }
         }
 
         current_block = block_str.split("] ").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 15")));
+            return Err((500, String::from("at start of targets declaration")));
         }
 
         let current_block_tmp = current_block[1..].join("] ");
         current_block = current_block_tmp.split(" (add=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 16")));
+            return Err((500, String::from("at end of targets declaration")));
         }
 
         let mut all_targets: Vec<UpdateTarget> = Vec::new();
@@ -640,14 +640,14 @@ impl UpdateBlock {
             }
 
             if let Err(e) = UpdateTarget::from_string(&mut all_targets, target_str) {
-                return Err(e);
+                return Err((500, format!("while processing target -> {}", e.1)));
             }
         }
 
         let mut all_conditions: Vec<Condition> = Vec::new();
         let conditions_list = block_str.split("conditions=").collect::<Vec<&str>>();
         if conditions_list.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 17")));
+            return Err((500, String::from("at start of conditions declaration")));
         }
 
         let final_conditions_list = conditions_list[1].trim().split(">").collect::<Vec<&str>>();
@@ -658,10 +658,7 @@ impl UpdateBlock {
             }
 
             if let Err(e) = Condition::from_string(&mut all_conditions, c_str) {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 18: {}", e.1),
-                ));
+                return Err((500, format!("while processing condition -> {}", e.1)));
             };
         }
 
@@ -676,25 +673,16 @@ impl UpdateBlock {
             set,
             filter,
         ) {
-            return Err((
-                500,
-                format!("Error: Invalid block_str string / 19: {}", e.1),
-            ));
+            return Err((500, format!("while processing block -> {}", e.1)));
         };
 
         if let Err(e) = UpdateBlock::set_targets(all_blocks, global_index, all_targets) {
-            return Err((
-                500,
-                format!("Error: Invalid block_str string / 20: {}", e.1),
-            ));
+            return Err((500, format!("while processing block -> {}", e.1)));
         };
 
         match UpdateBlock::set_conditions(all_blocks, global_index, all_conditions) {
             Ok(_) => Ok(()),
-            Err(e) => Err((
-                500,
-                format!("Error: Invalid block_str string / 21: {}", e.1),
-            )),
+            Err(e) => Err((500, format!("while processing block -> {}", e.1))),
         }
     }
 

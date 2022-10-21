@@ -546,17 +546,26 @@ impl RouteComponent {
     ) -> Result<(), (usize, String)> {
         let mut current_route = route_str.split("INIT ROUTE [").collect::<Vec<&str>>();
         if current_route.len() <= 1 {
-            return Err((500, String::from("Error: Invalid route_str string / 1")));
+            return Err((
+                500,
+                String::from("Error: Invalid route format (at the beginning of INIT ROUTE)"),
+            ));
         }
 
         current_route = current_route[1].split("]").collect::<Vec<&str>>();
         if current_route.len() <= 1 {
-            return Err((500, String::from("Error: Invalid route_str string / 2")));
+            return Err((
+                500,
+                String::from("Error: Invalid route format (at INIT ROUTE)"),
+            ));
         }
 
         current_route = current_route[0].split(",").collect::<Vec<&str>>();
         if current_route.len() < 3 {
-            return Err((500, String::from("Error: Invalid route_str string / 3")));
+            return Err((
+                500,
+                String::from("Error: Invalid route format (in INIT ROUTE)"),
+            ));
         }
 
         let project_id = current_route[0];
@@ -565,7 +574,10 @@ impl RouteComponent {
 
         current_route = route_str.split("START FLOW").collect::<Vec<&str>>();
         if current_route.len() <= 1 {
-            return Err((500, String::from("Error: Invalid route_str string / 4")));
+            return Err((
+                500,
+                String::from("Error: Invalid route format (at the beginning of START FLOW)"),
+            ));
         }
 
         let flow_str = current_route[1];
@@ -589,12 +601,12 @@ impl RouteComponent {
                         auth_jwt = Some(aj);
                     }
                     Err(e) => {
-                        return Err((500, format!("Error: Invalid route_str string / 5: {}", e.1)));
+                        return Err((500, format!("Error: Invalid route format -> {}", e.1)));
                     }
                 }
             } else if line.starts_with("ADD BODY pair") {
                 if let Err(e) = BodyData::from_string(&mut body_data, line, false) {
-                    return Err((500, format!("Error: Invalid route_str string / 6: {}", e.1)));
+                    return Err((500, format!("Error: Invalid route format -> {}", e.1)));
                 }
             } else if line.starts_with("DEFINE PARAMS") || line.starts_with("ADD PARAMS") {
                 param_arr.push(line.to_string());
@@ -606,50 +618,38 @@ impl RouteComponent {
         params = match ParamData::from_string(&param_arr_str) {
             Ok(p) => Some(p),
             Err(e) => {
-                return Err((500, format!("Error: Invalid route_str string / 7: {}", e.1)));
+                return Err((500, format!("Error: Invalid route format -> {}", e.1)));
             }
         };
 
         let flow = match RouteFlow::from_string(flow_str) {
             Ok(f) => f,
             Err(e) => {
-                return Err((500, format!("Error: Invalid route_str string / 8: {}", e.1)));
+                return Err((500, format!("Error: Invalid route format -> {}", e.1)));
             }
         };
 
         if let Err(e) =
             RouteComponent::create(all_routes, &route_id, route_path, project_id, flow.clone())
         {
-            return Err((500, format!("Error: Invalid route_str string / 9: {}", e.1)));
+            return Err((500, format!("Error: Invalid route format -> {}", e.1)));
         }
 
         if let Err(e) = RouteComponent::update_auth_jwt(all_routes, &route_id, auth_jwt) {
-            return Err((
-                500,
-                format!("Error: Invalid route_str string / 10: {}", e.1),
-            ));
+            return Err((500, format!("Error: Invalid route format -> {}", e.1)));
         }
 
         if let Err(e) = RouteComponent::set_body(all_routes, &route_id, body_data) {
-            return Err((
-                500,
-                format!("Error: Invalid route_str string / 11: {}", e.1),
-            ));
+            return Err((500, format!("Error: Invalid route format -> {}", e.1)));
         }
 
         if let Err(e) = RouteComponent::update_params(all_routes, &route_id, params) {
-            return Err((
-                500,
-                format!("Error: Invalid route_str string / 12: {}", e.1),
-            ));
+            return Err((500, format!("Error: Invalid route format -> {}", e.1)));
         }
 
         match RouteComponent::update_flow(all_routes, &route_id, flow) {
             Ok(_) => Ok(()),
-            Err(e) => Err((
-                500,
-                format!("Error: Invalid route_str string / 13: {}", e.1),
-            )),
+            Err(e) => Err((500, format!("Error: Invalid route format -> {}", e.1))),
         }
     }
 

@@ -66,27 +66,37 @@ impl FailObj {
     pub fn from_string(fail_obj_str: &str) -> Result<FailObj, (usize, String)> {
         let mut current_fail_obj = fail_obj_str.split("[").collect::<Vec<&str>>();
         if current_fail_obj.len() <= 1 {
-            return Err((500, String::from("Error: Invalid fail_obj string / 1")));
+            return Err((500, String::from("Invalid fail_obj (at declaration start)")));
         }
 
         current_fail_obj = current_fail_obj[1].split("]").collect::<Vec<&str>>();
         if current_fail_obj.len() <= 1 {
-            return Err((500, String::from("Error: Invalid fail_obj string / 2")));
+            return Err((500, String::from("Invalid fail_obj (at declaration end)")));
         }
 
         current_fail_obj = current_fail_obj[0].split(",").collect::<Vec<&str>>();
         if current_fail_obj.len() < 2 {
-            return Err((500, String::from("Error: Invalid fail_obj string / 3")));
+            return Err((500, String::from("Invalid fail_obj (in format)")));
         }
 
         let status = match current_fail_obj[0].trim().parse::<u32>() {
             Ok(sts) => sts,
-            Err(e) => return Err((500, format!("Error: Invalid fail_obj string / 4: {}", e))),
+            Err(e) => {
+                return Err((
+                    500,
+                    format!("Invalid fail_obj (in 'status' format) -> {}", e),
+                ))
+            }
         };
 
         match FailObj::create(status, current_fail_obj[1]) {
             Ok(fail_obj) => Ok(fail_obj),
-            Err(e) => return Err((500, format!("Error: Invalid fail_obj string / 5: {}", e.1))),
+            Err(e) => {
+                return Err((
+                    500,
+                    format!("Invalid fail_obj (while processing) -> {}", e.1),
+                ))
+            }
         }
     }
 }

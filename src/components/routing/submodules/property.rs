@@ -68,27 +68,27 @@ impl Property {
     pub fn from_string(property_str: &str) -> Result<Property, (usize, String)> {
         let mut current_property = property_str.split("(").collect::<Vec<&str>>();
         if current_property.len() <= 1 {
-            return Err((500, String::from("Error: Invalid property string / 1")));
+            return Err((500, String::from("Invalid property (at declaration start)")));
         }
 
         current_property = current_property[1].split(")").collect::<Vec<&str>>();
         if current_property.len() <= 1 {
-            return Err((500, String::from("Error: Invalid property string / 2")));
+            return Err((500, String::from("Invalid property (at declaration end)")));
         }
 
         current_property = current_property[0].split("|").collect::<Vec<&str>>();
         if current_property.len() < 2 {
-            return Err((500, String::from("Error: Invalid property string / 3")));
+            return Err((500, String::from("Invalid property (in format)")));
         }
 
         let mut apply_str = current_property[1].split("apply=").collect::<Vec<&str>>();
         if apply_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid property string / 4")));
+            return Err((500, String::from("Invalid property (in 'apply' format)")));
         }
 
         apply_str = apply_str[1].split(">").collect::<Vec<&str>>();
         if apply_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid property string / 5")));
+            return Err((500, String::from("Invalid property (in 'apply' format)")));
         }
 
         let right = match RefData::from_string(current_property[0]) {
@@ -96,7 +96,7 @@ impl Property {
             Err(err) => {
                 return Err((
                     500,
-                    format!("Error: Invalid property string / 6: {}", err.1),
+                    format!("Invalid property (in 'data' format) -> {}", err.1),
                 ))
             }
         };
@@ -105,7 +105,7 @@ impl Property {
             Ok(property) => Ok(property),
             Err(err) => Err((
                 500,
-                format!("Error: Invalid property string / 7: {}", err.1),
+                format!("Invalid property (while processing) -> {}", err.1),
             )),
         }
     }

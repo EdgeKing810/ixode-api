@@ -255,32 +255,32 @@ impl ReturnBlock {
     ) -> Result<(), (usize, String)> {
         let mut current_block = block_str.split("RETURN (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 1")));
+            return Err((500, String::from("at start of indexes declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 2")));
+            return Err((500, String::from("at end of indexes declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 3")));
+            return Err((500, String::from("in format of indexes declaration")));
         }
 
         let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
+            Err(e) => return Err((500, format!("at global_index -> {}", e))),
         };
 
         let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
+            Err(e) => return Err((500, format!("at local_index -> {}", e))),
         };
 
         current_block = block_str.split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 6")));
+            return Err((500, String::from("at start of object_pairs declaration")));
         }
 
         let current_block_tmp = current_block[1..].join(")");
@@ -288,7 +288,7 @@ impl ReturnBlock {
             .split("conditions=")
             .collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 7")));
+            return Err((500, String::from("at start of conditions declaration")));
         }
 
         let mut all_pairs: Vec<ObjectPair> = Vec::new();
@@ -300,13 +300,13 @@ impl ReturnBlock {
             }
 
             if let Err(e) = ObjectPair::from_string(&mut all_pairs, p_str) {
-                return Err((500, format!("Error: Invalid block_str string / 8: {}", e.1)));
+                return Err((500, format!("while processing object_pair -> {}", e.1)));
             };
         }
 
         current_block = block_str.split("conditions=").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 9")));
+            return Err((500, String::from("in format of conditions declaration")));
         }
 
         let mut all_conditions: Vec<Condition> = Vec::new();
@@ -318,10 +318,7 @@ impl ReturnBlock {
             }
 
             if let Err(e) = Condition::from_string(&mut all_conditions, c_str) {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 10: {}", e.1),
-                ));
+                return Err((500, format!("while processing condition -> {}", e.1)));
             };
         }
 
@@ -329,20 +326,12 @@ impl ReturnBlock {
 
         match ReturnBlock::set_pairs(all_blocks, global_index, all_pairs) {
             Ok(f) => f,
-            Err(e) => {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 12: {}", e.1),
-                ))
-            }
+            Err(e) => return Err((500, format!("while processing block -> {}", e.1))),
         };
 
         match ReturnBlock::set_conditions(all_blocks, global_index, all_conditions) {
             Ok(_) => Ok(()),
-            Err(e) => Err((
-                500,
-                format!("Error: Invalid block_str string / 13: {}", e.1),
-            )),
+            Err(e) => Err((500, format!("while processing block -> {}", e.1))),
         }
     }
 

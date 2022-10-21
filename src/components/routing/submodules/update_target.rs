@@ -232,17 +232,17 @@ impl UpdateTarget {
     ) -> Result<(), (usize, String)> {
         let mut current_target = target_str.split("{").collect::<Vec<&str>>();
         if current_target.len() <= 1 {
-            return Err((500, String::from("Error: Invalid target_str string / 1")));
+            return Err((500, String::from("Invalid target (at declaration start)")));
         }
 
         current_target = current_target[1].split("}").collect::<Vec<&str>>();
         if current_target.len() <= 1 {
-            return Err((500, String::from("Error: Invalid target_str string / 2")));
+            return Err((500, String::from("Invalid target (at declaration end)")));
         }
 
         current_target = current_target[0].split("|").collect::<Vec<&str>>();
         if current_target.len() < 2 {
-            return Err((500, String::from("Error: Invalid target_str string / 3")));
+            return Err((500, String::from("Invalid target (in format)")));
         }
 
         let field = current_target[0];
@@ -258,18 +258,12 @@ impl UpdateTarget {
             }
 
             if let Err(e) = Filter::from_string(&mut all_conditions, c_str) {
-                return Err((
-                    500,
-                    format!("Error: Invalid target_str string / 4: {}", e.1),
-                ));
+                return Err((500, format!("Invalid condition in target -> {}", e.1)));
             };
         }
 
         if let Err(e) = UpdateTarget::create(all_targets, field) {
-            return Err((
-                500,
-                format!("Error: Invalid target_str string / 5: {}", e.1),
-            ));
+            return Err((500, format!("Invalid target (while processing) -> {}", e.1)));
         };
 
         match UpdateTarget::set_conditions(
@@ -279,10 +273,7 @@ impl UpdateTarget {
         ) {
             Ok(_) => return Ok(()),
             Err(e) => {
-                return Err((
-                    500,
-                    format!("Error: Invalid target_str string / 6: {}", e.1),
-                ));
+                return Err((500, format!("Invalid target (while processing) -> {}", e.1)));
             }
         };
     }

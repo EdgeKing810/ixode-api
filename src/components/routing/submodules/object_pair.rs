@@ -165,28 +165,28 @@ impl ObjectPair {
     ) -> Result<(), (usize, String)> {
         let mut current_pair = pair_str.split("(").collect::<Vec<&str>>();
         if current_pair.len() <= 1 {
-            return Err((500, String::from("Error: Invalid pair_str string / 1")));
+            return Err((500, String::from("Invalid object (at declaration start)")));
         }
 
         current_pair = current_pair[1].split(")").collect::<Vec<&str>>();
         if current_pair.len() <= 1 {
-            return Err((500, String::from("Error: Invalid pair_str string / 2")));
+            return Err((500, String::from("Invalid object (at declaration end)")));
         }
 
         current_pair = current_pair[0].split("=").collect::<Vec<&str>>();
         if current_pair.len() < 2 {
-            return Err((500, String::from("Error: Invalid pair_str string / 3")));
+            return Err((500, String::from("Invalid object (in format)")));
         }
 
         let id = current_pair[0].trim();
         let data = match RefData::from_string(current_pair[1].trim()) {
             Ok(d) => d,
-            Err(e) => return Err((500, format!("Error: Invalid pair_str string / 9: {}", e.1))),
+            Err(e) => return Err((500, format!("Invalid data in object -> {}", e.1))),
         };
 
         match ObjectPair::create(all_pairs, id, data) {
             Ok(_) => return Ok(()),
-            Err(e) => return Err((500, format!("Error: Invalid pair_str string / 10: {}", e.1))),
+            Err(e) => return Err((500, format!("Invalid object (while processing) -> {}", e.1))),
         }
     }
 

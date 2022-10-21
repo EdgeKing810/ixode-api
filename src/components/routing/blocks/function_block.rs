@@ -186,67 +186,59 @@ impl FunctionBlock {
     ) -> Result<(), (usize, String)> {
         let mut current_block = block_str.split("FUNCTION (").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 1")));
+            return Err((500, String::from("at start of indexes declaration")));
         }
 
         current_block = current_block[1].split(")").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 2")));
+            return Err((500, String::from("at end of indexes declaration")));
         }
 
         current_block = current_block[0].split(",").collect::<Vec<&str>>();
         if current_block.len() < 2 {
-            return Err((500, String::from("Error: Invalid block_str string / 3")));
+            return Err((500, String::from("in format of indexes declaration")));
         }
 
         let global_index = match current_block[0].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 4: {}", e))),
+            Err(e) => return Err((500, format!("at global_index -> {}", e))),
         };
 
         let block_index = match current_block[1].trim().parse::<u32>() {
             Ok(idx) => idx,
-            Err(e) => return Err((500, format!("Error: Invalid block_str string / 5: {}", e))),
+            Err(e) => return Err((500, format!("at local_index -> {}", e))),
         };
 
         current_block = block_str.split("[").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 6")));
+            return Err((500, String::from("at start of local_name declaration")));
         }
 
         current_block = current_block[1].split("]").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 7")));
+            return Err((500, String::from("at end of local_name declaration")));
         }
 
         let local_name = current_block[0];
 
         current_block = block_str.split("{").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 8")));
+            return Err((500, String::from("at start of function declaration")));
         }
 
         current_block = current_block[1].split("}").collect::<Vec<&str>>();
         if current_block.len() <= 1 {
-            return Err((500, String::from("Error: Invalid block_str string / 9")));
+            return Err((500, String::from("at end of function declaration")));
         }
 
         let func = match Function::from_string(current_block[0]) {
             Ok(f) => f,
-            Err(e) => {
-                return Err((
-                    500,
-                    format!("Error: Invalid block_str string / 10: {}", e.1),
-                ))
-            }
+            Err(e) => return Err((500, format!("while processing function -> {}", e.1))),
         };
 
         match FunctionBlock::create(all_blocks, global_index, block_index, local_name, func) {
             Ok(_) => Ok(()),
-            Err(e) => Err((
-                500,
-                format!("Error: Invalid block_str string / 11: {}", e.1),
-            )),
+            Err(e) => Err((500, format!("while processing block -> {}", e.1))),
         }
     }
 

@@ -57,29 +57,32 @@ impl Condition {
     ) -> Result<(), (usize, String)> {
         let mut current_condition = condition_str.split("(").collect::<Vec<&str>>();
         if current_condition.len() <= 1 {
-            return Err((500, String::from("Error: Invalid condition string / 1")));
+            return Err((
+                500,
+                String::from("Invalid condition (at declaration start)"),
+            ));
         }
 
         current_condition = current_condition[1].split(")").collect::<Vec<&str>>();
         if current_condition.len() <= 1 {
-            return Err((500, String::from("Error: Invalid condition string / 2")));
+            return Err((500, String::from("Invalid condition (at declaration end)")));
         }
 
         current_condition = current_condition[0].split("|").collect::<Vec<&str>>();
         if current_condition.len() < 5 {
-            return Err((500, String::from("Error: Invalid condition string / 3")));
+            return Err((500, String::from("Invalid condition (in format)")));
         }
 
         let not_str = current_condition[3].split("not=").collect::<Vec<&str>>();
         if not_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid condition string / 4")));
+            return Err((500, String::from("Invalid condition (in 'not' format)")));
         }
 
         let not = not_str[1] == "true";
 
         let next_str = current_condition[4].split("next=").collect::<Vec<&str>>();
         if next_str.len() <= 1 {
-            return Err((500, String::from("Error: Invalid condition string / 5")));
+            return Err((500, String::from("Invalid condition (in 'next' format)")));
         }
 
         let left = match RefData::from_string(current_condition[0]) {
@@ -87,7 +90,7 @@ impl Condition {
             Err(err) => {
                 return Err((
                     500,
-                    format!("Error: Invalid condition string / 6: {}", err.1),
+                    format!("Invalid condition (in 'left' format) -> {}", err.1),
                 ))
             }
         };
@@ -97,7 +100,7 @@ impl Condition {
             Err(err) => {
                 return Err((
                     500,
-                    format!("Error: Invalid condition string / 7: {}", err.1),
+                    format!("Invalid condition (in 'right' format) -> {}", err.1),
                 ))
             }
         };
