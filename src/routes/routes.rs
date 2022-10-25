@@ -37,5 +37,8 @@ pub mod routing;
 #[path = "x.rs"]
 pub mod x;
 
+#[path = "x/x.rs"]
+pub mod x_utils;
+
 #[path = "upload.rs"]
 pub mod upload;

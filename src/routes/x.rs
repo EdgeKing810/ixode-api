@@ -5,65 +5,29 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::routing::mod_route::RouteComponent;
 use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
+
 // use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt_x, Token};
 use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_routes};
 
 use rocket::http::uri::Origin;
-use rocket::http::uri::{fmt::Path, Segments};
-use rocket::request::{FromParam, FromSegments};
 use rocket::Data;
 
 use serde_json::Value;
 
-pub struct CompleteRoute {
-    r: String,
-}
-
-impl<'r> FromParam<'r> for CompleteRoute {
-    type Error = &'r str;
-
-    fn from_param(r: &'r str) -> Result<Self, Self::Error> {
-        if !r.chars().all(|c| {
-            c.is_ascii_alphanumeric() || c == '&' || c == '!' || c == '#' || c == '-' || c == '_'
-        }) {
-            return Err(r);
-        }
-
-        Ok(Self { r: r.to_string() })
-    }
-}
-
-impl<'r> FromSegments<'r> for CompleteRoute {
-    type Error = String;
-
-    fn from_segments(segments: Segments<'r, Path>) -> Result<Self, Self::Error> {
-        let mut r = String::new();
-        for segment in segments {
-            r = format!("{}/{}", r, segment);
-        }
-
-        if !r.clone().chars().all(|c| {
-            c.is_ascii_alphanumeric()
-                || c == '&'
-                || c == '!'
-                || c == '#'
-                || c == '-'
-                || c == '_'
-                || c == '?'
-                || c == '/'
-        }) {
-            return Err(r.clone());
-        }
-
-        Ok(Self { r })
-    }
-}
+use super::x_utils::complete_route::CompleteRoute;
+use super::x_utils::global_block_order::GlobalBlockOrder;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LocalParamData {
     key: String,
     value: String,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct LocalBlockOrder {
+    local_index: usize,
+    names: Vec<String>,
 }
 
 pub fn validate_body_data(
@@ -314,5 +278,16 @@ pub async fn handle<'r>(
         }
     }
 
-    return json!({"status": 1000, "project_id": project_id, "api_path": api_path, "route": route, "params": all_params, "body": body_data});
+    let mut global_blocks = Vec::<GlobalBlockOrder>::new();
+    GlobalBlockOrder::process_blocks(&current_route.clone().unwrap(), &mut global_blocks);
+
+    return json!({
+        "status": 1000,
+        "project_id": project_id,
+        "api_path": api_path,
+        "route": route,
+        "params": all_params,
+        "body": body_data,
+        "global_block_order": GlobalBlockOrder::to_string(&global_blocks)
+    });
 }
