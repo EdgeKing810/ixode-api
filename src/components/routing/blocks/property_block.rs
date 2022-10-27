@@ -76,6 +76,16 @@ impl PropertyBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<PropertyBlock>, global_index: u32) -> Option<PropertyBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn update_local_name(
         all_blocks: &mut Vec<PropertyBlock>,
         global_index: u32,

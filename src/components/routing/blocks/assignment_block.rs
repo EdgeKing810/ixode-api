@@ -63,6 +63,16 @@ impl AssignmentBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<AssignmentBlock>, global_index: u32) -> Option<AssignmentBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn update_local_name(
         all_blocks: &mut Vec<AssignmentBlock>,
         global_index: u32,

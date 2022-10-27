@@ -76,6 +76,16 @@ impl CreateBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<CreateBlock>, global_index: u32) -> Option<CreateBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn update_ref_col(
         all_blocks: &mut Vec<CreateBlock>,
         global_index: u32,

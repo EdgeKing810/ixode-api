@@ -127,6 +127,16 @@ impl UpdateBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<UpdateBlock>, global_index: u32) -> Option<UpdateBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn update_ref_col(
         all_blocks: &mut Vec<UpdateBlock>,
         global_index: u32,

@@ -86,6 +86,16 @@ impl FilterBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<FilterBlock>, global_index: u32) -> Option<FilterBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn update_local_name(
         all_blocks: &mut Vec<FilterBlock>,
         global_index: u32,

@@ -17,7 +17,9 @@ use crate::components::routing::mod_route::RouteComponent;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct GlobalBlockOrder {
+    index: usize,
     name: String,
+    ref_name: String,
 }
 
 impl GlobalBlockOrder {
@@ -25,43 +27,111 @@ impl GlobalBlockOrder {
         current_route: &RouteComponent,
         global_blocks: &mut Vec<GlobalBlockOrder>,
     ) {
+        for (i, body_data) in current_route.body.iter().enumerate() {
+            global_blocks.push(GlobalBlockOrder {
+                index: i,
+                name: String::from("BODY"),
+                ref_name: body_data.id.clone(),
+            });
+        }
+
+        if let Some(params) = &current_route.params {
+            for (i, pair) in params.pairs.iter().enumerate() {
+                global_blocks.push(GlobalBlockOrder {
+                    index: i,
+                    name: String::from("PARAM"),
+                    ref_name: pair.id.clone(),
+                });
+            }
+        }
+
         let mut current_global_index: u32 = 0;
         let mut current_block_name: &str;
+        let mut current_index_position: usize = 0;
+        let mut current_ref_name: String;
+
+        let mut indexes: Vec<usize> = vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
         loop {
             current_block_name = "";
+            current_ref_name = String::from("");
 
-            if FetchBlock::exist(&current_route.flow.fetchers, current_global_index) {
+            if let Some(block) = FetchBlock::get(&current_route.flow.fetchers, current_global_index)
+            {
                 current_block_name = "FETCH";
-            } else if AssignmentBlock::exist(&current_route.flow.assignments, current_global_index)
+                current_index_position = 0;
+                current_ref_name = block.local_name;
+            } else if let Some(block) =
+                AssignmentBlock::get(&current_route.flow.assignments, current_global_index)
             {
                 current_block_name = "ASSIGN";
-            } else if TemplateBlock::exist(&current_route.flow.templates, current_global_index) {
+                current_index_position = 1;
+                current_ref_name = block.local_name;
+            } else if let Some(block) =
+                TemplateBlock::get(&current_route.flow.templates, current_global_index)
+            {
                 current_block_name = "TEMPLATE";
-            } else if ConditionBlock::exist(&current_route.flow.conditions, current_global_index) {
+                current_index_position = 2;
+                current_ref_name = block.local_name;
+            } else if let Some(_) =
+                ConditionBlock::get(&current_route.flow.conditions, current_global_index)
+            {
                 current_block_name = "CONDITION";
-            } else if LoopBlock::exist(&current_route.flow.loops, current_global_index) {
+                current_index_position = 3;
+            } else if let Some(block) =
+                LoopBlock::get(&current_route.flow.loops, current_global_index)
+            {
                 current_block_name = "LOOP";
-            } else if FilterBlock::exist(&current_route.flow.filters, current_global_index) {
+                current_index_position = 4;
+                current_ref_name = block.local_name;
+            } else if let Some(block) =
+                FilterBlock::get(&current_route.flow.filters, current_global_index)
+            {
                 current_block_name = "FILTER";
-            } else if PropertyBlock::exist(&current_route.flow.properties, current_global_index) {
+                current_index_position = 5;
+                current_ref_name = block.local_name;
+            } else if let Some(block) =
+                PropertyBlock::get(&current_route.flow.properties, current_global_index)
+            {
                 current_block_name = "PROPERTY";
-            } else if FunctionBlock::exist(&current_route.flow.functions, current_global_index) {
+                current_index_position = 6;
+                current_ref_name = block.local_name;
+            } else if let Some(block) =
+                FunctionBlock::get(&current_route.flow.functions, current_global_index)
+            {
                 current_block_name = "FUNCTION";
-            } else if ObjectBlock::exist(&current_route.flow.objects, current_global_index) {
+                current_index_position = 7;
+                current_ref_name = block.local_name;
+            } else if let Some(block) =
+                ObjectBlock::get(&current_route.flow.objects, current_global_index)
+            {
                 current_block_name = "OBJECT";
-            } else if UpdateBlock::exist(&current_route.flow.updates, current_global_index) {
+                current_index_position = 8;
+                current_ref_name = block.local_name;
+            } else if let Some(_) =
+                UpdateBlock::get(&current_route.flow.updates, current_global_index)
+            {
                 current_block_name = "UPDATE";
-            } else if CreateBlock::exist(&current_route.flow.creates, current_global_index) {
+                current_index_position = 9;
+            } else if let Some(_) =
+                CreateBlock::get(&current_route.flow.creates, current_global_index)
+            {
                 current_block_name = "CREATE";
-            } else if ReturnBlock::exist(&current_route.flow.returns, current_global_index) {
+                current_index_position = 10;
+            } else if let Some(_) =
+                ReturnBlock::get(&current_route.flow.returns, current_global_index)
+            {
                 current_block_name = "RETURN";
+                current_index_position = 11;
             }
 
             if current_block_name.len() > 0 {
                 global_blocks.push(GlobalBlockOrder {
+                    index: indexes[current_index_position],
                     name: current_block_name.to_string(),
+                    ref_name: current_ref_name,
                 });
+                indexes[current_index_position] += 1;
             } else {
                 break;
             }
@@ -76,5 +146,21 @@ impl GlobalBlockOrder {
             block_names.push(block.name.clone());
         }
         block_names
+    }
+
+    pub fn get_ref_index(
+        global_blocks: &Vec<GlobalBlockOrder>,
+        ref_name: &str,
+    ) -> Result<(usize, String), (usize, String)> {
+        for block in global_blocks {
+            if block.ref_name == ref_name && block.ref_name.len() > 0 {
+                return Ok((block.index, block.name.clone()));
+            }
+        }
+
+        return Err((
+            0,
+            format!("Error: Referencing undefined variable: {}", ref_name),
+        ));
     }
 }

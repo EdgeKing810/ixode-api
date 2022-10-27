@@ -35,6 +35,16 @@ impl ReturnBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<ReturnBlock>, global_index: u32) -> Option<ReturnBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn add_pair(
         all_blocks: &mut Vec<ReturnBlock>,
         global_index: u32,

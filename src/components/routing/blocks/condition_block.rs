@@ -45,6 +45,16 @@ impl ConditionBlock {
         found
     }
 
+    pub fn get(all_blocks: &Vec<ConditionBlock>, global_index: u32) -> Option<ConditionBlock> {
+        for block in all_blocks.iter() {
+            if block.global_index == global_index {
+                return Some(block.clone());
+            }
+        }
+
+        None
+    }
+
     pub fn update_action(
         all_blocks: &mut Vec<ConditionBlock>,
         global_index: u32,
