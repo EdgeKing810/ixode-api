@@ -3,7 +3,6 @@ use rocket::post;
 use rocket::serde::json::json;
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::routing::mod_route::RouteComponent;
 use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
 
 // use crate::middlewares::paginate::paginate;
@@ -16,6 +15,7 @@ use rocket::Data;
 use serde_json::Value;
 
 use super::x_utils::complete_route::CompleteRoute;
+use super::x_utils::definition_store::DefinitionStore;
 use super::x_utils::global_block_order::GlobalBlockOrder;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -168,24 +168,26 @@ pub async fn handle<'r>(
         }
     };
 
-    let mut current_route: Option<RouteComponent> = None;
-    for c_route in all_routes {
+    let mut route_index = -1;
+    for (i, c_route) in all_routes.iter().enumerate() {
         if c_route.route_path == route {
-            current_route = Some(c_route);
+            route_index = i as isize;
             break;
         }
     }
 
-    if let None = current_route {
+    if route_index < 0 {
         return json!({
             "status": 404,
             "message": "Error: Route not found"
         });
     }
 
+    let current_route = all_routes[route_index as usize].clone();
+
     let mut delimiter = "&".to_string();
-    if let Some(params) = current_route.clone().unwrap().params {
-        delimiter = params.delimiter;
+    if let Some(params) = &current_route.params {
+        delimiter = params.delimiter.clone();
     }
 
     let broken_str_params = full_query.split(&delimiter).collect::<Vec<&str>>();
@@ -199,14 +201,14 @@ pub async fn handle<'r>(
         }
     }
 
-    if let Some(params) = current_route.clone().unwrap().params {
-        for pair in params.pairs {
+    if let Some(params) = &current_route.params {
+        for pair in &params.pairs {
             for current_param in all_params.clone() {
                 if current_param.key == pair.id {
                     if let Err(e) = validate_body_data(
                         &pair.id.clone(),
                         Value::String(current_param.value.clone()),
-                        pair.bdtype,
+                        pair.bdtype.clone(),
                         false,
                     ) {
                         return json!({
@@ -226,7 +228,7 @@ pub async fn handle<'r>(
         body_data = bd;
     }
 
-    if let Some(aj) = current_route.clone().unwrap().auth_jwt {
+    if let Some(aj) = &current_route.auth_jwt {
         if aj.active {
             let payload = match body_data[aj.field.clone()].as_str() {
                 Some(p) => p,
@@ -255,8 +257,8 @@ pub async fn handle<'r>(
         }
     }
 
-    if current_route.clone().unwrap().body.len() > 0 {
-        for bdata in current_route.clone().unwrap().body {
+    if current_route.body.len() > 0 {
+        for bdata in &current_route.body {
             if !body_data.is_object() {
                 return json!({
                     "status": 400,
@@ -266,8 +268,8 @@ pub async fn handle<'r>(
 
             if let Err(e) = validate_body_data(
                 &bdata.id.clone(),
-                body_data[bdata.id].clone(),
-                bdata.bdtype,
+                body_data[bdata.id.clone()].clone(),
+                bdata.bdtype.clone(),
                 true,
             ) {
                 return json!({
@@ -279,7 +281,38 @@ pub async fn handle<'r>(
     }
 
     let mut global_blocks = Vec::<GlobalBlockOrder>::new();
-    GlobalBlockOrder::process_blocks(&current_route.clone().unwrap(), &mut global_blocks);
+    GlobalBlockOrder::process_blocks(&current_route, &mut global_blocks);
+
+    let mut all_definitions = Vec::<DefinitionStore>::new();
+
+    for (_i, block) in global_blocks.iter().enumerate() {
+        // let current_ref = if block.ref_name.len() > 0 {
+        //     match GlobalBlockOrder::get_ref_index(&global_blocks, &block.ref_name, i + 1) {
+        //         Ok(ri) => ri,
+        //         Err(e) => {
+        //             return json!({
+        //                 "status": e.0,
+        //                 "message": e.1
+        //             });
+        //         }
+        //     }
+        // } else {
+        //     (i, block.name.clone())
+        // };
+
+        if let Err(e) = DefinitionStore::add_definition(
+            &current_route,
+            &mut all_definitions,
+            &project_id,
+            &block.name,
+            block.index,
+        ) {
+            return json!({
+                "status": e.0,
+                "message": e.1
+            });
+        }
+    }
 
     return json!({
         "status": 1000,
@@ -288,6 +321,7 @@ pub async fn handle<'r>(
         "route": route,
         "params": all_params,
         "body": body_data,
-        "global_block_order": GlobalBlockOrder::to_string(&global_blocks)
+        "global_block_order": GlobalBlockOrder::to_string(&global_blocks),
+        "definitions": DefinitionStore::to_string(&all_definitions)
     });
 }
