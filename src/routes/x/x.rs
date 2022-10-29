@@ -6,3 +6,6 @@ pub mod complete_route;
 
 #[path = "DefinitionStore.rs"]
 pub mod definition_store;
+
+#[path = "Resolver.rs"]
+pub mod resolver;

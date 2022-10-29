@@ -16,7 +16,7 @@ pub enum OperationType {
     SUBSTRACTION,
     MULTIPLICATION,
     DIVISION,
-    MODULAR,
+    MODULO,
     INCLUDES,
     NONE,
 }
@@ -40,7 +40,7 @@ impl fmt::Display for OperationType {
             OperationType::SUBSTRACTION => "SUBSTRACTION".to_string(),
             OperationType::MULTIPLICATION => "MULTIPLICATION".to_string(),
             OperationType::DIVISION => "DIVISION".to_string(),
-            OperationType::MODULAR => "MODULAR".to_string(),
+            OperationType::MODULO => "MODULO".to_string(),
             OperationType::INCLUDES => "INCLUDES".to_string(),
             OperationType::NONE => "NONE".to_string(),
         };
@@ -62,7 +62,7 @@ impl OperationType {
             OperationType::SUBSTRACTION => "SUBSTRACTION".to_string(),
             OperationType::MULTIPLICATION => "MULTIPLICATION".to_string(),
             OperationType::DIVISION => "DIVISION".to_string(),
-            OperationType::MODULAR => "MODULAR".to_string(),
+            OperationType::MODULO => "MODULO".to_string(),
             OperationType::INCLUDES => "INCLUDES".to_string(),
             OperationType::NONE => "NONE".to_string(),
         };
@@ -80,7 +80,7 @@ impl OperationType {
             "SUBSTRACTION" => OperationType::SUBSTRACTION,
             "MULTIPLICATION" => OperationType::MULTIPLICATION,
             "DIVISION" => OperationType::DIVISION,
-            "MODULAR" => OperationType::MODULAR,
+            "MODULO" => OperationType::MODULO,
             "INCLUDES" => OperationType::INCLUDES,
             "NONE" => OperationType::NONE,
             _ => OperationType::EQUAL_TO,

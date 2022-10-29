@@ -285,27 +285,15 @@ pub async fn handle<'r>(
 
     let mut all_definitions = Vec::<DefinitionStore>::new();
 
-    for (_i, block) in global_blocks.iter().enumerate() {
-        // let current_ref = if block.ref_name.len() > 0 {
-        //     match GlobalBlockOrder::get_ref_index(&global_blocks, &block.ref_name, i + 1) {
-        //         Ok(ri) => ri,
-        //         Err(e) => {
-        //             return json!({
-        //                 "status": e.0,
-        //                 "message": e.1
-        //             });
-        //         }
-        //     }
-        // } else {
-        //     (i, block.name.clone())
-        // };
-
+    for (i, block) in global_blocks.iter().enumerate() {
         if let Err(e) = DefinitionStore::add_definition(
             &current_route,
             &mut all_definitions,
+            &global_blocks,
             &project_id,
             &block.name,
             block.index,
+            i + 1,
         ) {
             return json!({
                 "status": e.0,

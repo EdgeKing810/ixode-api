@@ -7,18 +7,26 @@ use crate::components::routing::mod_route::RouteComponent;
 use crate::data_converter::{convert_to_raw, RawPair};
 use crate::utils::{auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DefinitionStore {
-    definition_type: String,
-    block_name: String,
-    ref_name: String,
-    index: usize,
-    data: DefinitionData,
-}
+use super::global_block_order::GlobalBlockOrder;
+use super::resolver::{resolve_conditions, resolve_operations};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefinitionStore {
+    pub definition_type: String,
+    pub block_name: String,
+    pub ref_name: String,
+    pub index: usize,
+    pub data: DefinitionData,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum DefinitionData {
+    NULL,
+    UNDEFINED,
+    BOOLEAN(bool),
     STRING(String),
+    INTEGER(isize),
+    FLOAT(f64),
     DATA(Vec<RawPair>),
 }
 
@@ -26,9 +34,11 @@ impl DefinitionStore {
     pub fn add_definition(
         current_route: &RouteComponent,
         all_definitions: &mut Vec<DefinitionStore>,
+        global_blocks: &Vec<GlobalBlockOrder>,
         project_id: &str,
         block_name: &str,
         index: usize,
+        current_index: usize,
     ) -> Result<(), (usize, String)> {
         if block_name == "FETCH" {
             let fetch_block = current_route.flow.fetchers[index].clone();
@@ -80,15 +90,52 @@ impl DefinitionStore {
                 index: index,
                 data: DefinitionData::DATA(raw_pairs),
             });
-        } else {
-            all_definitions.push(DefinitionStore {
-                definition_type: String::from("EMPTY"),
-                block_name: block_name.to_string(),
-                ref_name: String::from(""),
-                index: index,
-                data: DefinitionData::STRING(String::from("")),
-            });
+
+            return Ok(());
+        } else if block_name == "ASSIGN" {
+            let assign_block = current_route.flow.assignments[index].clone();
+            let res_condition = match resolve_conditions(
+                &assign_block.conditions,
+                global_blocks,
+                all_definitions,
+                current_index,
+            ) {
+                Ok(c) => c,
+                Err(e) => {
+                    return Err(e);
+                }
+            };
+
+            if res_condition {
+                match resolve_operations(
+                    &assign_block.operations,
+                    global_blocks,
+                    all_definitions,
+                    current_index,
+                ) {
+                    Ok(d) => {
+                        all_definitions.push(DefinitionStore {
+                            definition_type: String::from("STRING"),
+                            block_name: block_name.to_string(),
+                            ref_name: assign_block.local_name,
+                            index: index,
+                            data: d,
+                        });
+                    }
+                    Err(e) => return Err(e),
+                }
+
+                return Ok(());
+            }
         }
+
+        all_definitions.push(DefinitionStore {
+            definition_type: String::from("EMPTY"),
+            block_name: block_name.to_string(),
+            ref_name: String::from(""),
+            index: index,
+            data: DefinitionData::NULL,
+        });
 
         Ok(())
     }
