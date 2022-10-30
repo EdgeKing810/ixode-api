@@ -4,11 +4,12 @@ use crate::components::collection::Collection;
 use crate::components::data::Data;
 
 use crate::components::routing::mod_route::RouteComponent;
+use crate::components::routing::submodules::sub_ref_data::RefData;
 use crate::data_converter::{convert_to_raw, RawPair};
 use crate::utils::{auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings};
 
 use super::global_block_order::GlobalBlockOrder;
-use super::resolver::{resolve_conditions, resolve_operations};
+use super::resolver::{resolve_conditions, resolve_operations, resolve_ref_data};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DefinitionStore {
@@ -127,6 +128,86 @@ impl DefinitionStore {
 
                 return Ok(());
             }
+        } else if block_name == "TEMPLATE" {
+            let template_block = current_route.flow.templates[index].clone();
+            let broken_template = template_block.template.split("{}").collect::<Vec<&str>>();
+            let mut final_string = String::new();
+
+            let res_condition = match resolve_conditions(
+                &template_block.conditions,
+                global_blocks,
+                all_definitions,
+                current_index,
+            ) {
+                Ok(c) => c,
+                Err(e) => {
+                    return Err(e);
+                }
+            };
+
+            if res_condition {
+                for (i, str) in broken_template.iter().enumerate() {
+                    let current_data = if template_block.data.len() == 0 {
+                        match RefData::create(false, "STRING", "") {
+                            Ok(rd) => rd,
+                            Err(e) => {
+                                return Err(e);
+                            }
+                        }
+                    } else if template_block.data.len() > i {
+                        template_block.data[i].clone()
+                    } else {
+                        template_block.data[template_block.data.len() - 1].clone()
+                    };
+
+                    let current_value = if i == broken_template.len() - 1 {
+                        DefinitionData::STRING(String::new())
+                    } else {
+                        match resolve_ref_data(
+                            &current_data,
+                            global_blocks,
+                            all_definitions,
+                            current_index,
+                        ) {
+                            Ok(d) => d,
+                            Err(e) => {
+                                return Err(e);
+                            }
+                        }
+                    };
+
+                    match current_value {
+                        DefinitionData::STRING(s) => {
+                            final_string = format!("{}{}{}", final_string, str, s);
+                        }
+                        DefinitionData::INTEGER(i) => {
+                            final_string = format!("{}{}{}", final_string, str, i);
+                        }
+                        DefinitionData::FLOAT(f) => {
+                            final_string = format!("{}{}{}", final_string, str, f);
+                        }
+                        DefinitionData::BOOLEAN(b) => {
+                            final_string = format!("{}{}{}", final_string, str, b);
+                        }
+                        _ => {
+                            return Err((
+                                500,
+                                String::from("Error: Invalid data type for template"),
+                            ));
+                        }
+                    }
+                }
+
+                all_definitions.push(DefinitionStore {
+                    definition_type: String::from("STRING"),
+                    block_name: block_name.to_string(),
+                    ref_name: template_block.local_name,
+                    index: index,
+                    data: DefinitionData::STRING(final_string),
+                });
+
+                return Ok(());
+            }
         }
 
         all_definitions.push(DefinitionStore {
@@ -157,6 +238,9 @@ impl DefinitionStore {
     pub fn to_string(all_definitions: &Vec<DefinitionStore>) -> Vec<String> {
         let mut definitions = Vec::<String>::new();
         for definition in all_definitions {
+            if definition.block_name == "TEMPLATE" {
+                println!("{:#?}", definition.data);
+            }
             definitions.push(format!(
                 "{}/{} {}: {}",
                 definition.block_name,

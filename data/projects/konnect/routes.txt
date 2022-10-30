@@ -90,7 +90,7 @@ FETCH (0,0) [users,users]
 ASSIGN (1,0) [count] {([,INTEGER,13]|NONE|[,STRING,]|not=false|next=NONE)} 
 ASSIGN (2,0) [random] {([ref,INTEGER,count]|MULTIPLICATION|[,FLOAT,3.14]|not=false|next=NONE)} ([,INTEGER,1]|NOT_EQUAL_TO|[,STRING,2]|not=false|next=AND)
 
-TEMPLATE (3,0) [abcd] (data=[,STRING,ijkl]>[ref,STRING,mnop]) {conditions=([,STRING,aaa]|EQUAL_TO|[,STRING,bbb]|not=false|next=NONE)} template=efgh
+TEMPLATE (3,0) [abcd] (data=[ref,INTEGER,count]>[ref,STRING,random]) {conditions=([,STRING,aaa]|EQUAL_TO|[,STRING,bbb]|not=true|next=NONE)} template=The count is {} and random is {}
 
 CONDITION (4,0) [FAIL] [500,Internal Server Error] ([,STRING,123]|NOT_EQUAL_TO|[,STRING,456]|not=false|next=OR)
 

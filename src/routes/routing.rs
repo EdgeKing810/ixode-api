@@ -349,10 +349,13 @@ pub async fn create(data: Json<CreateRouteInput>, token: Token) -> Value {
             "route_create"
         },
         format!(
-            "A new route with id <{}> was created under pro[{}] by usr[{}]",
-            tmp_route.route_id, project_id, uid
+            "A route with id <{}> was {} under pro[{}] by usr[{}]",
+            tmp_route.route_id,
+            if *update { "updated" } else { "created" },
+            project_id,
+            uid
         ),
-        format!("/route/p/{}/r/{}", project_id, tmp_route.route_id),
+        format!("/routes/p/{}/r/v/{}", project_id, tmp_route.route_id),
     ) {
         return json!({"status": e.0, "message": e.1});
     }
