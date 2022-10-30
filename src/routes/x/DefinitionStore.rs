@@ -13,7 +13,6 @@ use super::resolver::{resolve_conditions, resolve_operations, resolve_ref_data};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DefinitionStore {
-    pub definition_type: String,
     pub block_name: String,
     pub ref_name: String,
     pub index: usize,
@@ -41,6 +40,13 @@ impl DefinitionStore {
         index: usize,
         current_index: usize,
     ) -> Result<(), (usize, String)> {
+        let mut actual_definition = DefinitionStore {
+            block_name: block_name.to_string(),
+            ref_name: String::from(""),
+            index: index,
+            data: DefinitionData::NULL,
+        };
+
         if block_name == "FETCH" {
             let fetch_block = current_route.flow.fetchers[index].clone();
 
@@ -84,15 +90,12 @@ impl DefinitionStore {
                 };
             }
 
-            all_definitions.push(DefinitionStore {
-                definition_type: String::from("DATA"),
+            actual_definition = DefinitionStore {
                 block_name: block_name.to_string(),
                 ref_name: fetch_block.local_name,
                 index: index,
                 data: DefinitionData::DATA(raw_pairs),
-            });
-
-            return Ok(());
+            };
         } else if block_name == "ASSIGN" {
             let assign_block = current_route.flow.assignments[index].clone();
             let res_condition = match resolve_conditions(
@@ -115,18 +118,15 @@ impl DefinitionStore {
                     current_index,
                 ) {
                     Ok(d) => {
-                        all_definitions.push(DefinitionStore {
-                            definition_type: String::from("STRING"),
+                        actual_definition = DefinitionStore {
                             block_name: block_name.to_string(),
                             ref_name: assign_block.local_name,
                             index: index,
                             data: d,
-                        });
+                        };
                     }
                     Err(e) => return Err(e),
                 }
-
-                return Ok(());
             }
         } else if block_name == "TEMPLATE" {
             let template_block = current_route.flow.templates[index].clone();
@@ -198,25 +198,55 @@ impl DefinitionStore {
                     }
                 }
 
-                all_definitions.push(DefinitionStore {
-                    definition_type: String::from("STRING"),
+                actual_definition = DefinitionStore {
                     block_name: block_name.to_string(),
                     ref_name: template_block.local_name,
                     index: index,
                     data: DefinitionData::STRING(final_string),
-                });
-
-                return Ok(());
+                };
             }
+        } else if block_name == "LOOP" {
+            let loop_block = current_route.flow.loops[index].clone();
+
+            let min = match resolve_ref_data(
+                &loop_block.min,
+                global_blocks,
+                all_definitions,
+                current_index,
+            ) {
+                Ok(d) => d,
+                Err(e) => {
+                    return Err(e);
+                }
+            };
+
+            actual_definition = DefinitionStore {
+                block_name: block_name.to_string(),
+                ref_name: loop_block.local_name,
+                index: index,
+                data: min,
+            };
         }
 
-        all_definitions.push(DefinitionStore {
-            definition_type: String::from("EMPTY"),
-            block_name: block_name.to_string(),
-            ref_name: String::from(""),
-            index: index,
-            data: DefinitionData::NULL,
-        });
+        if current_index >= all_definitions.len() {
+            all_definitions.push(actual_definition);
+        } else {
+            all_definitions[current_index] = actual_definition;
+        }
+
+        Ok(())
+    }
+
+    pub fn update_definition_value(
+        all_definitions: &mut Vec<DefinitionStore>,
+        position: usize,
+        data: DefinitionData,
+    ) -> Result<(), (usize, String)> {
+        if position > all_definitions.len() {
+            return Err((500, String::from("Error: Invalid position for definition")));
+        }
+
+        all_definitions[position].data = data;
 
         Ok(())
     }
@@ -238,15 +268,9 @@ impl DefinitionStore {
     pub fn to_string(all_definitions: &Vec<DefinitionStore>) -> Vec<String> {
         let mut definitions = Vec::<String>::new();
         for definition in all_definitions {
-            if definition.block_name == "TEMPLATE" {
-                println!("{:#?}", definition.data);
-            }
             definitions.push(format!(
-                "{}/{} {}: {}",
-                definition.block_name,
-                definition.definition_type,
-                definition.ref_name,
-                definition.index
+                "{}/{}: {}",
+                definition.block_name, definition.ref_name, definition.index
             ));
         }
         definitions

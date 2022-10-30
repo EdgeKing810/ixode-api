@@ -177,7 +177,7 @@ impl GlobalBlockOrder {
         let mut potential_result: Option<(usize, String)> = None;
 
         for (i, block) in global_blocks.iter().enumerate() {
-            if i >= current_index {
+            if i > current_index {
                 break;
             }
 

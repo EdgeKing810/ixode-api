@@ -9,3 +9,9 @@ pub mod definition_store;
 
 #[path = "Resolver.rs"]
 pub mod resolver;
+
+#[path = "SignalProcessor.rs"]
+pub mod signal_processor;
+
+#[path = "LoopProcessor.rs"]
+pub mod loop_processor;

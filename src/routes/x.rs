@@ -3,6 +3,7 @@ use rocket::post;
 use rocket::serde::json::json;
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::components::routing::mod_route::RouteComponent;
 use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
 
 // use crate::middlewares::paginate::paginate;
@@ -15,8 +16,10 @@ use rocket::Data;
 use serde_json::Value;
 
 use super::x_utils::complete_route::CompleteRoute;
-use super::x_utils::definition_store::DefinitionStore;
+use super::x_utils::definition_store::{DefinitionData, DefinitionStore};
 use super::x_utils::global_block_order::GlobalBlockOrder;
+use super::x_utils::loop_processor::LoopObject;
+use super::x_utils::signal_processor::{obtain_signal, Signal};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LocalParamData {
@@ -284,22 +287,157 @@ pub async fn handle<'r>(
     GlobalBlockOrder::process_blocks(&current_route, &mut global_blocks);
 
     let mut all_definitions = Vec::<DefinitionStore>::new();
+    let mut current_index = 0;
 
-    for (i, block) in global_blocks.iter().enumerate() {
-        if let Err(e) = DefinitionStore::add_definition(
+    loop {
+        let mut current_block = global_blocks[current_index].clone();
+
+        let current_loops = match LoopObject::detect_loops(&global_blocks, &current_block) {
+            Ok(l) => l,
+            Err(e) => {
+                return json!({
+                    "status": e.0,
+                    "message": e.1
+                });
+            }
+        };
+
+        for cur_loop in current_loops {
+            if current_index < cur_loop.start_index {
+                break;
+            } else if current_index >= cur_loop.end_index {
+                continue;
+            }
+
+            let mut completed = false;
+            let mut iterations = 0;
+
+            while !completed {
+                if iterations == 0 {
+                    if let Err(e) = process_block(
+                        &current_route,
+                        &mut all_definitions,
+                        &global_blocks,
+                        &global_blocks[cur_loop.start_index].clone(),
+                        &project_id,
+                        cur_loop.start_index,
+                    ) {
+                        return json!({
+                            "status": e.0,
+                            "message": e.1
+                        });
+                    }
+                } else {
+                    let current_loop_value: Option<DefinitionStore>;
+
+                    if let Some(val) = DefinitionStore::get_raw_definition(
+                        &all_definitions,
+                        &cur_loop.ref_var,
+                        current_block.index,
+                    ) {
+                        current_loop_value = Some(val);
+                    } else {
+                        break;
+                    }
+
+                    let updated_loop_value = match current_loop_value.unwrap().data {
+                        DefinitionData::INTEGER(i) => DefinitionData::INTEGER(i + 1),
+                        DefinitionData::FLOAT(f) => DefinitionData::FLOAT(f + 1.0),
+                        DefinitionData::STRING(s) => DefinitionData::STRING(s),
+                        _ => {
+                            break;
+                        }
+                    };
+
+                    match DefinitionStore::update_definition_value(
+                        &mut all_definitions,
+                        cur_loop.start_index,
+                        updated_loop_value,
+                    ) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            return json!({
+                                "status": e.0,
+                                "message": e.1
+                            });
+                        }
+                    }
+                }
+
+                completed = match LoopObject::check_completed(
+                    &global_blocks,
+                    &all_definitions,
+                    &current_route,
+                    &cur_loop,
+                ) {
+                    Ok(c) => c,
+                    Err(e) => {
+                        return json!({
+                            "status": e.0,
+                            "message": e.1
+                        });
+                    }
+                };
+
+                if completed {
+                    current_index = cur_loop.end_index;
+                    break;
+                } else {
+                    iterations += 1;
+                    if iterations > 12 {
+                        panic!();
+                    }
+                    for n in (cur_loop.start_index + 1)..cur_loop.end_index {
+                        match process_block(
+                            &current_route,
+                            &mut all_definitions,
+                            &global_blocks,
+                            &global_blocks[n].clone(),
+                            &project_id,
+                            n,
+                        ) {
+                            Ok(s) => {
+                                if s == Signal::CONTINUE {
+                                    break;
+                                } else if s == Signal::BREAK {
+                                    current_index = cur_loop.end_index;
+                                    completed = true;
+                                    break;
+                                }
+                            }
+                            Err(e) => {
+                                return json!({
+                                    "status": e.0,
+                                    "message": e.1
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if current_index >= global_blocks.len() {
+            break;
+        }
+
+        current_block = global_blocks[current_index].clone();
+
+        if let Err(e) = process_block(
             &current_route,
             &mut all_definitions,
             &global_blocks,
+            &current_block,
             &project_id,
-            &block.name,
-            block.index,
-            i + 1,
+            current_index,
         ) {
             return json!({
                 "status": e.0,
                 "message": e.1
             });
         }
+
+        current_index += 1;
     }
 
     return json!({
@@ -312,4 +450,46 @@ pub async fn handle<'r>(
         "global_block_order": GlobalBlockOrder::to_string(&global_blocks),
         "definitions": DefinitionStore::to_string(&all_definitions)
     });
+}
+
+pub fn process_block(
+    current_route: &RouteComponent,
+    all_definitions: &mut Vec<DefinitionStore>,
+    global_blocks: &Vec<GlobalBlockOrder>,
+    block: &GlobalBlockOrder,
+    project_id: &str,
+    current_index: usize,
+) -> Result<Signal, (usize, String)> {
+    if let Err(e) = DefinitionStore::add_definition(
+        current_route,
+        all_definitions,
+        global_blocks,
+        project_id,
+        &block.name,
+        block.index,
+        current_index,
+    ) {
+        return Err(e);
+    }
+
+    match obtain_signal(
+        current_route,
+        all_definitions,
+        global_blocks,
+        &block.name,
+        block.index,
+        current_index,
+    ) {
+        Ok(signal) => match signal {
+            Signal::FAIL(status, message) => {
+                return Err((status, message));
+            }
+            Signal::BREAK => Ok(Signal::BREAK),
+            Signal::CONTINUE => Ok(Signal::CONTINUE),
+            Signal::NONE => Ok(Signal::NONE),
+        },
+        Err(e) => {
+            return Err(e);
+        }
+    }
 }
