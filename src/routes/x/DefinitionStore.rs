@@ -3,6 +3,8 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::collection::Collection;
 use crate::components::data::Data;
 
+use serde_json::Value;
+
 use crate::components::routing::mod_route::RouteComponent;
 use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
 use crate::components::routing::submodules::sub_next_condition_type::NextConditionType;
@@ -10,6 +12,7 @@ use crate::components::routing::submodules::sub_operation::Operation;
 use crate::components::routing::submodules::sub_operation_type::OperationType;
 use crate::components::routing::submodules::sub_ref_data::RefData;
 use crate::data_converter::{convert_to_raw, RawPair};
+use crate::routes::x::LocalParamData;
 use crate::utils::{auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings};
 
 use super::global_block_order::GlobalBlockOrder;
@@ -43,6 +46,8 @@ impl DefinitionStore {
         block_name: &str,
         index: usize,
         current_index: usize,
+        actual_body: &Value,
+        all_params: &Vec<LocalParamData>,
     ) -> Result<(), (usize, String)> {
         let mut actual_definition = DefinitionStore {
             block_name: block_name.to_string(),
@@ -51,7 +56,164 @@ impl DefinitionStore {
             data: DefinitionData::NULL,
         };
 
-        if block_name == "FETCH" {
+        if block_name == "BODY" {
+            let current_body = current_route.body[index].clone();
+            if !actual_body.is_object() {
+                return Err((
+                    400,
+                    String::from("Error: Body data is not in object format"),
+                ));
+            }
+
+            let payload = actual_body[current_body.id.clone()].clone();
+            if payload.is_null() {
+                return Err((
+                    400,
+                    format!("Error: Body data field '{}' is absent", current_body.id),
+                ));
+            }
+
+            let data = match current_body.bdtype {
+                BodyDataType::STRING => {
+                    if !payload.is_string() {
+                        return Err((
+                            400,
+                            format!(
+                                "Error: Body data field '{}' is not in string format",
+                                current_body.id
+                            ),
+                        ));
+                    }
+                    DefinitionData::STRING(payload.as_str().unwrap().to_string())
+                }
+                BodyDataType::INTEGER => {
+                    if !payload.is_i64() {
+                        return Err((
+                            400,
+                            format!(
+                                "Error: Body data field '{}' is not in integer format",
+                                current_body.id
+                            ),
+                        ));
+                    }
+                    DefinitionData::INTEGER(payload.as_i64().unwrap() as isize)
+                }
+                BodyDataType::FLOAT => {
+                    if !payload.is_f64() {
+                        return Err((
+                            400,
+                            format!(
+                                "Error: Body data field '{}' is not in float format",
+                                current_body.id
+                            ),
+                        ));
+                    }
+                    DefinitionData::FLOAT(payload.as_f64().unwrap())
+                }
+                BodyDataType::BOOLEAN => {
+                    if !payload.is_boolean() {
+                        return Err((
+                            400,
+                            format!(
+                                "Error: Body data field '{}' is not in boolean format",
+                                current_body.id
+                            ),
+                        ));
+                    }
+                    DefinitionData::BOOLEAN(payload.as_bool().unwrap())
+                }
+                _ => {
+                    return Err((
+                        400,
+                        format!(
+                            "Error: Body data field '{}' is not in a valid format",
+                            current_body.id
+                        ),
+                    ));
+                }
+            };
+
+            actual_definition = DefinitionStore {
+                block_name: block_name.to_string(),
+                ref_name: current_body.id,
+                index: index,
+                data: data,
+            };
+        } else if block_name == "PARAM" {
+            if let Some(params) = &current_route.params {
+                if index < params.pairs.len() {
+                    let pair = params.pairs[index].clone();
+
+                    let mut current_value = String::new();
+                    for local_param_data in all_params {
+                        if local_param_data.key == pair.id {
+                            current_value = local_param_data.value.clone();
+                            break;
+                        }
+                    }
+
+                    if current_value.trim().len() > 0 {
+                        let data =
+                            match pair.bdtype {
+                                BodyDataType::STRING => DefinitionData::STRING(current_value),
+                                BodyDataType::INTEGER => {
+                                    DefinitionData::INTEGER(match current_value.parse::<isize>() {
+                                        Ok(value) => value,
+                                        Err(_) => return Err((
+                                            400,
+                                            format!(
+                                                "Error: Invalid integer value for parameter '{}'",
+                                                pair.id
+                                            ),
+                                        )),
+                                    })
+                                }
+                                BodyDataType::FLOAT => {
+                                    DefinitionData::FLOAT(match current_value.parse::<f64>() {
+                                        Ok(value) => value,
+                                        Err(_) => {
+                                            return Err((
+                                                400,
+                                                format!(
+                                                    "Invalid float value for parameter '{}'",
+                                                    pair.id
+                                                ),
+                                            ))
+                                        }
+                                    })
+                                }
+                                BodyDataType::BOOLEAN => {
+                                    DefinitionData::BOOLEAN(match current_value.parse::<bool>() {
+                                        Ok(value) => value,
+                                        Err(_) => {
+                                            return Err((
+                                                400,
+                                                format!(
+                                                    "Invalid boolean value for parameter '{}'",
+                                                    pair.id
+                                                ),
+                                            ))
+                                        }
+                                    })
+                                }
+                                _ => {
+                                    return Err((
+                                        400,
+                                        format!("Invalid data type for parameter '{}'", pair.id),
+                                    ))
+                                }
+                            };
+
+                        actual_definition = DefinitionStore {
+                            block_name: block_name.to_string(),
+                            ref_name: pair.id,
+                            index: index,
+                            data: data,
+                        };
+                    }
+                }
+            }
+        } else if block_name == "FETCH" {
             let fetch_block = current_route.flow.fetchers[index].clone();
 
             let mappings = auto_fetch_all_mappings();

@@ -76,41 +76,6 @@ CREATE (47,9) [notifications,newNotification,true] ([ref,BOOLEAN,status]|EQUAL_T
 RETURN (50,10) (error=[,INTEGER,0])>(message=[ref,STRING,responseMessage]) conditions=
 =============== DEFINE ROUTE ===============
 
-INIT ROUTE [konnect,fetch_users,/users/fetch/all]
-
-ADD BODY pair [uid,STRING]
-
-DEFINE PARAMS delimiter &
-ADD PARAMS pair [limit,INTEGER]
-ADD PARAMS pair [offset,INTEGER]
-START FLOW
-
-FETCH (0,0) [users,users]
-
-ASSIGN (1,0) [count] {([,INTEGER,13]|NONE|[,STRING,]|not=false|next=NONE)} 
-ASSIGN (2,0) [random] {([ref,INTEGER,count]|MULTIPLICATION|[,FLOAT,3.14]|not=false|next=NONE)} ([,INTEGER,1]|NOT_EQUAL_TO|[,STRING,2]|not=false|next=AND)
-
-TEMPLATE (3,0) [abcd] (data=[ref,INTEGER,count]>[ref,STRING,random]) {conditions=([,STRING,aaa]|EQUAL_TO|[,STRING,bbb]|not=true|next=NONE)} template=The count is {} and random is {}
-
-CONDITION (4,0) [FAIL] [500,Internal Server Error / for testing purposes] ([,STRING,123]|NOT_EQUAL_TO|[,STRING,456]|not=true|next=OR)
-
-LOOP (5,1) [my_first_loop] ([,INTEGER,0]|[,INTEGER,10])
-
-FILTER (6,1) [abcd,efgha,ijkl] ([ref,STRING,lol]|EQUAL_TO|not=true|next=AND)
-
-PROPERTY (7,1) [abcd] ([,STRING,lol]|apply=GET_PROPERTY>wow)
-
-FUNCTION (8,1) [my_shiny_new_func] {PAGINATE=[ref,STRING,offset]>[ref,STRING,limit]>[,STRING,aaa]>[ref,STRING,bbb]>[,STRING,ccc]}
-
-OBJECT (9,2) [test] (newNotification=[ref,STRING,profileID])>(content=[ref,STRING,notificationContent])
-
-UPDATE (10,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|NONE|not=true|next=AND)}%{efgh|([,BOOLEAN,wow]|EQUAL_TO|not=true|next=NONE)} (add=[ref,STRING,lol]) (set=[,BOOLEAN,false]) {filter=([ref,BOOLEAN,isFollowing]|NOT_EQUAL_TO|not=false|next=AND)} conditions=([ref,INTEGER,123]|LESS_THAN|[,INTEGER,count]|not=true|next=NONE)
-
-CREATE (11,2) [testing,woop_woop,true] ([ref,INTEGER,456]|NOT_EQUAL_TO|[,BOOLEAN,false]|not=true|next=NONE)
-
-RETURN (12,2) (success=[ref,BOOLEAN,true])>(data=[ref,OTHER,data]) conditions=([ref,BOOLEAN,finished]|EQUAL_TO|[,STRING,true]|not=false|next=OR)
-=============== DEFINE ROUTE ===============
-
 INIT ROUTE [konnect,fetch_users_loop,/users/fetch/loop]
 
 ADD BODY pair [uid,STRING]
@@ -147,3 +112,39 @@ LOOP (6,0) [y] ([ref,INTEGER,counter2]|[,INTEGER,10])
 
 
 
+
+=============== DEFINE ROUTE ===============
+
+INIT ROUTE [konnect,fetch_users,/users/fetch/all]
+
+ADD BODY pair [uid,STRING]
+
+DEFINE PARAMS delimiter &
+ADD PARAMS pair [limit,INTEGER]
+ADD PARAMS pair [offset,INTEGER]
+START FLOW
+
+FETCH (0,0) [users,users]
+
+ASSIGN (1,0) [count] {([,INTEGER,13]|NONE|[,STRING,]|not=false|next=NONE)} 
+ASSIGN (2,0) [random] {([ref,INTEGER,count]|MULTIPLICATION|[,FLOAT,3.14]|not=false|next=NONE)} ([,INTEGER,1]|NOT_EQUAL_TO|[,STRING,2]|not=false|next=AND)
+
+TEMPLATE (3,0) [abcd] (data=[ref,INTEGER,count]>[ref,STRING,random]) {conditions=([,STRING,aaa]|EQUAL_TO|[,STRING,bbb]|not=true|next=NONE)} template=The count is {} and random is {}
+
+CONDITION (4,0) [FAIL] [500,Internal Server Error / for testing purposes] ([,STRING,123]|NOT_EQUAL_TO|[,STRING,456]|not=true|next=OR)
+
+LOOP (5,1) [my_first_loop] ([,INTEGER,0]|[,INTEGER,10])
+
+FILTER (6,1) [abcd,users,uid] ([,STRING,lol]|EQUAL_TO|not=false|next=AND)
+
+PROPERTY (7,1) [abcd] ([,STRING,lol]|apply=GET_PROPERTY>wow)
+
+FUNCTION (8,1) [my_shiny_new_func] {PAGINATE=[ref,STRING,offset]>[ref,STRING,limit]>[,STRING,aaa]>[ref,STRING,bbb]>[,STRING,ccc]}
+
+OBJECT (9,2) [test] (newNotification=[ref,STRING,profileID])>(content=[ref,STRING,notificationContent])
+
+UPDATE (10,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|NONE|not=true|next=AND)}%{efgh|([,BOOLEAN,wow]|EQUAL_TO|not=true|next=NONE)} (add=[ref,STRING,lol]) (set=[,BOOLEAN,false]) {filter=([ref,BOOLEAN,isFollowing]|NOT_EQUAL_TO|not=false|next=AND)} conditions=([ref,INTEGER,123]|LESS_THAN|[,INTEGER,count]|not=true|next=NONE)
+
+CREATE (11,2) [testing,woop_woop,true] ([ref,INTEGER,456]|NOT_EQUAL_TO|[,BOOLEAN,false]|not=true|next=NONE)
+
+RETURN (12,2) (success=[ref,BOOLEAN,true])>(data=[ref,OTHER,data]) conditions=([ref,BOOLEAN,finished]|EQUAL_TO|[,STRING,true]|not=false|next=OR)

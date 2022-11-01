@@ -23,8 +23,8 @@ use super::x_utils::signal_processor::{obtain_signal, Signal};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LocalParamData {
-    key: String,
-    value: String,
+    pub key: String,
+    pub value: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -290,6 +290,10 @@ pub async fn handle<'r>(
     let mut current_index = 0;
 
     loop {
+        if current_index >= global_blocks.len() {
+            break;
+        }
+
         let mut current_block = global_blocks[current_index].clone();
 
         let current_loops = match LoopObject::detect_loops(&global_blocks, &current_block) {
@@ -321,6 +325,8 @@ pub async fn handle<'r>(
                         &global_blocks[cur_loop.start_index].clone(),
                         &project_id,
                         cur_loop.start_index,
+                        &body_data,
+                        &all_params,
                     ) {
                         return json!({
                             "status": e.0,
@@ -395,6 +401,8 @@ pub async fn handle<'r>(
                             &global_blocks[n].clone(),
                             &project_id,
                             n,
+                            &body_data,
+                            &all_params,
                         ) {
                             Ok(s) => {
                                 if s == Signal::CONTINUE {
@@ -430,6 +438,8 @@ pub async fn handle<'r>(
             &current_block,
             &project_id,
             current_index,
+            &body_data,
+            &all_params,
         ) {
             return json!({
                 "status": e.0,
@@ -439,6 +449,8 @@ pub async fn handle<'r>(
 
         current_index += 1;
     }
+
+    println!("All definitions: {:#?}", all_definitions);
 
     return json!({
         "status": 1000,
@@ -459,6 +471,8 @@ pub fn process_block(
     block: &GlobalBlockOrder,
     project_id: &str,
     current_index: usize,
+    actual_body: &Value,
+    all_params: &Vec<LocalParamData>,
 ) -> Result<Signal, (usize, String)> {
     if let Err(e) = DefinitionStore::add_definition(
         current_route,
@@ -468,6 +482,8 @@ pub fn process_block(
         &block.name,
         block.index,
         current_index,
+        actual_body,
+        all_params,
     ) {
         return Err(e);
     }
