@@ -193,7 +193,7 @@ impl FilterBlock {
 
         if !String::from(ref_property)
             .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
         {
             return Err((
                 400,

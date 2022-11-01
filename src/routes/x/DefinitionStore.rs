@@ -4,12 +4,16 @@ use crate::components::collection::Collection;
 use crate::components::data::Data;
 
 use crate::components::routing::mod_route::RouteComponent;
+use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
+use crate::components::routing::submodules::sub_next_condition_type::NextConditionType;
+use crate::components::routing::submodules::sub_operation::Operation;
+use crate::components::routing::submodules::sub_operation_type::OperationType;
 use crate::components::routing::submodules::sub_ref_data::RefData;
 use crate::data_converter::{convert_to_raw, RawPair};
 use crate::utils::{auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings};
 
 use super::global_block_order::GlobalBlockOrder;
-use super::resolver::{resolve_conditions, resolve_operations, resolve_ref_data};
+use super::resolver::{resolve_conditions, resolve_operations, resolve_raw_data, resolve_ref_data};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DefinitionStore {
@@ -225,6 +229,208 @@ impl DefinitionStore {
                 ref_name: loop_block.local_name,
                 index: index,
                 data: min,
+            };
+        } else if block_name == "FILTER" {
+            let filter_block = current_route.flow.filters[index].clone();
+            let current_ref_data = match resolve_raw_data(
+                &filter_block.ref_var,
+                &global_blocks,
+                &all_definitions,
+                current_index,
+            ) {
+                Ok(rd) => rd,
+                Err(e) => {
+                    return Err(e);
+                }
+            };
+
+            let current_data = match current_ref_data {
+                DefinitionData::DATA(d) => d,
+                _ => {
+                    return Err((
+                        500,
+                        format!("Error: Invalid data type for '{}'", filter_block.ref_var),
+                    ));
+                }
+            };
+
+            let mut found_property = false;
+            let broken_property = filter_block.ref_property.split(".").collect::<Vec<&str>>();
+            if broken_property.len() > 2 || broken_property[0].trim().len() < 1 {
+                return Err((
+                    500,
+                    format!(
+                        "Error: Invalid property '{}' in filter",
+                        filter_block.ref_property
+                    ),
+                ));
+            }
+
+            for raw_pair in current_data.iter() {
+                if broken_property.len() < 2 {
+                    for structure in raw_pair.structures.iter() {
+                        if structure.id == broken_property[0] {
+                            found_property = true;
+                            break;
+                        }
+                    }
+                } else {
+                    for custom_structure in raw_pair.custom_structures.iter() {
+                        if custom_structure.id == broken_property[0] {
+                            for structure in custom_structure.structures.iter() {
+                                if structure.id == broken_property[1] {
+                                    found_property = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if found_property {
+                            break;
+                        }
+                    }
+                }
+
+                if found_property {
+                    break;
+                }
+            }
+
+            if !found_property {
+                return Err((
+                    500,
+                    format!(
+                        "Error: Property '{}' not found in '{}'",
+                        filter_block.ref_property, filter_block.ref_var
+                    ),
+                ));
+            }
+
+            let mut final_current_data = Vec::<RawPair>::new();
+            let mut current_definition: DefinitionData;
+
+            for raw_pair in current_data.iter() {
+                if filter_block.filters.len() < 1 {
+                    final_current_data.push(raw_pair.clone());
+                }
+
+                let mut current_value = String::new();
+                if broken_property.len() < 2 {
+                    for structure in raw_pair.structures.iter() {
+                        if structure.id == broken_property[0] {
+                            current_value = structure.value.clone();
+                            break;
+                        }
+                    }
+                } else {
+                    for custom_structure in raw_pair.custom_structures.iter() {
+                        if custom_structure.id == broken_property[0] {
+                            for structure in custom_structure.structures.iter() {
+                                if structure.id == broken_property[1] {
+                                    current_value = structure.value.clone();
+                                    break;
+                                }
+                            }
+                        }
+
+                        if current_value.len() > 0 {
+                            break;
+                        }
+                    }
+                }
+
+                if current_value.len() < 1 {
+                    continue;
+                }
+
+                current_definition = DefinitionData::STRING(current_value);
+                let mut current_operations: Vec<Operation>;
+                let mut current_err: (usize, String) = (0, String::new());
+
+                for filter in filter_block.filters.iter() {
+                    let mut rtype = BodyDataType::to(filter.right.rtype.clone());
+                    if rtype == String::from("OTHER") {
+                        rtype = String::from("STRING");
+                    }
+
+                    let data = match current_definition {
+                        DefinitionData::STRING(s) => s,
+                        DefinitionData::INTEGER(i) => i.to_string(),
+                        DefinitionData::FLOAT(f) => f.to_string(),
+                        DefinitionData::BOOLEAN(b) => b.to_string(),
+                        _ => {
+                            current_definition = DefinitionData::UNDEFINED;
+                            current_err = (500, String::from("Error: Invalid result data type while processing filter operations"));
+                            break;
+                        }
+                    };
+
+                    match RefData::create(false, &rtype, &data) {
+                        Ok(left) => {
+                            current_operations = Vec::<Operation>::new();
+                            Operation::create(
+                                &mut current_operations,
+                                left,
+                                filter.right.clone(),
+                                &OperationType::to(filter.operation_type.clone()),
+                                filter.not,
+                                &NextConditionType::to(filter.next.clone()),
+                            );
+
+                            match resolve_operations(
+                                &current_operations,
+                                global_blocks,
+                                all_definitions,
+                                current_index,
+                            ) {
+                                Ok(d) => {
+                                    current_definition = d;
+                                }
+                                Err(e) => {
+                                    current_definition = DefinitionData::UNDEFINED;
+                                    current_err = e;
+                                    break;
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            current_definition = DefinitionData::UNDEFINED;
+                            current_err = e;
+                            break;
+                        }
+                    }
+                }
+
+                if current_definition == DefinitionData::UNDEFINED && current_err.0 > 0 {
+                    return Err((
+                        current_err.0,
+                        format!(
+                            "Error: Failed processing Filter: '{}'",
+                            current_err.1.split("Error: ").collect::<Vec<&str>>()[1]
+                        ),
+                    ));
+                } else {
+                    match current_definition {
+                        DefinitionData::BOOLEAN(b) => {
+                            if b {
+                                final_current_data.push(raw_pair.clone());
+                            }
+                        }
+                        _ => {
+                            return Err((
+                                500,
+                                format!("Error: Invalid data type for last operation in Filter"),
+                            ));
+                        }
+                    }
+                }
+            }
+
+            actual_definition = DefinitionStore {
+                block_name: block_name.to_string(),
+                ref_name: filter_block.local_name,
+                index: index,
+                data: DefinitionData::DATA(final_current_data),
             };
         }
 

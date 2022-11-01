@@ -36,7 +36,7 @@ pub fn convert_from_raw(
     raw_pair: &RawPair,
     updating: bool,
 ) -> Result<String, (usize, String)> {
-    println!("{:#?}", raw_pair);
+    // println!("{:#?}", raw_pair);
 
     let structure_pairs: Vec<StructurePair> = raw_pair.structures.clone();
     let custom_structure_pairs: Vec<CustomStructurePair> = raw_pair.custom_structures.clone();

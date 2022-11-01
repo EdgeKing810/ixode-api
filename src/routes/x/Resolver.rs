@@ -9,6 +9,35 @@ use crate::components::routing::submodules::sub_ref_data::RefData;
 use super::definition_store::{DefinitionData, DefinitionStore};
 use super::global_block_order::GlobalBlockOrder;
 
+pub fn resolve_raw_data(
+    name: &str,
+    global_blocks: &Vec<GlobalBlockOrder>,
+    all_definitions: &Vec<DefinitionStore>,
+    current_index: usize,
+) -> Result<DefinitionData, (usize, String)> {
+    let value: DefinitionData;
+
+    match GlobalBlockOrder::get_ref_index(global_blocks, name, current_index) {
+        Ok(ri) => {
+            let current_definition =
+                DefinitionStore::get_raw_definition(all_definitions, name, ri.0);
+
+            if let Some(def) = current_definition {
+                value = def.data.clone();
+            } else {
+                value = DefinitionData::NULL;
+            }
+        }
+        Err(_) => value = DefinitionData::UNDEFINED,
+    }
+
+    if value == DefinitionData::UNDEFINED {
+        return Err((500, format!("Error: '{}' is undefined", name)));
+    }
+
+    Ok(value)
+}
+
 pub fn resolve_ref_data(
     rdata: &RefData,
     global_blocks: &Vec<GlobalBlockOrder>,
@@ -18,23 +47,10 @@ pub fn resolve_ref_data(
     let mut value = DefinitionData::STRING(rdata.data.clone());
 
     if rdata.ref_var {
-        match GlobalBlockOrder::get_ref_index(global_blocks, &rdata.data, current_index) {
-            Ok(ri) => {
-                let current_definition =
-                    DefinitionStore::get_raw_definition(all_definitions, &rdata.data, ri.0);
-
-                if let Some(def) = current_definition {
-                    value = def.data.clone();
-                } else {
-                    value = DefinitionData::NULL;
-                }
-            }
-            Err(_) => value = DefinitionData::UNDEFINED,
-        }
-    }
-
-    if value == DefinitionData::UNDEFINED {
-        return Err((500, format!("Error: '{}' is undefined", rdata.data)));
+        value = match resolve_raw_data(&rdata.data, global_blocks, all_definitions, current_index) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
     }
 
     match rdata.rtype {
