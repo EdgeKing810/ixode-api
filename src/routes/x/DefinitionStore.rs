@@ -34,6 +34,7 @@ pub enum DefinitionData {
     STRING(String),
     INTEGER(isize),
     FLOAT(f64),
+    ARRAY(Vec<DefinitionData>),
     DATA(Vec<RawPair>),
 }
 
@@ -122,6 +123,32 @@ impl DefinitionStore {
                     }
                     DefinitionData::BOOLEAN(payload.as_bool().unwrap())
                 }
+                BodyDataType::ARRAY => {
+                    if !payload.is_array() {
+                        return Err((
+                            400,
+                            format!(
+                                "Error: Body data field '{}' is not in boolean format",
+                                current_body.id
+                            ),
+                        ));
+                    }
+
+                    let mut all_definitions = Vec::<DefinitionData>::new();
+                    for v in payload.as_array().unwrap() {
+                        if v.is_string() {
+                            all_definitions.push(DefinitionData::STRING(v.as_str().unwrap().to_string()));
+                        } else if v.is_i64() {
+                            all_definitions.push(DefinitionData::INTEGER(v.as_i64().unwrap() as isize));
+                        } else if v.is_f64() {
+                            all_definitions.push(DefinitionData::FLOAT(v.as_f64().unwrap()));
+                        } else if v.is_boolean() {
+                            all_definitions.push(DefinitionData::BOOLEAN(v.as_bool().unwrap()));
+                        }
+                    } 
+
+                    DefinitionData::ARRAY(all_definitions)
+                }
                 _ => {
                     return Err((
                         400,
@@ -153,56 +180,73 @@ impl DefinitionStore {
                     }
 
                     if current_value.trim().len() > 0 {
-                        let data =
-                            match pair.bdtype {
-                                BodyDataType::STRING => DefinitionData::STRING(current_value),
-                                BodyDataType::INTEGER => {
-                                    DefinitionData::INTEGER(match current_value.parse::<isize>() {
-                                        Ok(value) => value,
-                                        Err(_) => return Err((
+                        let data = match pair.bdtype {
+                            BodyDataType::STRING => DefinitionData::STRING(current_value),
+                            BodyDataType::INTEGER => {
+                                DefinitionData::INTEGER(match current_value.parse::<isize>() {
+                                    Ok(value) => value,
+                                    Err(_) => {
+                                        return Err((
                                             400,
                                             format!(
                                                 "Error: Invalid integer value for parameter '{}'",
                                                 pair.id
                                             ),
-                                        )),
-                                    })
+                                        ))
+                                    }
+                                })
+                            }
+                            BodyDataType::FLOAT => {
+                                DefinitionData::FLOAT(match current_value.parse::<f64>() {
+                                    Ok(value) => value,
+                                    Err(_) => {
+                                        return Err((
+                                            400,
+                                            format!(
+                                                "Invalid float value for parameter '{}'",
+                                                pair.id
+                                            ),
+                                        ))
+                                    }
+                                })
+                            }
+                            BodyDataType::BOOLEAN => {
+                                DefinitionData::BOOLEAN(match current_value.parse::<bool>() {
+                                    Ok(value) => value,
+                                    Err(_) => {
+                                        return Err((
+                                            400,
+                                            format!(
+                                                "Invalid boolean value for parameter '{}'",
+                                                pair.id
+                                            ),
+                                        ))
+                                    }
+                                })
+                            }
+                            BodyDataType::ARRAY => {
+                                let broken_current_value = current_value.split(",");
+                                let mut all_definitions = Vec::<DefinitionData>::new();
+                                for bc_val in broken_current_value {
+                                    if bc_val.trim().parse::<isize>().is_ok() {
+                                        all_definitions.push(DefinitionData::INTEGER(bc_val.trim().parse::<isize>().unwrap()));
+                                    } else if bc_val.trim().parse::<f64>().is_ok() {
+                                        all_definitions.push(DefinitionData::FLOAT(bc_val.trim().parse::<f64>().unwrap()));
+                                    } else if bc_val.trim().parse::<bool>().is_ok() {
+                                        all_definitions.push(DefinitionData::BOOLEAN(bc_val.trim().parse::<bool>().unwrap()));
+                                    } else {
+                                        all_definitions.push(DefinitionData::STRING(bc_val.trim().to_string()));
+                                    }
                                 }
-                                BodyDataType::FLOAT => {
-                                    DefinitionData::FLOAT(match current_value.parse::<f64>() {
-                                        Ok(value) => value,
-                                        Err(_) => {
-                                            return Err((
-                                                400,
-                                                format!(
-                                                    "Invalid float value for parameter '{}'",
-                                                    pair.id
-                                                ),
-                                            ))
-                                        }
-                                    })
-                                }
-                                BodyDataType::BOOLEAN => {
-                                    DefinitionData::BOOLEAN(match current_value.parse::<bool>() {
-                                        Ok(value) => value,
-                                        Err(_) => {
-                                            return Err((
-                                                400,
-                                                format!(
-                                                    "Invalid boolean value for parameter '{}'",
-                                                    pair.id
-                                                ),
-                                            ))
-                                        }
-                                    })
-                                }
-                                _ => {
-                                    return Err((
-                                        400,
-                                        format!("Invalid data type for parameter '{}'", pair.id),
-                                    ))
-                                }
-                            };
+                                DefinitionData::ARRAY(all_definitions)
+                            }
+                            _ => {
+                                return Err((
+                                    400,
+                                    format!("Invalid data type for parameter '{}'", pair.id),
+                                ))
+                            }
+                        };
 
                         actual_definition = DefinitionStore {
                             block_name: block_name.to_string(),
@@ -354,6 +398,27 @@ impl DefinitionStore {
                         }
                         DefinitionData::BOOLEAN(b) => {
                             final_string = format!("{}{}{}", final_string, str, b);
+                        }
+                        DefinitionData::ARRAY(a) => {
+                            let mut current_str = String::new();
+                            for current in a {
+                                match current {
+                                    DefinitionData::STRING(s) => {
+                                        current_str = format!("{}{}", current_str, s);
+                                    }
+                                    DefinitionData::INTEGER(i) => {
+                                        current_str = format!("{}{}", current_str, i);
+                                    }
+                                    DefinitionData::FLOAT(f) => {
+                                        current_str = format!("{}{}", current_str, f);
+                                    }
+                                    DefinitionData::BOOLEAN(b) => {
+                                        current_str = format!("{}{}", current_str, b);
+                                    }
+                                    _ => {}
+                                }
+                            }
+                            final_string = format!("{}{}{}", final_string, str, current_str);
                         }
                         _ => {
                             return Err((

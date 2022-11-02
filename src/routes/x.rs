@@ -79,6 +79,12 @@ pub fn validate_body_data(
         } else {
             return Err((400, format!("Error: {} should be a number", id)));
         }
+    } else if bdtype == BodyDataType::ARRAY {
+        if let Value::Array(_) = data {
+            return Ok(data);
+        } else {
+            return Err((400, format!("Error: {} should be a number", id)));
+        }
     } else if bdtype == BodyDataType::BOOLEAN {
         if let Value::Bool(_) = data {
             return Ok(data);
@@ -349,7 +355,6 @@ pub async fn handle<'r>(
                     let updated_loop_value = match current_loop_value.unwrap().data {
                         DefinitionData::INTEGER(i) => DefinitionData::INTEGER(i + 1),
                         DefinitionData::FLOAT(f) => DefinitionData::FLOAT(f + 1.0),
-                        DefinitionData::STRING(s) => DefinitionData::STRING(s),
                         _ => {
                             break;
                         }
@@ -449,8 +454,6 @@ pub async fn handle<'r>(
 
         current_index += 1;
     }
-
-    println!("All definitions: {:#?}", all_definitions);
 
     return json!({
         "status": 1000,

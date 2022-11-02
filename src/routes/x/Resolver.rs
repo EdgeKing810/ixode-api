@@ -169,6 +169,42 @@ pub fn resolve_ref_data(
                 return Err((500, format!("Error: '{}' is not a string", rdata.data)));
             }
         },
+        BodyDataType::ARRAY => match value {
+            DefinitionData::ARRAY(_) => {
+                return Ok(value.clone());
+            }
+            DefinitionData::STRING(s) => {
+                let mut all_definitions = Vec::<DefinitionData>::new();
+                for v in s.split(",") {
+                    if v.trim().parse::<isize>().is_ok() {
+                        all_definitions.push(DefinitionData::INTEGER(v.trim().parse::<isize>().unwrap() as isize));
+                    } else if v.trim().parse::<f64>().is_ok() {
+                        all_definitions.push(DefinitionData::FLOAT(v.trim().parse::<f64>().unwrap()));
+                    } else if v.trim().parse::<bool>().is_ok() {
+                        all_definitions.push(DefinitionData::BOOLEAN(v.trim().parse::<bool>().unwrap()));
+                    } else {
+                        all_definitions.push(DefinitionData::STRING(v.to_string()));
+                    }
+                } 
+
+                return Ok(DefinitionData::ARRAY(all_definitions));
+            }
+            DefinitionData::INTEGER(i) => {
+                return Ok(DefinitionData::ARRAY(vec![DefinitionData::INTEGER(i)]));
+            }
+            DefinitionData::FLOAT(f) => {
+                return Ok(DefinitionData::ARRAY(vec![DefinitionData::FLOAT(f)]));
+            }
+            DefinitionData::BOOLEAN(b) => {
+                return Ok(DefinitionData::ARRAY(vec![DefinitionData::BOOLEAN(b)]));
+            }
+            _ => {
+                return Err((
+                    500,
+                    format!("Error: '{}' is not an array", rdata.data),
+                ));
+            }
+        },
     }
 }
 
@@ -243,6 +279,9 @@ pub fn resolve_conditions(
                 (DefinitionData::STRING(l), DefinitionData::STRING(r)) => {
                     local_eval = l.len() > r.len();
                 }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = l.len() > r.len();
+                }
                 _ => {
                     return Err((
                         500,
@@ -279,6 +318,9 @@ pub fn resolve_conditions(
                     local_eval = l as usize >= r.len();
                 }
                 (DefinitionData::STRING(l), DefinitionData::STRING(r)) => {
+                    local_eval = l.len() >= r.len();
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
                     local_eval = l.len() >= r.len();
                 }
                 _ => {
@@ -319,6 +361,9 @@ pub fn resolve_conditions(
                 (DefinitionData::STRING(l), DefinitionData::STRING(r)) => {
                     local_eval = l.len() < r.len();
                 }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = l.len() < r.len();
+                }
                 _ => {
                     return Err((
                         500,
@@ -355,6 +400,9 @@ pub fn resolve_conditions(
                     local_eval = (l as usize) <= r.len();
                 }
                 (DefinitionData::STRING(l), DefinitionData::STRING(r)) => {
+                    local_eval = l.len() <= r.len();
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
                     local_eval = l.len() <= r.len();
                 }
                 _ => {
@@ -483,6 +531,20 @@ pub fn resolve_operations(
                 (DefinitionData::BOOLEAN(l), DefinitionData::STRING(r)) => {
                     local_eval = DefinitionData::BOOLEAN(l && (r.trim().to_lowercase() == "true"));
                 }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
+                    if l.len() == r.len() {
+                        let mut equal = true;
+                        for i in 0..l.len() {
+                            if l[i] != r[i] {
+                                equal = false;
+                                break;
+                            }
+                        }
+                        local_eval = DefinitionData::BOOLEAN(equal);
+                    } else {
+                        local_eval = DefinitionData::BOOLEAN(false);
+                    }
+                }
                 _ => {
                     return Err((
                         500,
@@ -541,6 +603,20 @@ pub fn resolve_operations(
                 }
                 (DefinitionData::BOOLEAN(l), DefinitionData::STRING(r)) => {
                     local_eval = DefinitionData::BOOLEAN(l != (r.trim().to_lowercase() == "true"));
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
+                    if l.len() == r.len() {
+                        let mut equal = true;
+                        for i in 0..l.len() {
+                            if l[i] != r[i] {
+                                equal = false;
+                                break;
+                            }
+                        }
+                        local_eval = DefinitionData::BOOLEAN(!equal);
+                    } else {
+                        local_eval = DefinitionData::BOOLEAN(true);
+                    }
                 }
                 _ => {
                     return Err((
@@ -732,6 +808,11 @@ pub fn resolve_operations(
                 (DefinitionData::STRING(l), DefinitionData::STRING(r)) => {
                     local_eval = DefinitionData::STRING(format!("{}{}", l, r));
                 }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
+                    let mut new_array = l.clone();
+                    new_array.append(&mut r.clone());
+                    local_eval = DefinitionData::ARRAY(new_array);
+                }
                 _ => {
                     return Err((
                         500,
@@ -837,6 +918,105 @@ pub fn resolve_operations(
             OperationType::INCLUDES => match (left, right) {
                 (DefinitionData::STRING(l), DefinitionData::STRING(r)) => {
                     local_eval = DefinitionData::BOOLEAN(l.contains(&r));
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(true);
+                    for item in r {
+                        if !l.contains(&item) {
+                            local_eval = DefinitionData::BOOLEAN(false);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::STRING(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in l {
+                        if item == DefinitionData::STRING(r.clone()) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::STRING(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in r {
+                        if item == DefinitionData::STRING(l.clone()) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::INTEGER(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in l {
+                        if item == DefinitionData::INTEGER(r) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::INTEGER(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in r {
+                        if item == DefinitionData::INTEGER(l) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::FLOAT(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in l {
+                        if item == DefinitionData::FLOAT(r) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::FLOAT(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in r {
+                        if item == DefinitionData::FLOAT(l) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::BOOLEAN(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in l {
+                        if item == DefinitionData::BOOLEAN(r) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::BOOLEAN(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in r {
+                        if item == DefinitionData::BOOLEAN(l) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::ARRAY(l), DefinitionData::DATA(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in l {
+                        if item == DefinitionData::DATA(r.clone()) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
+                }
+                (DefinitionData::DATA(l), DefinitionData::ARRAY(r)) => {
+                    local_eval = DefinitionData::BOOLEAN(false);
+                    for item in r {
+                        if item == DefinitionData::DATA(l.clone()) {
+                            local_eval = DefinitionData::BOOLEAN(true);
+                            break;
+                        }
+                    }
                 }
                 _ => {
                     return Err((

@@ -8,6 +8,7 @@ pub enum BodyDataType {
     FLOAT,
     STRING,
     BOOLEAN,
+    ARRAY,
     OTHER,
 }
 
@@ -24,6 +25,7 @@ impl fmt::Display for BodyDataType {
             BodyDataType::FLOAT => "FLOAT",
             BodyDataType::STRING => "STRING",
             BodyDataType::BOOLEAN => "BOOLEAN",
+            BodyDataType::ARRAY => "ARRAY",
             BodyDataType::OTHER => "OTHER",
         };
 
@@ -38,6 +40,7 @@ impl BodyDataType {
             BodyDataType::FLOAT => "FLOAT".to_string(),
             BodyDataType::STRING => "STRING".to_string(),
             BodyDataType::BOOLEAN => "BOOLEAN".to_string(),
+            BodyDataType::ARRAY => "ARRAY".to_string(),
             BodyDataType::OTHER => "OTHER".to_string(),
         };
     }
@@ -48,6 +51,7 @@ impl BodyDataType {
             "FLOAT" => BodyDataType::FLOAT,
             "STRING" => BodyDataType::STRING,
             "BOOLEAN" => BodyDataType::BOOLEAN,
+            "ARRAY" => BodyDataType::ARRAY,
             "OTHER" => BodyDataType::OTHER,
             _ => BodyDataType::OTHER,
         };
