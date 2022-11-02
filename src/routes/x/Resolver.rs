@@ -177,15 +177,19 @@ pub fn resolve_ref_data(
                 let mut all_definitions = Vec::<DefinitionData>::new();
                 for v in s.split(",") {
                     if v.trim().parse::<isize>().is_ok() {
-                        all_definitions.push(DefinitionData::INTEGER(v.trim().parse::<isize>().unwrap() as isize));
+                        all_definitions.push(DefinitionData::INTEGER(
+                            v.trim().parse::<isize>().unwrap() as isize,
+                        ));
                     } else if v.trim().parse::<f64>().is_ok() {
-                        all_definitions.push(DefinitionData::FLOAT(v.trim().parse::<f64>().unwrap()));
+                        all_definitions
+                            .push(DefinitionData::FLOAT(v.trim().parse::<f64>().unwrap()));
                     } else if v.trim().parse::<bool>().is_ok() {
-                        all_definitions.push(DefinitionData::BOOLEAN(v.trim().parse::<bool>().unwrap()));
+                        all_definitions
+                            .push(DefinitionData::BOOLEAN(v.trim().parse::<bool>().unwrap()));
                     } else {
                         all_definitions.push(DefinitionData::STRING(v.to_string()));
                     }
-                } 
+                }
 
                 return Ok(DefinitionData::ARRAY(all_definitions));
             }
@@ -199,10 +203,7 @@ pub fn resolve_ref_data(
                 return Ok(DefinitionData::ARRAY(vec![DefinitionData::BOOLEAN(b)]));
             }
             _ => {
-                return Err((
-                    500,
-                    format!("Error: '{}' is not an array", rdata.data),
-                ));
+                return Err((500, format!("Error: '{}' is not an array", rdata.data)));
             }
         },
     }
