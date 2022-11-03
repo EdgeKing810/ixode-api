@@ -2,9 +2,13 @@ use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
 use crate::components::data::Data;
+use crate::components::routing::submodules::sub_function_list::FunctionList;
 use crate::components::routing::submodules::sub_property_apply::PropertyApply;
+use crate::middlewares::paginate::paginate;
 
+use chrono::prelude::*;
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::components::routing::mod_route::RouteComponent;
 use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
@@ -311,7 +315,6 @@ impl DefinitionStore {
                 };
             }
 
-
             actual_definition = DefinitionStore {
                 block_name: block_name.to_string(),
                 ref_name: fetch_block.local_name,
@@ -508,7 +511,9 @@ impl DefinitionStore {
             for raw_pair_data in current_data.iter() {
                 let raw_pair = match raw_pair_data {
                     DefinitionData::DATA(d) => d,
-                    _ => {continue;}
+                    _ => {
+                        continue;
+                    }
                 };
 
                 if broken_property.len() < 2 {
@@ -556,7 +561,9 @@ impl DefinitionStore {
             for raw_pair_data in current_data.iter() {
                 let raw_pair = match raw_pair_data {
                     DefinitionData::DATA(d) => d,
-                    _ => {continue;}
+                    _ => {
+                        continue;
+                    }
                 };
 
                 if filter_block.filters.len() < 1 {
@@ -851,7 +858,9 @@ impl DefinitionStore {
                             for raw_pair_data in a.iter() {
                                 let raw_pair = match raw_pair_data {
                                     DefinitionData::DATA(d) => d,
-                                    _ => {continue;}
+                                    _ => {
+                                        continue;
+                                    }
                                 };
 
                                 if broken_property.len() < 2 {
@@ -917,6 +926,129 @@ impl DefinitionStore {
             actual_definition = DefinitionStore {
                 block_name: block_name.to_string(),
                 ref_name: property_block.local_name,
+                index: index,
+                data: final_data,
+            };
+        } else if block_name == "FUNCTION" {
+            let function_block = current_route.flow.functions[index].clone();
+
+            let final_data: DefinitionData;
+
+            match function_block.func.id {
+                FunctionList::GENERATE_TIMESTAMP => {
+                    let timestamp = Utc::now().to_string();
+                    final_data = DefinitionData::STRING(timestamp);
+                }
+                FunctionList::V4 => {
+                    let uuid = Uuid::new_v4().to_string();
+                    final_data = DefinitionData::STRING(uuid);
+                }
+                FunctionList::PAGINATE => {
+                    if function_block.func.params.len() < 1 {
+                        return Err((
+                            500,
+                            format!("Error: Invalid number of parameters for PAGINATE function"),
+                        ));
+                    }
+
+                    let data_to_paginate = match resolve_ref_data(
+                        &function_block.func.params[0],
+                        global_blocks,
+                        all_definitions,
+                        current_index,
+                    ) {
+                        Ok(d) => match d {
+                            DefinitionData::ARRAY(a) => a,
+                            _ => {
+                                return Err((
+                                    500,
+                                    format!("Error: Invalid data type for the 'data' param of the PAGINATE function"),
+                                ));
+                            }
+                        },
+                        Err(e) => {
+                            return Err(e);
+                        }
+                    };
+
+                    let limit = if function_block.func.params.len() > 1 {
+                        match resolve_ref_data(
+                            &function_block.func.params[1],
+                            global_blocks,
+                            all_definitions,
+                            current_index,
+                        ) {
+                            Ok(d) => match d {
+                                DefinitionData::INTEGER(i) => i as usize,
+                                DefinitionData::FLOAT(f) => f as usize,
+                                DefinitionData::STRING(s) => {
+                                    if let Ok(i) = s.parse::<usize>() {
+                                        i
+                                    } else {
+                                        return Err((
+                                            500,
+                                            format!("Error: Invalid data type for the 'limit' param of the PAGINATE function"),
+                                        ));
+                                    }
+                                }
+                                _ => {
+                                    return Err((
+                                        500,
+                                        format!("Error: Invalid data type for the 'limit' param of the PAGINATE function"),
+                                    ));
+                                }
+                            },
+                            Err(e) => {
+                                return Err(e);
+                            }
+                        }
+                    } else {
+                        10
+                    };
+
+                    let offset = if function_block.func.params.len() > 2 {
+                        match resolve_ref_data(
+                            &function_block.func.params[2],
+                            global_blocks,
+                            all_definitions,
+                            current_index,
+                        ) {
+                            Ok(d) => match d {
+                                DefinitionData::INTEGER(i) => i as usize,
+                                DefinitionData::FLOAT(f) => f as usize,
+                                DefinitionData::STRING(s) => {
+                                    if let Ok(i) = s.parse::<usize>() {
+                                        i
+                                    } else {
+                                        return Err((
+                                            500,
+                                            format!("Error: Invalid data type for the 'offset' param of the PAGINATE function"),
+                                        ));
+                                    }
+                                }
+                                _ => {
+                                    return Err((
+                                        500,
+                                        format!("Error: Invalid data type for the 'offset' param of the PAGINATE function"),
+                                    ));
+                                }
+                            },
+                            Err(e) => {
+                                return Err(e);
+                            }
+                        }
+                    } else {
+                        0
+                    };
+
+                    let paginated_data = paginate(data_to_paginate, limit, offset);
+                    final_data = DefinitionData::ARRAY(paginated_data);
+                }
+            }
+
+            actual_definition = DefinitionStore {
+                block_name: block_name.to_string(),
+                ref_name: function_block.local_name,
                 index: index,
                 data: final_data,
             };

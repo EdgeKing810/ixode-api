@@ -384,7 +384,10 @@ pub fn stype_validator(
         }
     } else if stype == Type::INTEGER {
         if let Err(_) = data.parse::<isize>() {
-            return Err((400, format!("Error: Value '{}' is an invalid integer", data)));
+            return Err((
+                400,
+                format!("Error: Value '{}' is an invalid integer", data),
+            ));
         }
     } else if stype == Type::FLOAT {
         if let Err(_) = data.parse::<f64>() {
@@ -408,7 +411,7 @@ pub fn stype_validator(
                 format!("Error: Value '{}' is an invalid datetime", data),
             ));
         }
-    }else if stype == Type::MEDIA {
+    } else if stype == Type::MEDIA {
         let mappings = auto_fetch_all_mappings();
         let api_url = get_config_value(&mappings, "API_URL", "none").to_lowercase();
 
