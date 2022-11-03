@@ -382,23 +382,21 @@ pub fn stype_validator(
                 format!("Error: Value '{}' is an invalid email address", data),
             ));
         }
-    }
-
-    if stype == Type::NUMBER {
-        if let Err(_) = data.parse::<f64>() {
-            return Err((400, format!("Error: Value '{}' is an invalid number", data)));
+    } else if stype == Type::INTEGER {
+        if let Err(_) = data.parse::<isize>() {
+            return Err((400, format!("Error: Value '{}' is an invalid integer", data)));
         }
-    }
-
-    if stype == Type::DATE {
+    } else if stype == Type::FLOAT {
+        if let Err(_) = data.parse::<f64>() {
+            return Err((400, format!("Error: Value '{}' is an invalid float", data)));
+        }
+    } else if stype == Type::DATE {
         let date_regex = Regex::new(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$").unwrap();
 
         if !date_regex.is_match(data) {
             return Err((400, format!("Error: Value '{}' is an invalid date", data)));
         }
-    }
-
-    if stype == Type::DATETIME {
+    } else if stype == Type::DATETIME {
         let datetime_regex = Regex::new(
             r"^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (\+|\-)[0-9]{2}:[0-9]{2}$",
         )
@@ -410,9 +408,7 @@ pub fn stype_validator(
                 format!("Error: Value '{}' is an invalid datetime", data),
             ));
         }
-    }
-
-    if stype == Type::MEDIA {
+    }else if stype == Type::MEDIA {
         let mappings = auto_fetch_all_mappings();
         let api_url = get_config_value(&mappings, "API_URL", "none").to_lowercase();
 
@@ -422,27 +418,20 @@ pub fn stype_validator(
                 format!("Error: Value '{}' is an invalid media url", data),
             ));
         }
-    }
-
-    if stype == Type::UID {
+    } else if stype == Type::UID {
         let uid_regex = Regex::new(r"^(?:[a-zA-Z0-9]{1,20}-){3}[a-zA-Z0-9]{1,20}$").unwrap();
 
         if !uid_regex.is_match(data) {
             return Err((400, format!("Error: Value '{}' is an invalid uid", data)));
         }
+    } else if stype == Type::JSON {
+        if let Err(_) = serde_json::from_str::<serde_json::Value>(&data) {
+            return Err((
+                400,
+                format!("Error: Value '{}' is an invalid json object", data),
+            ));
+        }
     }
-
-    // if stype == Type::JSON {
-    //     let json_string = "\"([^\"]+)\":[\"]*([^,^\\}^\"]+)";
-    //     let json_regex = Regex::new(&format!("r\"{}\"", json_string)).unwrap();
-
-    //     if !json_regex.is_match(data) {
-    //         return Err((
-    //             400,
-    //             format!("Error: Value '{}' is an invalid json object", data),
-    //         ));
-    //     }
-    // }
 
     Ok(String::from("Validation OK!"))
 }

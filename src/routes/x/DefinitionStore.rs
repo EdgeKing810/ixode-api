@@ -36,7 +36,7 @@ pub enum DefinitionData {
     INTEGER(isize),
     FLOAT(f64),
     ARRAY(Vec<DefinitionData>),
-    DATA(Vec<RawPair>),
+    DATA(RawPair),
 }
 
 impl DefinitionStore {
@@ -298,12 +298,12 @@ impl DefinitionStore {
                 };
 
             let current_data = Data::get_all(&all_data, project_id, &fetch_block.ref_col);
-            let mut raw_pairs = Vec::<RawPair>::new();
+            let mut all_definitions = Vec::<DefinitionData>::new();
 
             for data in current_data {
                 match convert_to_raw(&data, &collection) {
                     Ok(rp) => {
-                        raw_pairs.push(rp);
+                        all_definitions.push(DefinitionData::DATA(rp));
                     }
                     Err(e) => {
                         return Err(e);
@@ -311,11 +311,12 @@ impl DefinitionStore {
                 };
             }
 
+
             actual_definition = DefinitionStore {
                 block_name: block_name.to_string(),
                 ref_name: fetch_block.local_name,
                 index: index,
-                data: DefinitionData::DATA(raw_pairs),
+                data: DefinitionData::ARRAY(all_definitions),
             };
         } else if block_name == "ASSIGN" {
             let assign_block = current_route.flow.assignments[index].clone();
@@ -483,7 +484,7 @@ impl DefinitionStore {
             };
 
             let current_data = match current_ref_data {
-                DefinitionData::DATA(d) => d,
+                DefinitionData::ARRAY(a) => a,
                 _ => {
                     return Err((
                         500,
@@ -504,7 +505,12 @@ impl DefinitionStore {
                 ));
             }
 
-            for raw_pair in current_data.iter() {
+            for raw_pair_data in current_data.iter() {
+                let raw_pair = match raw_pair_data {
+                    DefinitionData::DATA(d) => d,
+                    _ => {continue;}
+                };
+
                 if broken_property.len() < 2 {
                     for structure in raw_pair.structures.iter() {
                         if structure.id == broken_property[0] {
@@ -547,7 +553,12 @@ impl DefinitionStore {
             let mut final_current_data = Vec::<RawPair>::new();
             let mut current_definition: DefinitionData;
 
-            for raw_pair in current_data.iter() {
+            for raw_pair_data in current_data.iter() {
+                let raw_pair = match raw_pair_data {
+                    DefinitionData::DATA(d) => d,
+                    _ => {continue;}
+                };
+
                 if filter_block.filters.len() < 1 {
                     final_current_data.push(raw_pair.clone());
                 }
@@ -664,11 +675,16 @@ impl DefinitionStore {
                 }
             }
 
+            let mut final_data = Vec::<DefinitionData>::new();
+            for raw_pair in final_current_data.iter() {
+                final_data.push(DefinitionData::DATA(raw_pair.clone()));
+            }
+
             actual_definition = DefinitionStore {
                 block_name: block_name.to_string(),
                 ref_name: filter_block.local_name,
                 index: index,
-                data: DefinitionData::DATA(final_current_data),
+                data: DefinitionData::ARRAY(final_data),
             };
         } else if block_name == "PROPERTY" {
             let property_block = current_route.flow.properties[index].clone();
@@ -695,9 +711,6 @@ impl DefinitionStore {
                     DefinitionData::ARRAY(a) => {
                         final_data = DefinitionData::INTEGER(a.len() as isize);
                     }
-                    DefinitionData::DATA(d) => {
-                        final_data = DefinitionData::INTEGER(d.len() as isize);
-                    }
                     _ => {
                         return Err((500, format!("Error: Invalid data type for LENGTH property")));
                     }
@@ -717,16 +730,6 @@ impl DefinitionStore {
                     DefinitionData::ARRAY(a) => {
                         if a.len() > 0 {
                             final_data = a[0].clone();
-                        } else {
-                            return Err((
-                                500,
-                                format!("Error: Invalid data type for GET_FIRST property"),
-                            ));
-                        }
-                    }
-                    DefinitionData::DATA(d) => {
-                        if d.len() > 0 {
-                            final_data = DefinitionData::DATA(vec![d[0].clone()]);
                         } else {
                             return Err((
                                 500,
@@ -757,16 +760,6 @@ impl DefinitionStore {
                     DefinitionData::ARRAY(a) => {
                         if a.len() > 0 {
                             final_data = a[a.len() - 1].clone();
-                        } else {
-                            return Err((
-                                500,
-                                format!("Error: Invalid data type for GET_LAST property"),
-                            ));
-                        }
-                    }
-                    DefinitionData::DATA(d) => {
-                        if d.len() > 0 {
-                            final_data = DefinitionData::DATA(vec![d[d.len() - 1].clone()]);
                         } else {
                             return Err((
                                 500,
@@ -820,16 +813,6 @@ impl DefinitionStore {
                                 ));
                             }
                         }
-                        DefinitionData::DATA(d) => {
-                            if d.len() > index {
-                                final_data = DefinitionData::DATA(vec![d[index].clone()]);
-                            } else {
-                                return Err((
-                                    500,
-                                    format!("Error: Invalid data type for GET_INDEX property"),
-                                ));
-                            }
-                        }
                         _ => {
                             return Err((
                                 500,
@@ -852,7 +835,7 @@ impl DefinitionStore {
                     }
 
                     match property_data {
-                        DefinitionData::DATA(d) => {
+                        DefinitionData::ARRAY(a) => {
                             let mut current_value = String::new();
                             let broken_property = property_name.split(".").collect::<Vec<&str>>();
                             if broken_property.len() > 2 || broken_property[0].trim().len() < 1 {
@@ -865,7 +848,12 @@ impl DefinitionStore {
                                 ));
                             }
 
-                            for raw_pair in d.iter() {
+                            for raw_pair_data in a.iter() {
+                                let raw_pair = match raw_pair_data {
+                                    DefinitionData::DATA(d) => d,
+                                    _ => {continue;}
+                                };
+
                                 if broken_property.len() < 2 {
                                     for structure in raw_pair.structures.iter() {
                                         if structure.id == broken_property[0] {
