@@ -18,3 +18,6 @@ pub mod loop_processor;
 
 #[path = "convertors/convertors.rs"]
 pub mod convertors;
+
+#[path = "definitions/definitions.rs"]
+pub mod definitions;
