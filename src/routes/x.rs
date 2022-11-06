@@ -147,6 +147,7 @@ pub fn process_block(
             Signal::BREAK => Ok(Signal::BREAK),
             Signal::CONTINUE => Ok(Signal::CONTINUE),
             Signal::NONE => Ok(Signal::NONE),
+            Signal::RETURN(data) => Ok(Signal::RETURN(data)),
         },
         Err(e) => {
             return Err(e);
@@ -370,7 +371,7 @@ pub async fn handle<'r>(
 
             while !completed {
                 if iterations == 0 {
-                    if let Err(e) = process_block(
+                    match process_block(
                         &current_route,
                         &mut all_definitions,
                         &global_blocks,
@@ -380,10 +381,18 @@ pub async fn handle<'r>(
                         &body_data,
                         &all_params,
                     ) {
-                        return json!({
-                            "status": e.0,
-                            "message": e.1
-                        });
+                        Ok(s) => match s {
+                            Signal::RETURN(r) => {
+                                return r;
+                            }
+                            _ => {}
+                        },
+                        Err(e) => {
+                            return json!({
+                                "status": e.0,
+                                "message": e.1
+                            });
+                        }
                     }
                 } else {
                     let current_loop_value: Option<DefinitionStore>;
@@ -455,15 +464,18 @@ pub async fn handle<'r>(
                             &body_data,
                             &all_params,
                         ) {
-                            Ok(s) => {
-                                if s == Signal::CONTINUE {
-                                    break;
-                                } else if s == Signal::BREAK {
+                            Ok(s) => match s {
+                                Signal::CONTINUE => break,
+                                Signal::BREAK => {
                                     current_index = cur_loop.end_index;
                                     completed = true;
                                     break;
                                 }
-                            }
+                                Signal::RETURN(r) => {
+                                    return r;
+                                }
+                                _ => {}
+                            },
                             Err(e) => {
                                 return json!({
                                     "status": e.0,
@@ -482,7 +494,7 @@ pub async fn handle<'r>(
 
         current_block = global_blocks[current_index].clone();
 
-        if let Err(e) = process_block(
+        match process_block(
             &current_route,
             &mut all_definitions,
             &global_blocks,
@@ -492,23 +504,24 @@ pub async fn handle<'r>(
             &body_data,
             &all_params,
         ) {
-            return json!({
-                "status": e.0,
-                "message": e.1
-            });
+            Ok(s) => match s {
+                Signal::RETURN(r) => {
+                    return r;
+                }
+                _ => {}
+            },
+            Err(e) => {
+                return json!({
+                    "status": e.0,
+                    "message": e.1
+                });
+            }
         }
 
         current_index += 1;
     }
 
     return json!({
-        "status": 1000,
-        "project_id": project_id,
-        "api_path": api_path,
-        "route": route,
-        "params": all_params,
-        "body": body_data,
-        "global_block_order": GlobalBlockOrder::to_string(&global_blocks),
-        "definitions": DefinitionStore::to_string(&all_definitions)
+        "status": 200
     });
 }

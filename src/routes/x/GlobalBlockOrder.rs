@@ -127,6 +127,10 @@ impl GlobalBlockOrder {
             {
                 current_block_name = "UPDATE";
                 current_index_position = 9;
+                current_ref_name = format!(
+                    "update_{}_{}",
+                    block.ref_col, indexes[current_index_position]
+                );
                 current_block_index = block.block_index as isize;
             } else if let Some(block) =
                 CreateBlock::get(&current_route.flow.creates, current_global_index)

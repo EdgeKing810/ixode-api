@@ -15,3 +15,6 @@ pub mod signal_processor;
 
 #[path = "LoopProcessor.rs"]
 pub mod loop_processor;
+
+#[path = "convertors/convertors.rs"]
+pub mod convertors;

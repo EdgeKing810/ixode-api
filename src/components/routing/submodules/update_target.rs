@@ -257,8 +257,6 @@ impl UpdateTarget {
                 continue;
             }
 
-            println!("{}", c_str);
-
             if let Err(e) = ConditionPlain::from_string(&mut all_conditions, c_str) {
                 return Err((500, format!("Invalid condition in target -> {}", e.1)));
             };

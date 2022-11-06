@@ -181,3 +181,4 @@ UPDATE (0,0) [users,uid,true] {uid|([ref,STRING,match_uid]|EQUAL_TO|not=false|ne
 
 
 
+RETURN (1,0) (update_obj=[ref,ARRAY,update_users_0]) conditions=
