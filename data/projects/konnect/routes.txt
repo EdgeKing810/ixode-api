@@ -143,8 +143,41 @@ FUNCTION (8,1) [my_shiny_new_func] {PAGINATE=[ref,STRING,offset]>[ref,STRING,lim
 
 OBJECT (9,2) [test] (newNotification=[ref,STRING,profileID])>(content=[ref,STRING,notificationContent])
 
-UPDATE (10,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|NONE|not=true|next=AND)}%{efgh|([,BOOLEAN,wow]|EQUAL_TO|not=true|next=NONE)} (add=[ref,STRING,lol]) (set=[,BOOLEAN,false]) {filter=([ref,BOOLEAN,isFollowing]|NOT_EQUAL_TO|not=false|next=AND)} conditions=([ref,INTEGER,123]|LESS_THAN|[,INTEGER,count]|not=true|next=NONE)
+UPDATE (10,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|EQUAL_TO|not=true|next=AND)}%{efgh|([,BOOLEAN,wow]|EQUAL_TO|not=true|next=NONE)} (add=[ref,STRING,lol]) (set=[,BOOLEAN,false]) {filter=([ref,BOOLEAN,isFollowing]|NOT_EQUAL_TO|not=false|next=AND)} conditions=([ref,INTEGER,123]|LESS_THAN|[,INTEGER,count]|not=true|next=NONE)
 
 CREATE (11,2) [testing,woop_woop,true] ([ref,INTEGER,456]|NOT_EQUAL_TO|[,BOOLEAN,false]|not=true|next=NONE)
 
 RETURN (12,2) (success=[ref,BOOLEAN,true])>(data=[ref,OTHER,data]) conditions=([ref,BOOLEAN,finished]|EQUAL_TO|[,STRING,true]|not=false|next=OR)
+=============== DEFINE ROUTE ===============
+
+INIT ROUTE [konnect,test_update,/test/update]
+
+ADD BODY pair [match_uid,STRING]
+ADD BODY pair [set_uid,STRING]
+
+DEFINE PARAMS delimiter 
+
+START FLOW
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UPDATE (0,0) [users,uid,true] {uid|([ref,STRING,match_uid]|EQUAL_TO|not=false|next=NONE)} (add=) (set=[ref,STRING,set_uid]) {filter=} conditions=([ref,STRING,match_uid]|GREATER_THAN_OR_EQUAL_TO|[,INTEGER,1]|not=false|next=NONE)>([ref,STRING,set_uid]|GREATER_THAN_OR_EQUAL_TO|[,INTEGER,1]|not=false|next=NONE)
+
+
+

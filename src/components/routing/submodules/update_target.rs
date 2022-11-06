@@ -1,11 +1,11 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::routing::submodules::sub_filter::Filter;
+use crate::components::routing::submodules::sub_condition_plain::ConditionPlain;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UpdateTarget {
     pub field: String,
-    pub conditions: Vec<Filter>,
+    pub conditions: Vec<ConditionPlain>,
 }
 
 impl UpdateTarget {
@@ -102,7 +102,7 @@ impl UpdateTarget {
     pub fn add_condition(
         all_targets: &mut Vec<UpdateTarget>,
         index: u32,
-        new_condition: Filter,
+        new_condition: ConditionPlain,
     ) -> Result<(), (usize, String)> {
         let mut found_target: Option<UpdateTarget> = None;
 
@@ -132,7 +132,7 @@ impl UpdateTarget {
             if n as u32 == index {
                 found_target = Some(all_targets[index as usize].clone());
 
-                let mut updated_conditions = Vec::<Filter>::new();
+                let mut updated_conditions = Vec::<ConditionPlain>::new();
                 if condition_index >= all_targets[index as usize].conditions.len() as u32 {
                     return Err((
                         400,
@@ -161,7 +161,7 @@ impl UpdateTarget {
     pub fn set_conditions(
         all_targets: &mut Vec<UpdateTarget>,
         index: u32,
-        conditions: Vec<Filter>,
+        conditions: Vec<ConditionPlain>,
     ) -> Result<(), (usize, String)> {
         let mut found_target: Option<UpdateTarget> = None;
 
@@ -249,7 +249,7 @@ impl UpdateTarget {
 
         let conditions_list_str = current_target[1..].join("|");
 
-        let mut all_conditions: Vec<Filter> = Vec::new();
+        let mut all_conditions: Vec<ConditionPlain> = Vec::new();
         let conditions_list = conditions_list_str.trim().split(">").collect::<Vec<&str>>();
 
         for c_str in conditions_list {
@@ -257,7 +257,9 @@ impl UpdateTarget {
                 continue;
             }
 
-            if let Err(e) = Filter::from_string(&mut all_conditions, c_str) {
+            println!("{}", c_str);
+
+            if let Err(e) = ConditionPlain::from_string(&mut all_conditions, c_str) {
                 return Err((500, format!("Invalid condition in target -> {}", e.1)));
             };
         }
@@ -279,7 +281,7 @@ impl UpdateTarget {
     }
 
     pub fn to_string(target: UpdateTarget) -> String {
-        let conditions_str = Filter::stringify(&target.conditions);
+        let conditions_str = ConditionPlain::stringify(&target.conditions);
 
         format!("{{{}|{}}}", target.field, conditions_str)
     }

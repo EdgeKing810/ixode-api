@@ -108,6 +108,52 @@ pub fn validate_body_data(
     Ok(data)
 }
 
+pub fn process_block(
+    current_route: &RouteComponent,
+    all_definitions: &mut Vec<DefinitionStore>,
+    global_blocks: &Vec<GlobalBlockOrder>,
+    block: &GlobalBlockOrder,
+    project_id: &str,
+    current_index: usize,
+    actual_body: &Value,
+    all_params: &Vec<LocalParamData>,
+) -> Result<Signal, (usize, String)> {
+    if let Err(e) = DefinitionStore::add_definition(
+        current_route,
+        all_definitions,
+        global_blocks,
+        project_id,
+        &block.name,
+        block.index,
+        current_index,
+        actual_body,
+        all_params,
+    ) {
+        return Err(e);
+    }
+
+    match obtain_signal(
+        current_route,
+        all_definitions,
+        global_blocks,
+        &block.name,
+        block.index,
+        current_index,
+    ) {
+        Ok(signal) => match signal {
+            Signal::FAIL(status, message) => {
+                return Err((status, message));
+            }
+            Signal::BREAK => Ok(Signal::BREAK),
+            Signal::CONTINUE => Ok(Signal::CONTINUE),
+            Signal::NONE => Ok(Signal::NONE),
+        },
+        Err(e) => {
+            return Err(e);
+        }
+    }
+}
+
 #[post("/<_path..>", format = "json", data = "<data>")]
 pub async fn handle<'r>(
     data: Data<'r>,
@@ -465,50 +511,4 @@ pub async fn handle<'r>(
         "global_block_order": GlobalBlockOrder::to_string(&global_blocks),
         "definitions": DefinitionStore::to_string(&all_definitions)
     });
-}
-
-pub fn process_block(
-    current_route: &RouteComponent,
-    all_definitions: &mut Vec<DefinitionStore>,
-    global_blocks: &Vec<GlobalBlockOrder>,
-    block: &GlobalBlockOrder,
-    project_id: &str,
-    current_index: usize,
-    actual_body: &Value,
-    all_params: &Vec<LocalParamData>,
-) -> Result<Signal, (usize, String)> {
-    if let Err(e) = DefinitionStore::add_definition(
-        current_route,
-        all_definitions,
-        global_blocks,
-        project_id,
-        &block.name,
-        block.index,
-        current_index,
-        actual_body,
-        all_params,
-    ) {
-        return Err(e);
-    }
-
-    match obtain_signal(
-        current_route,
-        all_definitions,
-        global_blocks,
-        &block.name,
-        block.index,
-        current_index,
-    ) {
-        Ok(signal) => match signal {
-            Signal::FAIL(status, message) => {
-                return Err((status, message));
-            }
-            Signal::BREAK => Ok(Signal::BREAK),
-            Signal::CONTINUE => Ok(Signal::CONTINUE),
-            Signal::NONE => Ok(Signal::NONE),
-        },
-        Err(e) => {
-            return Err(e);
-        }
-    }
 }

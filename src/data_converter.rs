@@ -4,6 +4,7 @@ use crate::{
         data::Data,
         datapair::DataPair,
         encryption::EncryptionKey,
+        routing::submodules::sub_body_data_type::BodyDataType,
         structures::{Structure, Type},
     },
     utils::{auto_fetch_all_data, auto_fetch_all_mappings, get_config_value},
@@ -13,6 +14,7 @@ use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RawPair {
+    pub data_id: String,
     pub structures: Vec<StructurePair>,
     pub custom_structures: Vec<CustomStructurePair>,
     pub published: bool,
@@ -22,6 +24,7 @@ pub struct RawPair {
 pub struct StructurePair {
     pub id: String,
     pub value: String,
+    pub rtype: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -36,8 +39,6 @@ pub fn convert_from_raw(
     raw_pair: &RawPair,
     updating: bool,
 ) -> Result<String, (usize, String)> {
-    // println!("{:#?}", raw_pair);
-
     let structure_pairs: Vec<StructurePair> = raw_pair.structures.clone();
     let custom_structure_pairs: Vec<CustomStructurePair> = raw_pair.custom_structures.clone();
 
@@ -82,7 +83,11 @@ pub fn convert_from_raw(
         }
     }
 
-    let data_id = EncryptionKey::generate_uuid(16);
+    let data_id = if raw_pair.data_id.trim().len() > 0 {
+        raw_pair.data_id.clone()
+    } else {
+        EncryptionKey::generate_uuid(16)
+    };
     match Data::create(
         all_data,
         &data_id,
@@ -126,8 +131,6 @@ fn process_structures(
         let mut value = String::new();
         let mut used_default = false;
 
-        // println!("structure id: {}", structure_id);
-
         for structure_pair in structure_pairs {
             if structure_pair.id == structure_id {
                 // println!("chosen structure pair: {:#?}", structure_pair);
@@ -151,22 +154,16 @@ fn process_structures(
             used_default = true;
         }
 
-        // println!("value: {}", value);
-
         let mut broken_data: Vec<&str> = vec![&value];
         if array {
             broken_data = value.split(",").collect::<Vec<&str>>();
         }
-
-        // println!("broken_data: {:#?}", broken_data);
 
         for d in broken_data {
             if d.trim().len() > 0 {
                 actual_data.push(d.trim().to_string());
             }
         }
-
-        // println!("actual_data: {:#?}", actual_data);
 
         let pair_id = EncryptionKey::generate_uuid(16);
         let processed_dtype = Structure::from_stype(stype.clone());
@@ -252,8 +249,6 @@ fn process_structures(
             ));
         }
 
-        // println!("Success!");
-
         all_pairs.push(DataPair {
             id: pair_id,
             structure_id: structure.id.to_string(),
@@ -321,6 +316,7 @@ pub fn convert_to_raw(data: &Data, collection: &Collection) -> Result<RawPair, (
     }
 
     let raw_pair = RawPair {
+        data_id: data.id.clone(),
         structures: structure_pairs,
         custom_structures: custom_structure_pairs,
         published: data.published,
@@ -338,12 +334,25 @@ fn revert_structures(
         let structure_id = structure.id.clone();
         let mut value = String::new();
 
-        // println!("structure_id: {}", structure_id);
+        let mut rtype = BodyDataType::STRING;
 
         for pair in all_pairs {
             if pair.structure_id == structure_id {
                 value = pair.value.clone();
-                // println!("val!: {}", value);
+
+                if structure.array {
+                    rtype = BodyDataType::ARRAY;
+                } else {
+                    rtype = match structure.stype {
+                        Type::BOOLEAN => BodyDataType::BOOLEAN,
+                        Type::INTEGER => BodyDataType::INTEGER,
+                        Type::FLOAT => BodyDataType::FLOAT,
+                        Type::ENUM => BodyDataType::ARRAY,
+                        Type::CUSTOM(_) => BodyDataType::OTHER,
+                        _ => BodyDataType::STRING,
+                    }
+                }
+
                 break;
             }
         }
@@ -355,6 +364,7 @@ fn revert_structures(
         let new_structure_pair = StructurePair {
             id: structure_id.clone(),
             value: value.clone(),
+            rtype: BodyDataType::to(rtype),
         };
 
         structure_pairs.push(new_structure_pair);

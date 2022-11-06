@@ -114,8 +114,6 @@ pub async fn fetch(
     let mut raw_pairs = Vec::<RawPair>::new();
     let mut data_ids = Vec::<String>::new();
 
-    // println!("data: {:#?}", current_data);
-
     for data in current_data {
         match convert_to_raw(&data, &collection) {
             Ok(rp) => {

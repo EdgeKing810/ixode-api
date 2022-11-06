@@ -3,6 +3,7 @@
 use crate::components::routing::blocks::update_block::UpdateBlock;
 #[allow(unused_imports)]
 use crate::components::routing::submodules::sub_condition::Condition;
+use crate::components::routing::submodules::sub_condition_plain::ConditionPlain;
 #[allow(unused_imports)]
 use crate::components::routing::submodules::sub_filter::Filter;
 #[allow(unused_imports)]
@@ -45,10 +46,10 @@ fn make_block_one(
     let mut all_targets = Vec::<UpdateTarget>::new();
     UpdateTarget::create(&mut all_targets, "uid").unwrap();
 
-    all_filters = Vec::<Filter>::new();
+    let mut all_target_filters = Vec::<ConditionPlain>::new();
     right = RefData::create(true, "STRING", "profileID").unwrap();
-    Filter::create(&mut all_filters, right, "EQUAL_TO", false, "NONE");
-    UpdateTarget::set_conditions(&mut all_targets, 0, all_filters).unwrap();
+    ConditionPlain::create(&mut all_target_filters, right, "EQUAL_TO", false, "NONE");
+    UpdateTarget::set_conditions(&mut all_targets, 0, all_target_filters).unwrap();
 
     crate::components::routing::blocks::update_block::UpdateBlock::set_conditions(
         all_blocks,
@@ -111,9 +112,9 @@ fn make_block_two(
     let mut all_targets = Vec::<UpdateTarget>::new();
     UpdateTarget::create(&mut all_targets, "uid").unwrap();
 
-    let mut all_filters = Vec::<Filter>::new();
+    let mut all_filters = Vec::<ConditionPlain>::new();
     right = RefData::create(true, "STRING", "uid").unwrap();
-    Filter::create(&mut all_filters, right, "EQUAL_TO", false, "NONE");
+    ConditionPlain::create(&mut all_filters, right, "EQUAL_TO", false, "NONE");
     UpdateTarget::set_conditions(&mut all_targets, 0, all_filters).unwrap();
 
     crate::components::routing::blocks::update_block::UpdateBlock::set_conditions(
