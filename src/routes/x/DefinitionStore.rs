@@ -2,8 +2,8 @@ use rocket::serde::{Deserialize, Serialize};
 
 use serde_json::Value;
 
+use crate::components::raw_pair::RawPair;
 use crate::components::routing::mod_route::RouteComponent;
-use crate::data_converter::RawPair;
 use crate::routes::x::LocalParamData;
 
 use super::definitions::define_assign::define_assign;

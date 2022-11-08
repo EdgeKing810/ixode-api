@@ -6,9 +6,11 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::routing::mod_route::RouteComponent;
 use crate::components::routing::submodules::sub_body_data_type::BodyDataType;
 
-// use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt_x, Token};
-use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_routes};
+use crate::utils::{
+    mapping::auto_fetch_all_mappings, project::auto_fetch_all_projects,
+    route::auto_fetch_all_routes,
+};
 
 use rocket::http::uri::Origin;
 use rocket::Data;

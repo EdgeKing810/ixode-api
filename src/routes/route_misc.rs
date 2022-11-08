@@ -9,7 +9,8 @@ use lettre::{Message, SmtpTransport, Transport};
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_mappings, auto_fetch_all_users, auto_fetch_file, get_config_value,
+    config::get_config_value, io::auto_fetch_file, mapping::auto_fetch_all_mappings,
+    user::auto_fetch_all_users,
 };
 
 #[derive(Serialize, Deserialize)]

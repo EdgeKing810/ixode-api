@@ -7,14 +7,9 @@ extern crate redis;
 extern crate rocket;
 extern crate rocket_multipart_form_data;
 
+use init::main::initialize;
 use rocket::serde::json::{json, Value};
 
-mod data_converter;
-mod init;
-mod utils;
-
-#[path = "catchers.rs"]
-mod custom_catchers;
 #[path = "middlewares/middlewares.rs"]
 mod middlewares;
 
@@ -27,10 +22,18 @@ mod routes;
 #[path = "tests/tests.rs"]
 mod tests;
 
+#[path = "utils/utils.rs"]
+mod utils;
+
+#[path = "init/init.rs"]
+mod init;
+
+#[path = "catchers/catchers.rs"]
+mod catchers;
+
 use rocket_cors::{AllowedHeaders, AllowedOrigins};
 use std::collections::HashMap;
-
-use init::initialize;
+use utils::{config::get_config_value, mapping::auto_fetch_all_mappings, redis::init_redis};
 
 use rocket::{
     catchers,
@@ -41,7 +44,6 @@ use rocket::{
 };
 use rocket_dyn_templates::Template;
 use std::fs;
-use utils::{auto_fetch_all_mappings, get_config_value, init_redis};
 
 #[launch]
 fn rocket() -> _ {
@@ -197,16 +199,16 @@ fn rocket() -> _ {
         .register(
             "/",
             catchers![
-                custom_catchers::bad_request,
-                custom_catchers::unauthorized,
-                custom_catchers::not_found,
-                custom_catchers::malformed_request,
-                custom_catchers::internal_server_error
+                catchers::catch_400::bad_request,
+                catchers::catch_401::unauthorized,
+                catchers::catch_404::not_found,
+                catchers::catch_422::malformed_request,
+                catchers::catch_500::internal_server_error
             ],
         )
         .attach(Template::fairing())
         .attach(cors.clone())
-        .manage(utils::init_redis())
+        .manage(init_redis())
         .manage(cors)
 }
 

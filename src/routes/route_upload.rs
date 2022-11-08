@@ -10,7 +10,9 @@ use rocket_multipart_form_data::{
 
 use crate::components::encryption::EncryptionKey;
 use crate::components::media::Media;
-use crate::utils::{auto_fetch_all_mappings, auto_fetch_all_medias, auto_save_all_medias};
+use crate::utils::{
+    mapping::auto_fetch_all_mappings, media::auto_fetch_all_medias, media::auto_save_all_medias,
+};
 
 #[post("/", data = "<data>")]
 pub async fn upload(content_type: &ContentType, data: Data<'_>) -> Value {

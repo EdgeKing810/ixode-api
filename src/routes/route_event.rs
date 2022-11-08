@@ -7,7 +7,8 @@ use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_fetch_all_events, auto_fetch_all_mappings, auto_fetch_all_users, auto_save_all_events,
+    event::auto_fetch_all_events, event::auto_save_all_events, mapping::auto_fetch_all_mappings,
+    user::auto_fetch_all_users,
 };
 
 #[derive(Serialize, Deserialize)]

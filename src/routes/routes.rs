@@ -1,44 +1,44 @@
-#[path = "test.rs"]
+#[path = "route_test.rs"]
 pub mod test;
 
-#[path = "user.rs"]
+#[path = "route_user.rs"]
 pub mod user;
 
-#[path = "config.rs"]
+#[path = "route_config.rs"]
 pub mod config;
 
-#[path = "project.rs"]
+#[path = "route_project.rs"]
 pub mod project;
 
-#[path = "collection.rs"]
+#[path = "route_collection.rs"]
 pub mod collection;
 
-#[path = "structure.rs"]
+#[path = "route_structure.rs"]
 pub mod structure;
 
-#[path = "custom_structure.rs"]
+#[path = "route_custom_structure.rs"]
 pub mod custom_structure;
 
-#[path = "media.rs"]
+#[path = "route_media.rs"]
 pub mod media;
 
-#[path = "misc.rs"]
+#[path = "route_misc.rs"]
 pub mod misc;
 
-#[path = "data.rs"]
+#[path = "route_data.rs"]
 pub mod data;
 
-#[path = "event.rs"]
+#[path = "route_event.rs"]
 pub mod event;
 
-#[path = "routing.rs"]
+#[path = "route_routing.rs"]
 pub mod routing;
 
-#[path = "x.rs"]
+#[path = "route_x.rs"]
 pub mod x;
 
 #[path = "x/x.rs"]
 pub mod x_utils;
 
-#[path = "upload.rs"]
+#[path = "route_upload.rs"]
 pub mod upload;

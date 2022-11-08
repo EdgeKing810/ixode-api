@@ -8,8 +8,8 @@ use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_create_event, auto_fetch_all_mappings, auto_fetch_all_projects, auto_fetch_all_routes,
-    auto_fetch_all_users, auto_save_all_routes,
+    event::auto_create_event, mapping::auto_fetch_all_mappings, project::auto_fetch_all_projects,
+    route::auto_fetch_all_routes, route::auto_save_all_routes, user::auto_fetch_all_users,
 };
 
 #[derive(Serialize, Deserialize)]

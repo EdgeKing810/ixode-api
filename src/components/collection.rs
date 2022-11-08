@@ -1,8 +1,9 @@
 use crate::components::custom_structures::CustomStructure;
 use crate::components::io::{fetch_file, save_file};
 use crate::components::structures::{try_add_structure, Structure};
-use crate::utils::{auto_create_directory, auto_remove_directory, auto_rename_directory};
-// use crate::encryption::{EncryptionKey};
+use crate::utils::{
+    io::auto_create_directory, io::auto_remove_directory, io::auto_rename_directory,
+};
 use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]

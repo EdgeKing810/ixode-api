@@ -10,8 +10,8 @@ use std::fmt::{Display, Formatter};
 use crate::{
     components::{collection::Collection, mappings::Mapping, user::User},
     utils::{
-        auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-        auto_fetch_all_users, get_config_value,
+        collection::auto_fetch_all_collections, config::get_config_value,
+        data::auto_fetch_all_data, mapping::auto_fetch_all_mappings, user::auto_fetch_all_users,
     },
 };
 

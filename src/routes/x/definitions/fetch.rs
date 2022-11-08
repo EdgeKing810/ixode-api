@@ -1,8 +1,12 @@
 use crate::{
     components::{collection::Collection, data::Data, routing::blocks::fetch_block::FetchBlock},
-    data_converter::convert_to_raw,
-    routes::x_utils::definition_store::DefinitionData,
-    utils::{auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings},
+    routes::x_utils::{
+        convertors::convert_data_to_rawpair::data_to_rawpair, definition_store::DefinitionData,
+    },
+    utils::{
+        collection::auto_fetch_all_collections, data::auto_fetch_all_data,
+        mapping::auto_fetch_all_mappings,
+    },
 };
 
 pub fn define_fetch(
@@ -38,7 +42,7 @@ pub fn define_fetch(
     let mut all_definitions = Vec::<DefinitionData>::new();
 
     for data in current_data {
-        match convert_to_raw(&data, &collection) {
+        match data_to_rawpair(&data, &collection) {
             Ok(rp) => {
                 all_definitions.push(DefinitionData::DATA(rp));
             }

@@ -1,4 +1,4 @@
-use crate::{components::encryption::EncryptionKey, utils::get_root_data_dir};
+use crate::{components::encryption::EncryptionKey, utils::io::get_root_data_dir};
 use std::{
     fs,
     fs::{copy, create_dir, read_dir, remove_dir_all, File},

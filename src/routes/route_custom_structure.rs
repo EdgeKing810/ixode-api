@@ -9,8 +9,9 @@ use crate::components::project::Project;
 use crate::components::user::{Role, User};
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_collections, auto_save_all_data,
+    collection::auto_fetch_all_collections, collection::auto_save_all_collections,
+    data::auto_fetch_all_data, data::auto_save_all_data, event::auto_create_event,
+    mapping::auto_fetch_all_mappings, project::auto_fetch_all_projects, user::auto_fetch_all_users,
 };
 
 #[derive(Serialize, Deserialize)]

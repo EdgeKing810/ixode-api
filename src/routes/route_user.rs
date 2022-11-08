@@ -12,8 +12,8 @@ use crate::components::user::{Role, User};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{create_jwt, verify_jwt, Token};
 use crate::utils::{
-    auto_create_event, auto_fetch_all_mappings, auto_fetch_all_users, auto_fetch_file,
-    auto_save_all_users, get_config_value,
+    config::get_config_value, event::auto_create_event, io::auto_fetch_file,
+    mapping::auto_fetch_all_mappings, user::auto_fetch_all_users, user::auto_save_all_users,
 };
 
 #[derive(Serialize, Deserialize)]

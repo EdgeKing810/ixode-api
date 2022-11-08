@@ -1,6 +1,6 @@
 use crate::{
     components::io::{fetch_file, save_file},
-    utils::{auto_create_directory, auto_remove_directory, auto_rename_directory},
+    utils::{io::auto_create_directory, io::auto_remove_directory, io::auto_rename_directory},
 };
 use rocket::serde::{Deserialize, Serialize};
 

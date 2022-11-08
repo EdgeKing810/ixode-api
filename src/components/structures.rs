@@ -3,8 +3,7 @@ use std::fmt;
 use regex::Regex;
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::data_converter::stype_validator;
-// use crate::encryption::EncryptionKey;
+use crate::utils::validate_stype::validate_stype;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Type {
@@ -471,7 +470,7 @@ impl Structure {
                     }
                 }
 
-                if let Err(e) = stype_validator(&v, found.stype.clone(), true) {
+                if let Err(e) = validate_stype(&v, found.stype.clone(), true) {
                     return Err(e);
                 }
             }

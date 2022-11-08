@@ -5,14 +5,18 @@ use rocket::serde::{Deserialize, Serialize};
 use crate::components::collection::Collection;
 use crate::components::data::Data;
 use crate::components::project::Project;
+use crate::components::raw_pair::RawPair;
 use crate::components::user::{Role, User};
-use crate::data_converter::{convert_from_raw, convert_to_raw, RawPair};
 use crate::middlewares::paginate::paginate;
 use crate::middlewares::token::{verify_jwt, Token};
 use crate::utils::{
-    auto_create_event, auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-    auto_fetch_all_projects, auto_fetch_all_users, auto_save_all_data,
+    collection::auto_fetch_all_collections, data::auto_fetch_all_data, data::auto_save_all_data,
+    event::auto_create_event, mapping::auto_fetch_all_mappings, project::auto_fetch_all_projects,
+    user::auto_fetch_all_users,
 };
+
+use super::x_utils::convertors::convert_data_to_rawpair::data_to_rawpair;
+use super::x_utils::convertors::convert_rawpair_to_data::rawpair_to_data;
 
 #[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
@@ -115,7 +119,7 @@ pub async fn fetch(
     let mut data_ids = Vec::<String>::new();
 
     for data in current_data {
-        match convert_to_raw(&data, &collection) {
+        match data_to_rawpair(&data, &collection) {
             Ok(rp) => {
                 raw_pairs.push(rp);
                 data_ids.push(data.id.clone());
@@ -224,7 +228,7 @@ pub async fn fetch_one(data: Json<DataFetchOneInput>, token: Token) -> Value {
         }
     };
 
-    let raw_pair = match convert_to_raw(&current_data, &collection) {
+    let raw_pair = match data_to_rawpair(&current_data, &collection) {
         Ok(rp) => rp,
         Err(e) => {
             return json!({"status": e.0, "message": e.1});
@@ -320,7 +324,7 @@ pub async fn create(data: Json<CreateDataInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to create Data for this Collection"});
     }
 
-    let data_id = match convert_from_raw(&mut all_data, &collection, raw_pair, false) {
+    let data_id = match rawpair_to_data(&mut all_data, &collection, raw_pair, false) {
         Ok(id) => id,
         Err(e) => return json!({"status": e.0, "message": e.1}),
     };
@@ -435,7 +439,7 @@ pub async fn update(data: Json<UpdateDataInput>, token: Token) -> Value {
         return json!({"status": 403, "message": "Error: Not authorized to update Data in this Collection"});
     }
 
-    let new_data_id = match convert_from_raw(&mut all_data, &collection, raw_pair, true) {
+    let new_data_id = match rawpair_to_data(&mut all_data, &collection, raw_pair, true) {
         Ok(id) => id,
         Err(e) => return json!({"status": e.0, "message": e.1}),
     };

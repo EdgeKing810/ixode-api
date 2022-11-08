@@ -1,8 +1,10 @@
 use crate::{
-    components::routing::{
-        blocks::object_block::ObjectBlock, submodules::sub_body_data_type::BodyDataType,
+    components::{
+        raw_pair::{CustomStructurePair, RawPair, StructurePair},
+        routing::{
+            blocks::object_block::ObjectBlock, submodules::sub_body_data_type::BodyDataType,
+        },
     },
-    data_converter::{CustomStructurePair, RawPair, StructurePair},
     routes::x_utils::{
         convertors::convert_definition_to_string::definition_to_string,
         definition_store::{DefinitionData, DefinitionStore},

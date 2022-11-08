@@ -1,8 +1,8 @@
-#[path = "token.rs"]
+#[path = "midd_token.rs"]
 pub mod token;
 
-#[path = "paginate.rs"]
+#[path = "midd_paginate.rs"]
 pub mod paginate;
 
-#[path = "cors.rs"]
+#[path = "midd_cors.rs"]
 pub mod cors;

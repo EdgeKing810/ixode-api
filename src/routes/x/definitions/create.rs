@@ -1,14 +1,15 @@
 use crate::{
     components::{collection::Collection, data::Data, routing::blocks::create_block::CreateBlock},
-    data_converter::convert_from_raw,
     routes::x_utils::{
+        convertors::convert_rawpair_to_data::rawpair_to_data,
         definition_store::{DefinitionData, DefinitionStore},
         global_block_order::GlobalBlockOrder,
         resolver::{resolve_conditions, resolve_raw_data},
     },
     utils::{
-        auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-        auto_save_all_data,
+        collection::auto_fetch_all_collections,
+        data::{auto_fetch_all_data, auto_save_all_data},
+        mapping::auto_fetch_all_mappings,
     },
 };
 
@@ -74,7 +75,7 @@ pub fn define_create(
             DefinitionData::DATA(d) => {
                 return_definition = DefinitionData::DATA(d.clone());
 
-                match convert_from_raw(&mut current_data, &collection, &d, true) {
+                match rawpair_to_data(&mut current_data, &collection, &d, true) {
                     Err(e) => {
                         return Err(e);
                     }

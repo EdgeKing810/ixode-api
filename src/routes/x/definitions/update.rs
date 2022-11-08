@@ -2,6 +2,7 @@ use crate::{
     components::{
         collection::Collection,
         data::Data,
+        raw_pair::{CustomStructurePair, RawPair, StructurePair},
         routing::{
             blocks::update_block::UpdateBlock,
             submodules::{
@@ -11,18 +12,19 @@ use crate::{
             },
         },
     },
-    data_converter::{
-        convert_from_raw, convert_to_raw, CustomStructurePair, RawPair, StructurePair,
-    },
     routes::x_utils::{
-        convertors::convert_definition_to_string::definition_to_string,
+        convertors::{
+            convert_data_to_rawpair::data_to_rawpair,
+            convert_definition_to_string::definition_to_string,
+            convert_rawpair_to_data::rawpair_to_data,
+        },
         definition_store::{DefinitionData, DefinitionStore},
         global_block_order::GlobalBlockOrder,
         resolver::{resolve_conditions, resolve_operations, resolve_ref_data},
     },
     utils::{
-        auto_fetch_all_collections, auto_fetch_all_data, auto_fetch_all_mappings,
-        auto_save_all_data,
+        collection::auto_fetch_all_collections, data::auto_fetch_all_data,
+        data::auto_save_all_data, mapping::auto_fetch_all_mappings,
     },
 };
 
@@ -78,7 +80,7 @@ pub fn define_update(
     let mut current_raw_pairs = Vec::<RawPair>::new();
 
     for data in current_data {
-        match convert_to_raw(&data, &collection) {
+        match data_to_rawpair(&data, &collection) {
             Ok(rp) => {
                 current_raw_pairs.push(rp);
             }
@@ -450,7 +452,7 @@ pub fn define_update(
     if update_block.save {
         let mut final_data_to_save_converted = Vec::<Data>::new();
         for raw_pair in final_data_to_save.iter() {
-            if let Err(e) = convert_from_raw(
+            if let Err(e) = rawpair_to_data(
                 &mut final_data_to_save_converted,
                 &collection,
                 raw_pair,
