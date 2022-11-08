@@ -14,68 +14,68 @@ Configured for debug.
 Routes:
    >> (welcome) GET /
    >> OPTIONS /<catch_all_options_route..> [9223372036854775807]
-   >> (handle) POST /x/<_path..> application/json
-   >> (world) GET /tmp/hello/world
-   >> (wave) GET /tmp/wave/<name>/<age>
+   >> (main) POST /x/<_path..> application/json
+   >> (main) GET /tmp/hello/world
+   >> (main) GET /tmp/wave/<name>/<age>
    >> (call_initialize) GET /init/code?<code>
-   >> (fetch_all) POST /user/fetch?<limit>&<offset> application/json
-   >> (login) POST /user/login application/json
-   >> (fetch) POST /data/fetch?<limit>&<offset> application/json
-   >> (verify) POST /user/verify application/json
-   >> (update) POST /user/update application/json
-   >> (delete) POST /user/delete application/json
-   >> (create) POST /data/create application/json
-   >> (update) POST /data/update application/json
-   >> (delete) POST /data/delete application/json
-   >> (publish) POST /data/publish application/json
-   >> (register) POST /user/register application/json
+   >> (main) GET /user/fetch?<uid>&<limit>&<offset>
+   >> (main) POST /user/login application/json
+   >> (main) GET /data/fetch?<uid>&<project_id>&<collection_id>&<limit>&<offset>
+   >> (main) GET /user/verify?<uid>
+   >> (main) PATCH /user/update application/json
+   >> (main) DELETE /user/delete?<uid>&<target_uid>
+   >> (main) POST /data/create application/json
+   >> (main) PATCH /data/update application/json
+   >> (main) DELETE /data/delete?<uid>&<project_id>&<collection_id>&<data_id>
+   >> (main) PATCH /data/publish application/json
+   >> (main) POST /user/register application/json
    >> GET /cors/<status>
-   >> (fetch_one) POST /user/fetch/one application/json
-   >> (login_jwt) POST /user/login/jwt application/json
-   >> (fetch_one) POST /data/fetch/one application/json
-   >> (test_smtp) POST /misc/test/smtp application/json
-   >> (test_mongo) POST /misc/test/mongo application/json
-   >> (update_role) POST /user/update/role application/json
-   >> (fetch_all) POST /media/fetch?<limit>&<offset> application/json
-   >> (fetch_all) POST /event/fetch?<limit>&<offset> application/json
-   >> (create) POST /media/create application/json
-   >> (update) POST /media/update application/json
-   >> (delete) POST /media/delete application/json
-   >> (delete) POST /event/delete application/json
-   >> (fetch_one) POST /media/fetch/one application/json
-   >> (fetch_one) POST /event/fetch/one application/json
-   >> (upload) POST /upload/
-   >> (add) POST /config/add application/json
-   >> (fetch_all) POST /config/fetch?<limit>&<offset> application/json
-   >> (update) POST /config/update application/json
-   >> (delete) POST /config/delete application/json
+   >> (main) GET /user/fetch/one?<uid>&<target_uid>
+   >> (main) POST /user/login/jwt application/json
+   >> (main) GET /data/fetch/one?<uid>&<project_id>&<collection_id>&<data_id>
+   >> (main) POST /misc/test/smtp application/json
+   >> (main) POST /misc/test/mongo application/json
+   >> (main) PATCH /user/update/role application/json
+   >> (main) GET /media/fetch?<uid>&<limit>&<offset>
+   >> (main) GET /event/fetch?<uid>&<limit>&<offset>
+   >> (main) POST /media/create application/json
+   >> (main) PATCH /media/update application/json
+   >> (main) DELETE /media/delete?<uid>&<media_id>
+   >> (main) DELETE /event/delete?<uid>&<event_id>
+   >> (main) GET /media/fetch/one?<uid>&<media_id>
+   >> (main) GET /event/fetch/one?<uid>&<event_id>
+   >> (main) POST /upload/
+   >> (main) POST /config/add application/json
+   >> (main) GET /config/fetch?<uid>&<limit>&<offset>
+   >> (main) PATCH /config/update application/json
+   >> (main) DELETE /config/delete?<uid>&<key>
    >> (FileServer: public/) GET /public/<path..> [10]
-   >> (fetch_one) POST /config/fetch/one application/json
-   >> (fetch_all) POST /project/fetch?<limit>&<offset> application/json
-   >> (fetch) POST /routing/fetch?<limit>&<offset> application/json
-   >> (create) POST /project/create application/json
-   >> (update) POST /project/update application/json
-   >> (delete) POST /project/delete application/json
-   >> (create) POST /routing/create application/json
-   >> (delete) POST /routing/delete application/json
-   >> (fetch_one) POST /project/fetch/one application/json
-   >> (fetch_one) POST /routing/fetch/one application/json
-   >> (add_member) POST /project/member/add application/json
-   >> (convert_kdl) POST /routing/convert/kdl application/json
-   >> (remove_member) POST /project/member/remove application/json
-   >> (convert_blocks) POST /routing/convert/blocks application/json
-   >> (fetch_one_kdl) POST /routing/fetch/one/kdl application/json
-   >> (add) POST /structure/add application/json
-   >> (update) POST /structure/update application/json
-   >> (delete) POST /structure/delete application/json
-   >> (fetch) POST /collection/fetch application/json
-   >> (create) POST /collection/create application/json
-   >> (update) POST /collection/update application/json
-   >> (delete) POST /collection/delete application/json
-   >> (fetch_one) POST /collection/fetch/one application/json
-   >> (add) POST /custom_structure/add application/json
-   >> (update) POST /custom_structure/update application/json
-   >> (delete) POST /custom_structure/delete application/json
+   >> (main) GET /config/fetch/one?<uid>&<key>
+   >> (main) GET /project/fetch?<uid>&<limit>&<offset>
+   >> (main) GET /routing/fetch?<uid>&<project_id>&<limit>&<offset>
+   >> (main) POST /project/create application/json
+   >> (main) PATCH /project/update application/json
+   >> (main) DELETE /project/delete?<uid>&<project_id>
+   >> (main) POST /routing/create application/json
+   >> (main) DELETE /routing/delete?<uid>&<project_id>&<route_id>
+   >> (main) GET /project/fetch/one?<uid>&<project_id>
+   >> (main) GET /routing/fetch/one?<uid>&<project_id>&<route_id>
+   >> (main) PATCH /project/member/add application/json
+   >> (main) POST /routing/convert/kdl application/json
+   >> (main) PATCH /project/member/remove application/json
+   >> (main) POST /routing/convert/blocks application/json
+   >> (main) GET /routing/fetch/one/kdl?<uid>&<project_id>&<route_id>
+   >> (main) POST /structure/add application/json
+   >> (main) PATCH /structure/update application/json
+   >> (main) DELETE /structure/delete?<uid>&<project_id>&<collection_id>&<structure_id>&<custom_structure_id>
+   >> (main) GET /collection/fetch?<uid>&<project_id>&<limit>&<offset>
+   >> (main) POST /collection/create application/json
+   >> (main) PATCH /collection/update application/json
+   >> (main) DELETE /collection/delete?<uid>&<project_id>&<collection_id>
+   >> (main) GET /collection/fetch/one?<uid>&<project_id>&<collection_id>
+   >> (main) POST /custom_structure/add application/json
+   >> (main) PATCH /custom_structure/update application/json
+   >> (main) DELETE /custom_structure/delete?<uid>&<project_id>&<collection_id>&<custom_structure_id>
 Catchers:
    >> (bad_request) 400
    >> (unauthorized) 401
@@ -84,13 +84,15 @@ Catchers:
    >> (internal_server_error) 500
 Fairings:
    >> CORS (ignite, request, response)
-   >> Shield (liftoff, response, singleton)
    >> Templating (ignite, liftoff, request)
+   >> Shield (liftoff, response, singleton)
 Shield:
+   >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
    >> X-Frame-Options: SAMEORIGIN
-   >> Permissions-Policy: interest-cohort=()
 Templating:
    >> directory: templates
    >> engines: ["tera"]
 Rocket has launched from http://0.0.0.0:8080
+Warning: Received SIGINT. Requesting shutdown.
+Received shutdown request. Waiting for pending I/O...

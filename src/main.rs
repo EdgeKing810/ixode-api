@@ -85,116 +85,119 @@ fn rocket() -> _ {
         .mount("/", rocket_cors::catch_all_options_routes())
         .mount(
             fpath("/tmp"),
-            routes![routes::test::world, routes::test::wave],
+            routes![routes::test::hello_world::main, routes::test::wave::main],
         )
         .mount(
             fpath("/user"),
             routes![
-                routes::user::fetch_all,
-                routes::user::fetch_one,
-                routes::user::login,
-                routes::user::login_jwt,
-                routes::user::register,
-                routes::user::verify,
-                routes::user::update,
-                routes::user::update_role,
-                routes::user::delete,
+                routes::user::fetch_all::main,
+                routes::user::fetch_one::main,
+                routes::user::login::main,
+                routes::user::login_jwt::main,
+                routes::user::register::main,
+                routes::user::verify::main,
+                routes::user::update::main,
+                routes::user::update_role::main,
+                routes::user::delete::main,
             ],
         )
         .mount(
             fpath("/config"),
             routes![
-                routes::config::fetch_all,
-                routes::config::fetch_one,
-                routes::config::add,
-                routes::config::update,
-                routes::config::delete,
+                routes::config::fetch_all::main,
+                routes::config::fetch_one::main,
+                routes::config::add::main,
+                routes::config::update::main,
+                routes::config::delete::main,
             ],
         )
         .mount(
             fpath("/project"),
             routes![
-                routes::project::fetch_all,
-                routes::project::fetch_one,
-                routes::project::create,
-                routes::project::update,
-                routes::project::delete,
-                routes::project::add_member,
-                routes::project::remove_member,
+                routes::project::fetch_all::main,
+                routes::project::fetch_one::main,
+                routes::project::create::main,
+                routes::project::update::main,
+                routes::project::delete::main,
+                routes::project::add_member::main,
+                routes::project::remove_member::main,
             ],
         )
         .mount(
             fpath("/collection"),
             routes![
-                routes::collection::fetch,
-                routes::collection::fetch_one,
-                routes::collection::create,
-                routes::collection::update,
-                routes::collection::delete,
+                routes::collection::fetch_all::main,
+                routes::collection::fetch_one::main,
+                routes::collection::create::main,
+                routes::collection::update::main,
+                routes::collection::delete::main,
             ],
         )
         .mount(
             fpath("/structure"),
             routes![
-                routes::structure::add,
-                routes::structure::update,
-                routes::structure::delete,
+                routes::structure::add::main,
+                routes::structure::update::main,
+                routes::structure::delete::main,
             ],
         )
         .mount(
             fpath("/custom_structure"),
             routes![
-                routes::custom_structure::add,
-                routes::custom_structure::update,
-                routes::custom_structure::delete,
+                routes::custom_structure::add::main,
+                routes::custom_structure::update::main,
+                routes::custom_structure::delete::main,
             ],
         )
-        .mount(fpath("/upload"), routes![routes::upload::upload])
+        .mount(fpath("/upload"), routes![routes::upload::upload::main])
         .mount(
             fpath("/media"),
             routes![
-                routes::media::fetch_all,
-                routes::media::fetch_one,
-                routes::media::create,
-                routes::media::update,
-                routes::media::delete,
+                routes::media::fetch_all::main,
+                routes::media::fetch_one::main,
+                routes::media::create::main,
+                routes::media::update::main,
+                routes::media::delete::main,
             ],
         )
         .mount(
             fpath("/data"),
             routes![
-                routes::data::fetch,
-                routes::data::fetch_one,
-                routes::data::create,
-                routes::data::update,
-                routes::data::delete,
-                routes::data::publish,
+                routes::data::fetch_all::main,
+                routes::data::fetch_one::main,
+                routes::data::create::main,
+                routes::data::update::main,
+                routes::data::delete::main,
+                routes::data::publish::main,
             ],
         )
         .mount(
             fpath("/event"),
             routes![
-                routes::event::fetch_all,
-                routes::event::fetch_one,
-                routes::event::delete,
+                routes::event::fetch_all::main,
+                routes::event::fetch_one::main,
+                routes::event::delete::main,
             ],
         )
         .mount(
             fpath("/routing"),
             routes![
-                routes::routing::fetch,
-                routes::routing::fetch_one,
-                routes::routing::fetch_one_kdl,
-                routes::routing::create,
-                routes::routing::convert_blocks,
-                routes::routing::convert_kdl,
-                routes::routing::delete,
+                routes::routing::fetch_all::main,
+                routes::routing::fetch_one::main,
+                routes::routing::fetch_one_kdl::main,
+                routes::routing::create::main,
+                routes::routing::convert_blocks::main,
+                routes::routing::convert_kdl::main,
+                routes::routing::delete::main,
             ],
         )
-        .mount(fpath("/x"), routes![routes::x::handle])
+        .mount(fpath("/x"), routes![routes::x::x::main])
         .mount(
             fpath("/misc"),
-            routes![routes::misc::test_mongo, routes::misc::test_smtp],
+            routes![
+                routes::misc::test_mongo::main,
+                routes::misc::test_smtp::main
+            ],
         )
         .register(
             "/",
