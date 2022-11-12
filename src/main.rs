@@ -66,10 +66,17 @@ fn rocket() -> _ {
 
     let cors = rocket_cors::CorsOptions {
         allowed_origins,
-        allowed_methods: vec![Method::Get, Method::Post, Method::Options]
-            .into_iter()
-            .map(From::from)
-            .collect(),
+        allowed_methods: vec![
+            Method::Get,
+            Method::Post,
+            Method::Patch,
+            Method::Put,
+            Method::Delete,
+            Method::Options,
+        ]
+        .into_iter()
+        .map(From::from)
+        .collect(),
         // allowed_headers: AllowedHeaders::some(&["Authorization", "Accept", "Content-Type"]),
         allowed_headers: AllowedHeaders::all(),
         allow_credentials: true,
