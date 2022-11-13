@@ -1,5 +1,5 @@
 use crate::{
-    components::mappings::{fetch_all_mappings, save_all_mappings, Mapping},
+    components::mapping::{fetch_all_mappings, save_all_mappings, Mapping},
     utils::io::{auto_create_directory, get_root_data_dir},
 };
 

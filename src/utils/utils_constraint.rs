@@ -1,9 +1,12 @@
-use crate::components::{
-    constraint::{
-        fetch_all_constraints, save_all_constraints, stringify_constraints, unwrap_constraints,
-        Constraint,
+use crate::{
+    components::{
+        constraint::{
+            fetch_all_constraints, save_all_constraints, stringify_constraints, unwrap_constraints,
+            Constraint,
+        },
+        mapping::{get_file_name, Mapping},
     },
-    mappings::{get_file_name, Mapping},
+    init::constraint::initialize_constraints,
 };
 
 use super::{encryption_key::get_encryption_key, redis::get_redis_connection};
@@ -28,7 +31,10 @@ pub fn auto_fetch_all_constraints(mappings: &Vec<Mapping>) -> Result<Vec<Constra
 
     let all_constraints_path = match get_file_name("constraints", mappings) {
         Ok(path) => path,
-        Err(e) => return Err(e),
+        Err(e) => {
+            println!("{}", e);
+            return Ok(initialize_constraints(mappings));
+        }
     };
 
     let tmp_password = match std::env::var("TMP_PASSWORD") {
@@ -41,7 +47,10 @@ pub fn auto_fetch_all_constraints(mappings: &Vec<Mapping>) -> Result<Vec<Constra
         &get_encryption_key(&mappings, &tmp_password),
     ) {
         Ok(constraints) => Ok(constraints),
-        Err(e) => Err(e.1),
+        Err(e) => {
+            println!("{}", e.1);
+            Ok(initialize_constraints(mappings))
+        }
     }
 }
 

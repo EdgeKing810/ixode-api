@@ -1,6 +1,11 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{components::{routing::submodules::sub_object_pair::ObjectPair, constraint_property::ConstraintProperty}, utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings}};
+use crate::{
+    components::{
+        constraint_property::ConstraintProperty, routing::submodules::sub_object_pair::ObjectPair,
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ObjectBlock {
@@ -83,7 +88,12 @@ impl ObjectBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "object_block", "local_name", local_name) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "object_block",
+            "local_name",
+            local_name,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

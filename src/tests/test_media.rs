@@ -18,10 +18,7 @@ fn main() {
     let test_media2 = Media::create(&mut all_medias, "test ", "media.png");
     assert_eq!(
         test_media2,
-        Err((
-            400,
-            String::from("Error: new_id contains an invalid character")
-        ))
+        Err((400, String::from("Error: id contains an invalid character")))
     );
 
     let test_media2 = Media::create(&mut all_medias, "test2", "media^png");
@@ -29,7 +26,7 @@ fn main() {
         test_media2,
         Err((
             400,
-            String::from("Error: name contains an invalid character")
+            String::from("Error: name contains a character that is not allowed (^)")
         ))
     );
 

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    components::{collection::Collection, mappings::Mapping, user::User},
+    components::{collection::Collection, mapping::Mapping, user::User},
     utils::{
         collection::auto_fetch_all_collections, config::get_config_value,
         data::auto_fetch_all_data, mapping::auto_fetch_all_mappings, user::auto_fetch_all_users,

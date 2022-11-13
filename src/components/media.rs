@@ -1,4 +1,7 @@
-use crate::{components::io::{fetch_file, save_file}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::io::{fetch_file, save_file},
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 use rocket::serde::{Deserialize, Serialize};
 
 use super::constraint_property::ConstraintProperty;
@@ -99,11 +102,12 @@ impl Media {
         }
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "media", "id", new_id) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "media", "id", new_id) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -131,11 +135,12 @@ impl Media {
         let mut found_media: Option<Media> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "media", "name", name) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "media", "name", name) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };

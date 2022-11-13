@@ -18,10 +18,7 @@ fn main() {
     let test_data2 = Data::create(&mut all_data, "test ", "test", "test", false);
     assert_eq!(
         test_data2,
-        Err((
-            400,
-            String::from("Error: new_id contains an invalid character")
-        ))
+        Err((400, String::from("Error: id contains an invalid character")))
     );
 
     let test_data2 = Data::create(&mut all_data, "test2", "test ***", "test", false);

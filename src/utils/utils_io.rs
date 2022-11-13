@@ -1,6 +1,6 @@
 use crate::components::{
     io::{ensure_directory_exists, fetch_file, remove_directory, rename_directory, save_file},
-    mappings::Mapping,
+    mapping::Mapping,
 };
 
 use super::encryption_key::get_encryption_key;

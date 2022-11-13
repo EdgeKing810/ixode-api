@@ -1,4 +1,4 @@
-use crate::components::structures::Type;
+use crate::components::structure::Type;
 use regex::Regex;
 
 use super::{config::get_config_value, mapping::auto_fetch_all_mappings};

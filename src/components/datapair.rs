@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints};
+use crate::utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings};
 
 use super::constraint_property::ConstraintProperty;
 
@@ -120,12 +120,13 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-            let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "id", &final_id) {
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "datapair", "id", &final_id) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -157,15 +158,20 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-            let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "structure_id", &final_structure_id) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "datapair",
+            "structure_id",
+            &final_structure_id,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
@@ -194,15 +200,20 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-            let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "custom_structure_id", &final_custom_structure_id) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "datapair",
+            "custom_structure_id",
+            &final_custom_structure_id,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
@@ -229,11 +240,13 @@ impl DataPair {
         let mut final_value = value.split("§").collect::<Vec<&str>>().join("_");
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "value", &final_value) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        final_value =
+            match ConstraintProperty::validate(&all_constraints, "datapair", "value", &final_value)
+            {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -263,11 +276,13 @@ impl DataPair {
         let final_dtype = dtype.split("----------").collect::<Vec<&str>>().join("---");
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "dtype", &final_dtype) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "datapair", "dtype", &final_dtype)
+            {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -410,7 +425,14 @@ impl DataPair {
     pub fn stringify(pair: DataPair) -> String {
         format!(
             "{}={}={}={}={}",
-            pair.id, pair.structure_id, pair.custom_structure_id, pair.dtype, pair.value.split("\n").collect::<Vec<&str>>().join("_newline_"),
+            pair.id,
+            pair.structure_id,
+            pair.custom_structure_id,
+            pair.dtype,
+            pair.value
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_"),
         )
     }
 
@@ -444,7 +466,10 @@ impl DataPair {
             let pair_dtype = current_pair[3];
             let mut pair_value = current_pair[4..].join("=");
 
-            pair_value = pair_value.split("_newline_").collect::<Vec<&str>>().join("\n");
+            pair_value = pair_value
+                .split("_newline_")
+                .collect::<Vec<&str>>()
+                .join("\n");
 
             if let Err(e) = DataPair::create(
                 all_pairs,

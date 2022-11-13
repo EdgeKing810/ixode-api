@@ -1,9 +1,9 @@
 use crate::{
     components::{
         collection::{fetch_all_collections, save_all_collections, Collection},
-        custom_structures::CustomStructure,
-        mappings::{get_file_name, Mapping},
-        structures::Structure,
+        custom_structure::CustomStructure,
+        mapping::{get_file_name, Mapping},
+        structure::Structure,
     },
     utils::encryption_key::get_encryption_key,
 };

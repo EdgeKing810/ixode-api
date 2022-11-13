@@ -1,6 +1,6 @@
 use crate::components::{
     event::{fetch_all_events, save_all_events, stringify_events, unwrap_events, Event},
-    mappings::{get_file_name, Mapping},
+    mapping::{get_file_name, Mapping},
 };
 
 use super::{encryption_key::get_encryption_key, redis::get_redis_connection};

@@ -1,6 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+use crate::{
+    components::constraint_property::ConstraintProperty,
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FetchBlock {
@@ -93,7 +96,12 @@ impl FetchBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "fetch_block", "local_name", local_name) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "fetch_block",
+            "local_name",
+            local_name,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -125,10 +133,12 @@ impl FetchBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "fetch_block", "ref_col", ref_col) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "fetch_block", "ref_col", ref_col)
+            {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {

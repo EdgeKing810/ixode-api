@@ -147,7 +147,8 @@ impl Data {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "id", new_id) {
+        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "id", new_id)
+        {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -179,7 +180,12 @@ impl Data {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "project_id", project_id) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "data",
+            "project_id",
+            project_id,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -211,7 +217,12 @@ impl Data {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "collection_id", collection_id) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "data",
+            "collection_id",
+            collection_id,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

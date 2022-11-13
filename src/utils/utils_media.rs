@@ -1,5 +1,5 @@
 use crate::components::{
-    mappings::{get_file_name, Mapping},
+    mapping::{get_file_name, Mapping},
     media::{fetch_all_medias, save_all_medias, stringify_medias, unwrap_medias, Media},
 };
 

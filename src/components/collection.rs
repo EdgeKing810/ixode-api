@@ -1,6 +1,6 @@
-use crate::components::custom_structures::CustomStructure;
+use crate::components::custom_structure::CustomStructure;
 use crate::components::io::{fetch_file, save_file};
-use crate::components::structures::{try_add_structure, Structure};
+use crate::components::structure::{try_add_structure, Structure};
 use crate::utils::constraint::auto_fetch_all_constraints;
 use crate::utils::mapping::auto_fetch_all_mappings;
 use crate::utils::{
@@ -150,10 +150,11 @@ impl Collection {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "id", new_id) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "collection", "id", new_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
@@ -187,7 +188,12 @@ impl Collection {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "project_id", project_id) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "collection",
+            "project_id",
+            project_id,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -224,10 +230,11 @@ impl Collection {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "name", name) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "collection", "name", name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
@@ -256,7 +263,12 @@ impl Collection {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "description", description) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "collection",
+            "description",
+            description,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

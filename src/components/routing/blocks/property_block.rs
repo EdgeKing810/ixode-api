@@ -1,8 +1,14 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{components::{routing::submodules::{
-    sub_property::Property, sub_property_apply::PropertyApply, sub_ref_data::RefData,
-}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::{
+        constraint_property::ConstraintProperty,
+        routing::submodules::{
+            sub_property::Property, sub_property_apply::PropertyApply, sub_ref_data::RefData,
+        },
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct PropertyBlock {
@@ -98,7 +104,12 @@ impl PropertyBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "property_block", "local_name", local_name) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "property_block",
+            "local_name",
+            local_name,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

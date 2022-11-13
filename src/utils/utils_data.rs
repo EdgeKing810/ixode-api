@@ -1,6 +1,6 @@
 use crate::components::{
     data::{fetch_all_data, save_all_data, stringify_data, unwrap_data, Data},
-    mappings::Mapping,
+    mapping::Mapping,
 };
 
 use super::{

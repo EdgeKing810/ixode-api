@@ -1,4 +1,7 @@
-use crate::{components::io::{fetch_file, save_file}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::io::{fetch_file, save_file},
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 use rocket::serde::{Deserialize, Serialize};
 
 use super::constraint_property::ConstraintProperty;
@@ -49,10 +52,11 @@ impl Config {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_name = match ConstraintProperty::validate(&all_constraints, "config", "name", name) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_name =
+            match ConstraintProperty::validate(&all_constraints, "config", "name", name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for config in all_configs.iter_mut() {
             if config.name.to_lowercase() == name.to_string().to_lowercase() {
@@ -95,10 +99,11 @@ impl Config {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "config", "value", value) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "config", "value", value) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for config in all_configs.iter_mut() {
             if config.name == name.to_string() {

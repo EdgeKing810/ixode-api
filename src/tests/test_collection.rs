@@ -1,9 +1,9 @@
 #[cfg(test)]
 use crate::components::{
     collection::{fetch_all_collections, save_all_collections, Collection},
-    custom_structures::CustomStructure,
+    custom_structure::CustomStructure,
     io::{ensure_directory_exists, remove_file},
-    structures::Structure,
+    structure::Structure,
 };
 
 #[test]
@@ -252,10 +252,7 @@ fn main_incorrect() {
         );
         assert_eq!(
             test_structure,
-            Err((
-                400,
-                String::from("Error: new_id contains an invalid character")
-            ))
+            Err((400, String::from("Error: id contains an invalid character")))
         );
 
         let test_structure = Structure::create(
@@ -277,7 +274,7 @@ fn main_incorrect() {
             test_structure,
             Err((
                 400,
-                String::from("Error: description contains an invalid character")
+                String::from("Error: description contains a character that is not allowed (;)")
             ))
         );
 
@@ -289,7 +286,7 @@ fn main_incorrect() {
         );
 
         let test_structure =
-            Structure::update_name(&mut all_structures, &"title".to_string(), "Title-");
+            Structure::update_name(&mut all_structures, &"title".to_string(), "Title;");
         assert_eq!(
             test_structure,
             Err((
@@ -304,7 +301,7 @@ fn main_incorrect() {
             test_structure,
             Err((
                 400,
-                String::from("Error: description contains an invalid character")
+                String::from("Error: description contains a character that is not allowed (;)")
             ))
         );
 
@@ -314,7 +311,7 @@ fn main_incorrect() {
             test_structure,
             Err((
                 400,
-                String::from("Error: stype_txt contains an invalid character")
+                String::from("Error: stype contains a character that is not allowed (;)")
             ))
         );
 
@@ -324,7 +321,7 @@ fn main_incorrect() {
             test_structure,
             Err((
                 400,
-                String::from("Error: default_val contains an invalid character")
+                String::from("Error: default_val contains a character that is not allowed (>)")
             ))
         );
 
@@ -334,7 +331,7 @@ fn main_incorrect() {
             test_structure,
             Err((
                 400,
-                String::from("Error: regex_pattern contains an invalid character")
+                String::from("Error: regex_pattern contains a character that is not allowed (;)")
             ))
         );
 
@@ -419,10 +416,7 @@ fn main_incorrect() {
         );
         assert_eq!(
             test_custom_structure,
-            Err((
-                400,
-                String::from("Error: new_id contains an invalid character")
-            ))
+            Err((400, String::from("Error: id contains an invalid character")))
         );
 
         let test_custom_structure = CustomStructure::update_name(
@@ -447,7 +441,7 @@ fn main_incorrect() {
             test_custom_structure,
             Err((
                 400,
-                String::from("Error: description contains an invalid character")
+                String::from("Error: description contains a character that is not allowed (;)")
             ))
         );
 
@@ -481,10 +475,7 @@ fn main_incorrect() {
             Collection::update_id(&mut all_collections, &"posts".to_string(), "posts;");
         assert_eq!(
             test_collection,
-            Err((
-                400,
-                String::from("Error: new_id contains an invalid character")
-            ))
+            Err((400, String::from("Error: id contains an invalid character")))
         );
 
         let test_collection =
@@ -516,7 +507,7 @@ fn main_incorrect() {
             test_collection,
             Err((
                 400,
-                String::from("Error: description contains an invalid character")
+                String::from("Error: description contains a character that is not allowed (;)")
             ))
         );
     }

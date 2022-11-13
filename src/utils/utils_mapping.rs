@@ -1,4 +1,4 @@
-use crate::components::mappings::{fetch_all_mappings, save_all_mappings, Mapping};
+use crate::components::mapping::{fetch_all_mappings, save_all_mappings, Mapping};
 
 use super::encryption_key::get_encryption_key;
 

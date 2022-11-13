@@ -1,7 +1,7 @@
 use crate::{
     components::{
         config::{fetch_all_configs, save_all_configs, Config},
-        mappings::{get_file_name, Mapping},
+        mapping::{get_file_name, Mapping},
     },
     utils::encryption_key::get_encryption_key,
 };

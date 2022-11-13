@@ -1,6 +1,12 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{components::{routing::submodules::{sub_condition::Condition, sub_ref_data::RefData}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::{
+        constraint_property::ConstraintProperty,
+        routing::submodules::{sub_condition::Condition, sub_ref_data::RefData},
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TemplateBlock {
@@ -97,7 +103,12 @@ impl TemplateBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "template_block", "local_name", local_name) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "template_block",
+            "local_name",
+            local_name,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -129,7 +140,12 @@ impl TemplateBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "template_block", "template", template) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "template_block",
+            "template",
+            template,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -465,7 +481,11 @@ impl TemplateBlock {
             return Err((500, String::from("at start of template declaration")));
         }
 
-        let template = current_block[1].trim().split("_newline_").collect::<Vec<&str>>().join("\n");
+        let template = current_block[1]
+            .trim()
+            .split("_newline_")
+            .collect::<Vec<&str>>()
+            .join("\n");
 
         match TemplateBlock::create(all_blocks, global_index, block_index, local_name, &template) {
             Ok(f) => f,
@@ -507,7 +527,11 @@ impl TemplateBlock {
             block.local_name,
             stringified_data,
             conditions_str,
-            block.template.split("\n").collect::<Vec<&str>>().join("_newline_")
+            block
+                .template
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_")
         )
     }
 }

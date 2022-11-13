@@ -38,7 +38,7 @@ fn main() {
         test_config2,
         Err((
             400,
-            String::from("Error: value contains an invalid character")
+            String::from("Error: value contains a character that is not allowed (|)")
         ))
     );
 

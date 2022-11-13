@@ -214,12 +214,12 @@ Catchers:
    >> (internal_server_error) 500
 Fairings:
    >> CORS (ignite, request, response)
-   >> Templating (ignite, liftoff, request)
    >> Shield (liftoff, response, singleton)
+   >> Templating (ignite, liftoff, request)
 Shield:
-   >> X-Frame-Options: SAMEORIGIN
-   >> X-Content-Type-Options: nosniff
    >> Permissions-Policy: interest-cohort=()
+   >> X-Content-Type-Options: nosniff
+   >> X-Frame-Options: SAMEORIGIN
 Templating:
    >> directory: templates
    >> engines: ["tera"]

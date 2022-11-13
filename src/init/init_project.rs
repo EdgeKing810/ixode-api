@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        mappings::{get_file_name, Mapping},
+        mapping::{get_file_name, Mapping},
         project::{fetch_all_projects, save_all_projects, Project},
     },
     utils::encryption_key::get_encryption_key,

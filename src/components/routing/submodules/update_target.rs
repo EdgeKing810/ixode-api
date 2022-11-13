@@ -1,6 +1,12 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{components::{routing::submodules::sub_condition_plain::ConditionPlain, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::{
+        constraint_property::ConstraintProperty,
+        routing::submodules::sub_condition_plain::ConditionPlain,
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UpdateTarget {
@@ -67,10 +73,11 @@ impl UpdateTarget {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "update_target", "field", field) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "update_target", "field", field) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for n in 0..all_targets.len() {
             if n as u32 == index {

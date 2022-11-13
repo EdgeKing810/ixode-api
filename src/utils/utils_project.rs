@@ -1,5 +1,5 @@
 use crate::components::{
-    mappings::{get_file_name, Mapping},
+    mapping::{get_file_name, Mapping},
     project::{
         fetch_all_projects, save_all_projects, stringify_projects, unwrap_projects, Project,
     },

@@ -1,7 +1,7 @@
 use crate::{
     components::{
         event::{fetch_all_events, save_all_events, Event},
-        mappings::{get_file_name, Mapping},
+        mapping::{get_file_name, Mapping},
     },
     utils::encryption_key::get_encryption_key,
 };

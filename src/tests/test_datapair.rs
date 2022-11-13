@@ -11,10 +11,7 @@ fn main() {
     let test_pair2 = DataPair::create(&mut all_pairs, "test ", "_", "", "test2", "test2");
     assert_eq!(
         test_pair2,
-        Err((
-            400,
-            String::from("Error: new_id contains an invalid character")
-        ))
+        Err((400, String::from("Error: id contains an invalid character")))
     );
 
     let test_pair2 = DataPair::create(

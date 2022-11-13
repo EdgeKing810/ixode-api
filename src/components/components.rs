@@ -4,8 +4,8 @@ pub mod collection;
 #[path = "config.rs"]
 pub mod config;
 
-#[path = "custom_structures.rs"]
-pub mod custom_structures;
+#[path = "custom_structure.rs"]
+pub mod custom_structure;
 
 #[path = "encryption.rs"]
 pub mod encryption;
@@ -13,14 +13,14 @@ pub mod encryption;
 #[path = "io.rs"]
 pub mod io;
 
-#[path = "mappings.rs"]
-pub mod mappings;
+#[path = "mapping.rs"]
+pub mod mapping;
 
 #[path = "project.rs"]
 pub mod project;
 
-#[path = "structures.rs"]
-pub mod structures;
+#[path = "structure.rs"]
+pub mod structure;
 
 #[path = "user.rs"]
 pub mod user;

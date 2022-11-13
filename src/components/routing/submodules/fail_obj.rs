@@ -1,6 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+use crate::{
+    components::constraint_property::ConstraintProperty,
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FailObj {
@@ -38,10 +41,11 @@ impl FailObj {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "fail_obj", "message", message) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "fail_obj", "message", message) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         fail_obj.message = final_value;
 
@@ -49,7 +53,15 @@ impl FailObj {
     }
 
     pub fn to_string(fail_obj: FailObj) -> String {
-        format!("[{},{}]", fail_obj.status, fail_obj.message.split("\n").collect::<Vec<&str>>().join("_newline_"))
+        format!(
+            "[{},{}]",
+            fail_obj.status,
+            fail_obj
+                .message
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_")
+        )
     }
 
     pub fn from_string(fail_obj_str: &str) -> Result<FailObj, (usize, String)> {
@@ -78,7 +90,13 @@ impl FailObj {
             }
         };
 
-        match FailObj::create(status, &current_fail_obj[1].split("_newline_").collect::<Vec<&str>>().join("\n")) {
+        match FailObj::create(
+            status,
+            &current_fail_obj[1]
+                .split("_newline_")
+                .collect::<Vec<&str>>()
+                .join("\n"),
+        ) {
             Ok(fail_obj) => Ok(fail_obj),
             Err(e) => {
                 return Err((

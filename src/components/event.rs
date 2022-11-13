@@ -1,7 +1,10 @@
-use crate::{components::{
-    encryption::EncryptionKey,
-    io::{fetch_file, save_file},
-}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::{
+        encryption::EncryptionKey,
+        io::{fetch_file, save_file},
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 use chrono::prelude::*;
 use rocket::serde::{Deserialize, Serialize};
 
@@ -131,11 +134,13 @@ impl Event {
         let mut found_event: Option<Event> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "event", "event_type", event_type) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "event", "event_type", event_type)
+            {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -163,14 +168,19 @@ impl Event {
         let mut found_event: Option<Event> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "event", "description", description) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "event",
+            "description",
+            description,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for event in all_events.iter_mut() {
             if event.id == *id {
@@ -217,11 +227,12 @@ impl Event {
         let mut found_event: Option<Event> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "event", "redirect", redirect) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "event", "redirect", redirect) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -275,7 +286,15 @@ impl Event {
     pub fn to_string(event: Event) -> String {
         format!(
             "{};{};{};{};{}",
-            event.id, event.event_type, event.description.split("\n").collect::<Vec<&str>>().join("_newline_"), event.timestamp, event.redirect
+            event.id,
+            event.event_type,
+            event
+                .description
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_"),
+            event.timestamp,
+            event.redirect
         )
     }
 
@@ -285,7 +304,10 @@ impl Event {
         Event::create_no_check(
             current_event[0],
             current_event[1],
-            &current_event[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
+            &current_event[2]
+                .split("_newline_")
+                .collect::<Vec<&str>>()
+                .join("\n"),
             current_event[3],
             current_event[4],
         )

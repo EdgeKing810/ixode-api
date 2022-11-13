@@ -1,4 +1,4 @@
-use crate::components::{io::remove_file, mappings::Mapping};
+use crate::components::{io::remove_file, mapping::Mapping};
 
 pub fn reset_db(all_mappings: Vec<Mapping>, path: &str) {
     remove_file(path.to_string());

@@ -1,6 +1,6 @@
 use crate::components::{
     encryption::{fetch_encryption_key, save_encryption_key, EncryptionKey},
-    mappings::{get_file_name, Mapping},
+    mapping::{get_file_name, Mapping},
 };
 
 pub fn initialize_encryption_key(

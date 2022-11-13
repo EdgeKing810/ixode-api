@@ -1,6 +1,9 @@
 use crate::{
     components::io::{fetch_file, save_file},
-    utils::{io::auto_create_directory, io::auto_remove_directory, io::auto_rename_directory, mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints},
+    utils::{
+        constraint::auto_fetch_all_constraints, io::auto_create_directory,
+        io::auto_remove_directory, io::auto_rename_directory, mapping::auto_fetch_all_mappings,
+    },
 };
 use rocket::serde::{Deserialize, Serialize};
 
@@ -152,11 +155,12 @@ impl Project {
         }
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "id", new_id) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "project", "id", new_id) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -189,11 +193,12 @@ impl Project {
         let mut found_project: Option<Project> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "name", name) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "project", "name", name) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -221,14 +226,19 @@ impl Project {
         let mut found_project: Option<Project> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "description", description) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "project",
+            "description",
+            description,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
@@ -259,14 +269,19 @@ impl Project {
         }
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "api_path", &api_path.to_lowercase()) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "project",
+            "api_path",
+            &api_path.to_lowercase(),
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
@@ -318,14 +333,19 @@ impl Project {
         let mut all_members = Vec::<String>::new();
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "member", &member.to_lowercase()) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "project",
+            "members",
+            &member.to_lowercase(),
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
@@ -458,7 +478,15 @@ impl Project {
 
         format!(
             "{};{};{};{};{}",
-            project.id, project.name, project.description.split("\n").collect::<Vec<&str>>().join("_newline_"), project.api_path, members_string
+            project.id,
+            project.name,
+            project
+                .description
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_"),
+            project.api_path,
+            members_string
         )
     }
 
@@ -474,7 +502,10 @@ impl Project {
         Project::create_no_check(
             current_project[0],
             current_project[1],
-            &current_project[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
+            &current_project[2]
+                .split("_newline_")
+                .collect::<Vec<&str>>()
+                .join("\n"),
             current_project[3],
             final_members,
         )

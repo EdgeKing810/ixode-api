@@ -29,7 +29,7 @@ fn main() {
         test_event2,
         Err((
             400,
-            String::from("Error: description contains an invalid character")
+            String::from("Error: description contains a character that is not allowed (;)")
         ))
     );
 
@@ -38,7 +38,7 @@ fn main() {
         test_event2,
         Err((
             400,
-            String::from("Error: redirect contains an invalid character")
+            String::from("Error: redirect contains a character that is not allowed (;)")
         ))
     );
 

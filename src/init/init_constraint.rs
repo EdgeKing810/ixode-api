@@ -2,7 +2,7 @@ use crate::{
     components::{
         constraint::{fetch_all_constraints, save_all_constraints, Constraint},
         constraint_property::ConstraintProperty,
-        mappings::{get_file_name, Mapping},
+        mapping::{get_file_name, Mapping},
     },
     utils::encryption_key::get_encryption_key,
 };
@@ -16,21 +16,22 @@ pub fn initialize_constraints(mappings: &Vec<Mapping>) -> Vec<Constraint> {
         _ => "Test123*".to_string(),
     };
 
-    if let Err(e) = all_constraints_path {
+    if let Err(e) = all_constraints_path.clone() {
         println!("{}", e);
-        return all_constraints;
+        // return all_constraints;
+    } else {
+        all_constraints = match fetch_all_constraints(
+            all_constraints_path.clone().unwrap(),
+            &get_encryption_key(&mappings, &pass),
+        ) {
+            Ok(c) => c,
+            Err(e) => {
+                println!("{}", e.1);
+                // return all_constraints;
+                Vec::<Constraint>::new()
+            }
+        };
     }
-
-    all_constraints = match fetch_all_constraints(
-        all_constraints_path.clone().unwrap(),
-        &get_encryption_key(&mappings, &pass),
-    ) {
-        Ok(c) => c,
-        Err(e) => {
-            println!("{}", e.1);
-            return all_constraints;
-        }
-    };
 
     if !Constraint::exist(&all_constraints, "collection") {
         if let Err(e) = Constraint::create(&mut all_constraints, "collection") {
@@ -1264,11 +1265,13 @@ pub fn initialize_constraints(mappings: &Vec<Mapping>) -> Vec<Constraint> {
         }
     }
 
-    save_all_constraints(
-        &all_constraints,
-        all_constraints_path.unwrap(),
-        &get_encryption_key(&mappings, &pass),
-    );
+    if let Ok(path) = all_constraints_path {
+        save_all_constraints(
+            &all_constraints,
+            path,
+            &get_encryption_key(&mappings, &pass),
+        );
+    }
 
     all_constraints
 }

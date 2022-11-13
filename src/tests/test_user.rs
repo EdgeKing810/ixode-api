@@ -126,7 +126,7 @@ fn main() {
         test_user2,
         Err((
             400,
-            String::from("Error: password should be longer than 7 characters")
+            String::from("Error: password does not contain enough characters")
         ))
     );
 
@@ -198,7 +198,7 @@ fn main() {
         test_user2,
         Err((
             400,
-            String::from("Error: password contains a forbidden character (;)")
+            String::from("Error: password contains a character that is not allowed (;)")
         ))
     );
 

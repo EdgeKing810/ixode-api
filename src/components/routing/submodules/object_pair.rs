@@ -1,6 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+use crate::{
+    components::constraint_property::ConstraintProperty,
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 use super::sub_ref_data::RefData;
 
@@ -60,10 +63,11 @@ impl ObjectPair {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "object_pair", "id", new_id) {
-            Ok(v) => v,
-            Err(e) => return Err(e),
-        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "object_pair", "id", new_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == id {

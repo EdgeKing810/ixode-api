@@ -3,7 +3,10 @@ use std::fmt;
 use regex::Regex;
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::utils::{validate_stype::validate_stype, mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints};
+use crate::utils::{
+    constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings,
+    validate_stype::validate_stype,
+};
 
 use super::constraint_property::ConstraintProperty;
 
@@ -253,11 +256,12 @@ impl Structure {
         }
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "id", new_id) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "structure", "id", new_id) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -285,11 +289,12 @@ impl Structure {
         let mut found_structure: Option<Structure> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "name", name) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "structure", "name", name) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -317,14 +322,19 @@ impl Structure {
         let mut found_structure: Option<Structure> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "description", description) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "structure",
+            "description",
+            description,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
@@ -349,11 +359,12 @@ impl Structure {
         let mut found_structure: Option<Structure> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "stype", stype_txt) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "structure", "stype", stype_txt) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -383,14 +394,19 @@ impl Structure {
         let mut found_structure: Option<Structure> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "default_val", default_val) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "structure",
+            "default_val",
+            default_val,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
@@ -560,14 +576,19 @@ impl Structure {
         let mut found_structure: Option<Structure> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "regex_pattern", regex_pattern) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "structure",
+            "regex_pattern",
+            regex_pattern,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
@@ -748,7 +769,11 @@ impl Structure {
             "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
             structure.id,
             structure.name,
-            structure.description.split("\n").collect::<Vec<&str>>().join("_newline_"),
+            structure
+                .description
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_"),
             stype_txt,
             structure.default_val,
             structure.min,
@@ -803,7 +828,10 @@ pub fn try_add_structure(array: &Vec<&str>, final_structures: &mut Vec<Structure
         final_structures,
         array[0],
         array[1],
-        &array[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
+        &array[2]
+            .split("_newline_")
+            .collect::<Vec<&str>>()
+            .join("\n"),
         array[3],
         array[4],
         min.unwrap(),

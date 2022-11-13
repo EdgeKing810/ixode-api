@@ -3,7 +3,7 @@ use rocket::serde::json::{json, Json, Value};
 use rocket::serde::{Deserialize, Serialize};
 
 use crate::components::collection::Collection;
-use crate::components::custom_structures::CustomStructure;
+use crate::components::custom_structure::CustomStructure;
 use crate::components::data::Data;
 use crate::components::project::Project;
 use crate::components::user::{Role, User};

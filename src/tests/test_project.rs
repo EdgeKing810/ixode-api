@@ -36,10 +36,7 @@ fn main() {
     );
     assert_eq!(
         test_project2,
-        Err((
-            400,
-            String::from("Error: new_id contains an invalid character")
-        ))
+        Err((400, String::from("Error: id contains an invalid character")))
     );
 
     let test_project2 = Project::create(
@@ -63,7 +60,7 @@ fn main() {
         "test2",
         "Test Project",
         "This is a test project.",
-        "/api/v1/projects-",
+        "/api/v1/projects?",
         vec![],
     );
     assert_eq!(
@@ -71,22 +68,6 @@ fn main() {
         Err((
             400,
             String::from("Error: api_path contains an invalid character")
-        ))
-    );
-
-    let test_project2 = Project::create(
-        &mut all_projects,
-        "test2",
-        "Test Project",
-        "This is a test project.",
-        "/api/v1/Projects",
-        vec![],
-    );
-    assert_eq!(
-        test_project2,
-        Err((
-            400,
-            String::from("Error: api_path should not contain uppercase alphabetical character(s)")
         ))
     );
 
@@ -128,7 +109,7 @@ fn main() {
         test_project2,
         Err((
             400,
-            String::from("Error: description contains an invalid character")
+            String::from("Error: description contains a character that is not allowed (;)")
         ))
     );
 
@@ -144,7 +125,7 @@ fn main() {
         test_project2,
         Err((
             400,
-            String::from("Error: One or more Member IDs contain an invalid character")
+            String::from("Error: members contains an invalid character")
         ))
     );
 

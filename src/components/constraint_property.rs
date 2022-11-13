@@ -462,9 +462,9 @@ impl ConstraintProperty {
             Err(err) => return Err(err),
         };
 
-        let mut final_value = value.trim().to_string();
+        let mut final_value = value.to_string();
 
-        if final_value.len() < property.min {
+        if final_value.trim().len() < property.min {
             return Err((
                 400,
                 format!(
@@ -474,7 +474,7 @@ impl ConstraintProperty {
             ));
         }
 
-        if final_value.len() > property.max {
+        if final_value.trim().len() > property.max {
             return Err((
                 400,
                 format!("Error: {} contains too many characters", property_name),
@@ -482,7 +482,15 @@ impl ConstraintProperty {
         }
 
         for c in property.not_allowed {
-            final_value = final_value.replace(c, "_");
+            if final_value.contains(c) {
+                return Err((
+                    400,
+                    format!(
+                        "Error: {} contains a character that is not allowed ({})",
+                        property_name, c
+                    ),
+                ));
+            }
         }
         final_value = final_value.replace('\n', "_newline_");
 
@@ -516,7 +524,7 @@ impl ConstraintProperty {
             }
         }
 
-        Ok(final_value.trim().to_string())
+        Ok(final_value)
     }
 
     pub fn delete(

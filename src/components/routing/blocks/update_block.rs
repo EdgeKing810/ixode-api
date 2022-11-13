@@ -1,9 +1,15 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{components::{routing::submodules::{
-    sub_condition::Condition, sub_filter::Filter, sub_ref_data::RefData,
-    sub_update_target::UpdateTarget,
-}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::{
+        constraint_property::ConstraintProperty,
+        routing::submodules::{
+            sub_condition::Condition, sub_filter::Filter, sub_ref_data::RefData,
+            sub_update_target::UpdateTarget,
+        },
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UpdateBlock {
@@ -149,7 +155,12 @@ impl UpdateBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "update_block", "ref_col", ref_col) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "update_block",
+            "ref_col",
+            ref_col,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -181,7 +192,12 @@ impl UpdateBlock {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "update_block", "ref_property", ref_property) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "update_block",
+            "ref_property",
+            ref_property,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

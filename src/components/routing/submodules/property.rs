@@ -1,4 +1,7 @@
-use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+use crate::{
+    components::constraint_property::ConstraintProperty,
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 use super::{sub_property_apply::PropertyApply, sub_ref_data::RefData};
 use rocket::serde::{Deserialize, Serialize};
@@ -31,7 +34,12 @@ impl Property {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_additional = match ConstraintProperty::validate(&all_constraints, "property", "additional", additional) {
+        let final_additional = match ConstraintProperty::validate(
+            &all_constraints,
+            "property",
+            "additional",
+            additional,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

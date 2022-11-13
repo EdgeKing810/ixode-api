@@ -5,7 +5,7 @@ use crate::{
         datapair::DataPair,
         encryption::EncryptionKey,
         raw_pair::{CustomStructurePair, RawPair, StructurePair},
-        structures::Structure,
+        structure::Structure,
     },
     utils::{
         data::auto_fetch_all_data, mapping::auto_fetch_all_mappings, validate_stype::validate_stype,

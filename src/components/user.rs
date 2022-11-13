@@ -1,4 +1,7 @@
-use crate::{components::io::{fetch_file, save_file}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::io::{fetch_file, save_file},
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 use rocket::serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -277,14 +280,19 @@ impl User {
         let mut found_user: Option<User> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "first_name", first_name) {
-                Ok(v) => v,
-                Err(e) => return Err(e),
-            };
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "user",
+            "first_name",
+            first_name,
+        ) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
@@ -309,11 +317,12 @@ impl User {
         let mut found_user: Option<User> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "last_name", last_name) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "user", "last_name", last_name) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -362,11 +371,12 @@ impl User {
         }
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "username", username) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "user", "username", username) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -409,11 +419,12 @@ impl User {
         }
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "email", email) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "user", "email", email) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -441,11 +452,12 @@ impl User {
         let mut found_user: Option<User> = None;
 
         let mappings = auto_fetch_all_mappings();
-            let all_constraints = match auto_fetch_all_constraints(&mappings) {
-                Ok(c) => c,
-                Err(e) => return Err((500, e)),
-            };
-            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "password", password) {
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value =
+            match ConstraintProperty::validate(&all_constraints, "user", "password", password) {
                 Ok(v) => v,
                 Err(e) => return Err(e),
             };
@@ -472,11 +484,7 @@ impl User {
                     "Error: password should contain at least 1 lowercase alphabetic character",
                 ),
             ));
-        } else if !final_value
-            .trim()
-            .chars()
-            .any(|c| c.is_numeric())
-        {
+        } else if !final_value.trim().chars().any(|c| c.is_numeric()) {
             return Err((
                 400,
                 String::from("Error: password should contain at least 1 number"),
@@ -489,9 +497,10 @@ impl User {
                 let config = Config::default();
 
                 found_user = Some(user.clone());
-                user.password = argon2::hash_encoded(final_value.as_bytes(), salt.as_bytes(), &config)
-                    .unwrap()
-                    .to_string();
+                user.password =
+                    argon2::hash_encoded(final_value.as_bytes(), salt.as_bytes(), &config)
+                        .unwrap()
+                        .to_string();
                 break;
             }
         }

@@ -1,6 +1,12 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::{components::{io::{fetch_file, save_file}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::{
+        constraint_property::ConstraintProperty,
+        io::{fetch_file, save_file},
+    },
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 
 use super::{
     blocks::{create_block::CreateBlock, fetch_block::FetchBlock, update_block::UpdateBlock},
@@ -128,7 +134,12 @@ impl RouteComponent {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "route_component", "route_id", new_route_id) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "route_component",
+            "route_id",
+            new_route_id,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -166,7 +177,12 @@ impl RouteComponent {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "route_component", "route_path", route_path) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "route_component",
+            "route_path",
+            route_path,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -198,7 +214,12 @@ impl RouteComponent {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "route_component", "project_id", project_id) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "route_component",
+            "project_id",
+            project_id,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };

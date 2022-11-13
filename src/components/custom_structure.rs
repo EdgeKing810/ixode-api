@@ -1,4 +1,7 @@
-use crate::{components::structures::{try_add_structure, Structure}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+use crate::{
+    components::structure::{try_add_structure, Structure},
+    utils::{constraint::auto_fetch_all_constraints, mapping::auto_fetch_all_mappings},
+};
 use rocket::serde::{Deserialize, Serialize};
 
 use super::constraint_property::ConstraintProperty;
@@ -102,7 +105,12 @@ impl CustomStructure {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "custom_structure", "id", new_id) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "custom_structure",
+            "id",
+            new_id,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -134,7 +142,12 @@ impl CustomStructure {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "custom_structure", "name", name) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "custom_structure",
+            "name",
+            name,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -166,7 +179,12 @@ impl CustomStructure {
             Ok(c) => c,
             Err(e) => return Err((500, e)),
         };
-        let final_value = match ConstraintProperty::validate(&all_constraints, "custom_structure", "description", description) {
+        let final_value = match ConstraintProperty::validate(
+            &all_constraints,
+            "custom_structure",
+            "description",
+            description,
+        ) {
             Ok(v) => v,
             Err(e) => return Err(e),
         };
@@ -405,7 +423,10 @@ impl CustomStructure {
             &mut tmp_custom_structures,
             current_custom_structure[0],
             current_custom_structure[1],
-            &current_custom_structure[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
+            &current_custom_structure[2]
+                .split("_newline_")
+                .collect::<Vec<&str>>()
+                .join("\n"),
         );
 
         if let Err(e) = create_custom_structure {
@@ -434,7 +455,11 @@ impl CustomStructure {
             "{}|{}|{}|{}",
             custom_structure.id,
             custom_structure.name,
-            custom_structure.description.split("\n").collect::<Vec<&str>>().join("_newline_"),
+            custom_structure
+                .description
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .join("_newline_"),
             stringified_structures
         )
     }

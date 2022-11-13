@@ -4,7 +4,7 @@ use crate::components::{
     datapair::DataPair,
     raw_pair::{CustomStructurePair, RawPair, StructurePair},
     routing::submodules::sub_body_data_type::BodyDataType,
-    structures::{Structure, Type},
+    structure::{Structure, Type},
 };
 
 pub fn data_to_rawpair(data: &Data, collection: &Collection) -> Result<RawPair, (usize, String)> {
