@@ -31,6 +31,8 @@ mod init;
 #[path = "catchers/catchers.rs"]
 mod catchers;
 
+use components::constraint::stringify_constraints_debug;
+use init::constraint::initialize_constraints;
 use rocket_cors::{AllowedHeaders, AllowedOrigins};
 use std::collections::HashMap;
 use utils::{config::get_config_value, mapping::auto_fetch_all_mappings, redis::init_redis};
@@ -47,6 +49,8 @@ use std::fs;
 
 #[launch]
 fn rocket() -> _ {
+    println!("Welcome to Kinesis API! 🏭\n");
+
     match dotenv::dotenv() {
         Err(_) => {
             match fs::copy(".env.template", ".env") {
@@ -59,7 +63,10 @@ fn rocket() -> _ {
         _ => {}
     }
 
-    println!("{}", init_redis());
+    println!("{}\n", init_redis());
+
+    let constraints = initialize_constraints(&auto_fetch_all_mappings());
+    println!("\n{}", stringify_constraints_debug(&constraints));
 
     // let allowed_origins = AllowedOrigins::some_exact(&["https://www.acme.com"]);
     let allowed_origins = AllowedOrigins::all();

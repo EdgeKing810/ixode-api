@@ -165,7 +165,7 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-        if !structure_id
+        if !final_structure_id
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
@@ -175,7 +175,12 @@ impl DataPair {
             ));
         }
 
-        if final_structure_id.trim().len() > 200 {
+        if final_structure_id.trim().len() < 1 {
+            return Err((
+                400,
+                String::from("Error: structure_id does not contain enough characters"),
+            ));
+        } else if final_structure_id.trim().len() > 200 {
             return Err((
                 400,
                 String::from("Error: structure_id contains too many characters"),
@@ -185,7 +190,7 @@ impl DataPair {
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.structure_id = structure_id.trim().to_string();
+                pair.structure_id = final_structure_id.trim().to_string();
                 break;
             }
         }
@@ -209,7 +214,7 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-        if !custom_structure_id
+        if !final_custom_structure_id
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
         {
@@ -296,7 +301,7 @@ impl DataPair {
                 400,
                 String::from("Error: dtype does not contain enough characters"),
             ));
-        } else if final_dtype.trim().len() > 50000 {
+        } else if final_dtype.trim().len() > 100 {
             return Err((
                 400,
                 String::from("Error: dtype contains too many characters"),

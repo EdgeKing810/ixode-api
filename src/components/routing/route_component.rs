@@ -526,7 +526,7 @@ impl RouteComponent {
 
         for route in all_routes {
             stringified_routes = format!(
-                "{}{}=============== DEFINE ROUTE ===============\n\n{}",
+                "{}{}=============== DEFINE ROUTE ===============\n{}",
                 stringified_routes,
                 if stringified_routes.chars().count() > 1 {
                     "\n"

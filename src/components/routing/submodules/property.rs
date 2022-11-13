@@ -31,16 +31,6 @@ impl Property {
             ));
         }
 
-        if !apply
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.')
-        {
-            return Err((
-                400,
-                String::from("Error: data contains an invalid character"),
-            ));
-        }
-
         if !additional
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.')

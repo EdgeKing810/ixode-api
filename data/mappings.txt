@@ -5,3 +5,4 @@ collections=data/collections.txt
 medias=data/medias.txt
 encryption_key=data/encryption_key.txt
 events=data/events.txt
+constraints=data/constraints.txt

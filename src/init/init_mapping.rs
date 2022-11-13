@@ -68,6 +68,14 @@ pub fn initialize_mappings() -> Vec<Mapping> {
         }
     }
 
+    if !Mapping::exist(&fetched_mappings, "constraints") {
+        let constraint_mapping =
+            Mapping::create(&mut fetched_mappings, "constraints", "data/constraints.txt");
+        if let Err(e) = constraint_mapping {
+            println!("{}", e);
+        }
+    }
+
     save_all_mappings(&fetched_mappings, &mappings_path, &String::from(""));
     fetched_mappings
 }

@@ -40,5 +40,11 @@ pub mod event;
 #[path = "raw_pair.rs"]
 pub mod raw_pair;
 
+#[path = "constraint.rs"]
+pub mod constraint;
+
+#[path = "constraint_property.rs"]
+pub mod constraint_property;
+
 #[path = "routing/routing.rs"]
 pub mod routing;

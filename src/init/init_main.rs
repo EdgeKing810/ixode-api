@@ -2,14 +2,14 @@ use std::fs;
 
 use crate::{
     components::{
-        collection::Collection, config::Config, event::Event, media::Media, project::Project,
-        user::User,
+        collection::Collection, config::Config, constraint::Constraint, event::Event, media::Media,
+        project::Project, user::User,
     },
     init::{
         collection::initialize_collections, config::initialize_configs,
-        encryption_key::initialize_encryption_key, event::initialize_events,
-        mapping::initialize_mappings, media::initialize_medias, project::initialize_projects,
-        user::initialize_users,
+        constraint::initialize_constraints, encryption_key::initialize_encryption_key,
+        event::initialize_events, mapping::initialize_mappings, media::initialize_medias,
+        project::initialize_projects, user::initialize_users,
     },
 };
 
@@ -44,6 +44,7 @@ pub fn initialize() {
     let all_collections: Vec<Collection> = initialize_collections(&all_mappings);
     let _all_medias: Vec<Media> = initialize_medias(&all_mappings);
     let _all_events: Vec<Event> = initialize_events(&all_mappings);
+    let all_constraints: Vec<Constraint> = initialize_constraints(&all_mappings);
 
     println!(
         "{:#?}",
@@ -53,4 +54,6 @@ pub fn initialize() {
     println!("Projects: {:#?}", all_projects);
 
     println!("Collections: {:#?}", all_collections);
+
+    println!("Constraints: {:#?}", all_constraints);
 }

@@ -393,6 +393,18 @@ impl User {
             ));
         }
 
+        if String::from(username.trim()).len() < 1 {
+            return Err((
+                400,
+                String::from("Error: username does not contain enough characters"),
+            ));
+        } else if String::from(username.trim()).len() > 100 {
+            return Err((
+                400,
+                String::from("Error: username contains too many characters"),
+            ));
+        }
+
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
                 found_user = Some(user.clone());
@@ -425,8 +437,16 @@ impl User {
             r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})",
         )
         .unwrap();
+
         if !email_regex.is_match(email) {
             return Err((400, String::from("Error: Invalid email address")));
+        }
+
+        if !String::from(email).chars().all(|c| c != ';') {
+            return Err((
+                400,
+                String::from("Error: email contains an invalid character"),
+            ));
         }
 
         if String::from(email.trim()).len() < 1 {

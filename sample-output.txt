@@ -1,4 +1,133 @@
+Welcome to Kinesis API! 🏭
 Redis Connection Successful!
+
+Constraints saved!
+
+collection:
+  id: alphanumeric + - + _ (1, 100)
+  project_id: alphanumeric + - + _ (1, 100)
+  name: alphanumeric + - + <space> (1, 100)
+  description: NOT[; > #] (1, 400)
+
+config:
+  name: alphanumeric + - + _ (1, 100)
+  value: NOT[|] (1, 200)
+
+custom_structure:
+  id: alphanumeric + - + _ (1, 100)
+  name: alphanumeric + - + <space> (1, 100)
+  description: NOT[; > #] (0, 1000)
+
+data:
+  id: alphanumeric + - + _ (1, 100)
+  project_id: alphanumeric + - + _ (1, 100)
+  collection_id: alphanumeric + - + _ (1, 100)
+
+datapair:
+  id: alphanumeric + - + _ (1, 100)
+  structure_id: alphanumeric + - + _ (1, 200)
+  custom_structure_id: alphanumeric + - + _ (0, 200)
+  value: NOT[|] (0, 500000)
+  dtype: alphanumeric + - + _ (1, 100)
+
+event:
+  event_type: alphanumeric + - + _ (1, 100)
+  description: NOT[;] (1, 1000)
+  redirect: NOT[;] (1, 200)
+
+media:
+  id: alphanumeric + - + _ (1, 500)
+  name: NOT[^] (1, 500)
+
+project:
+  id: alphanumeric + - + _ (1, 100)
+  name: alphanumeric + - + _ + <space> (1, 100)
+  description: NOT[;] (0, 400)
+  api_path: alphanumeric + - + _ + / (1, 50)
+  members: alphanumeric + - + _ (1, 50)
+
+structure:
+  id: alphanumeric + - + _ (1, 100)
+  name: alphanumeric + - + _ + <space> (1, 100)
+  description: NOT[; > #] (0, 1000)
+  stype: NOT[; @ > #] (0, 100)
+  default_val: NOT[; > #] (0, 99999999)
+  regex_pattern: NOT[; > #] (0, 1000)
+
+user:
+  first_name: alphabetic + - + <space> (1, 100)
+  last_name: alphabetic + - + <space> (1, 100)
+  username: alphanumeric + - + _ (1, 100)
+  email: NOT[;] (1, 100)
+  password: NOT[;] (7, 100)
+
+route_component:
+  route_id: alphanumeric + - + _ (1, 100)
+  route_path: alphanumeric + - + _ + / (1, 200)
+  project_id: alphanumeric + - + _ (1, 100)
+
+auth_jwt:
+  field: alphanumeric + - + _ (0, 100)
+  ref_col: alphanumeric + - + _ (0, 100)
+
+body_data:
+  id: alphanumeric + - + _ (1, 100)
+  bdtype: NOT[; @ > #] (1, 100)
+
+param_data:
+  delimiter: alphanumeric + & + ! + # + - + _ (0, 5)
+
+assignment_block:
+  local_name: alphanumeric + - + _ (1, 100)
+
+create_block:
+  ref_col: alphanumeric + - + _ (1, 100)
+  ref_object: alphanumeric + - + _ (1, 100)
+
+fetch_block:
+  local_name: alphanumeric + - + _ (1, 100)
+  ref_col: alphanumeric + - + _ (1, 100)
+
+filter_block:
+  local_name: alphanumeric + - + _ (1, 100)
+  ref_var: alphanumeric + - + _ (1, 100)
+  ref_property: alphanumeric + - + _ + . (1, 100)
+
+function_block:
+  local_name: alphanumeric + - + _ (1, 100)
+
+loop_block:
+  local_name: alphanumeric + - + _ (1, 100)
+
+object_block:
+  local_name: alphanumeric + - + _ (1, 100)
+
+property_block:
+  local_name: alphanumeric + - + _ (1, 100)
+
+template_block:
+  local_name: alphanumeric + - + _ (1, 100)
+  template:  (1, 1000)
+
+update_block:
+  ref_col: alphanumeric + - + _ (1, 100)
+  ref_property: alphanumeric + - + _ + . (0, 100)
+
+fail_obj:
+  message: alphanumeric + - + _ + : + ; + <space> + . + / (0, 200)
+
+object_pair:
+  id: alphanumeric + - + _ (1, 100)
+
+property:
+  additional: alphanumeric + - + _ + . (0, 100)
+
+ref_data:
+  data: alphanumeric + - + _ + : + ; + <space> + . (0, 200)
+
+update_target:
+  field: alphanumeric + - + _ (1, 100)
+
 Configured for debug.
    >> address: 0.0.0.0
    >> port: 8080
@@ -84,15 +213,13 @@ Catchers:
    >> (internal_server_error) 500
 Fairings:
    >> CORS (ignite, request, response)
-   >> Templating (ignite, liftoff, request)
    >> Shield (liftoff, response, singleton)
+   >> Templating (ignite, liftoff, request)
 Shield:
+   >> X-Frame-Options: SAMEORIGIN
    >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
-   >> X-Frame-Options: SAMEORIGIN
 Templating:
    >> directory: templates
    >> engines: ["tera"]
 Rocket has launched from http://0.0.0.0:8080
-Warning: Received SIGINT. Requesting shutdown.
-Received shutdown request. Waiting for pending I/O...

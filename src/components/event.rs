@@ -216,7 +216,7 @@ impl Event {
         let mut found_event: Option<Event> = None;
         let timestamp = Utc::now().to_string();
 
-        if !timestamp.chars().all(|c| c != ';' && c != '\n') {
+        if !timestamp.chars().all(|c| c != ';') {
             return Err((
                 400,
                 String::from("Error: timestamp contains an invalid character"),
