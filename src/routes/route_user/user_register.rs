@@ -111,8 +111,6 @@ pub async fn main(data: Json<RegisterInput>, token: Token) -> Value {
         .collect::<Vec<&str>>()
         .join(&format!("{}", password));
 
-    println!("{}", email_template);
-
     let email_to_be_sent = Message::builder()
         .from(format!("Hello <{}>", smtp_username).parse().unwrap())
         .to(format!("{} {} <{}>", first_name, last_name, email)
@@ -127,7 +125,6 @@ pub async fn main(data: Json<RegisterInput>, token: Token) -> Value {
 
     let creds = Credentials::new(smtp_username, smtp_password);
 
-    // Open a remote connection to gmail
     let mailer = SmtpTransport::relay(&smtp_host)
         .unwrap()
         .credentials(creds)

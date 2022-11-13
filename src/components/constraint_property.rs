@@ -484,7 +484,7 @@ impl ConstraintProperty {
         for c in property.not_allowed {
             final_value = final_value.replace(c, "_");
         }
-        final_value = final_value.replace('\n', "<newline>");
+        final_value = final_value.replace('\n', "_newline_");
 
         let mut final_value_check = final_value.clone();
         for a in property.additional_allowed {
@@ -516,7 +516,7 @@ impl ConstraintProperty {
             }
         }
 
-        Ok(final_value)
+        Ok(final_value.trim().to_string())
     }
 
     pub fn delete(

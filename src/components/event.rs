@@ -1,9 +1,11 @@
-use crate::components::{
+use crate::{components::{
     encryption::EncryptionKey,
     io::{fetch_file, save_file},
-};
+}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 use chrono::prelude::*;
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Event {
@@ -128,32 +130,20 @@ impl Event {
     ) -> Result<(), (usize, String)> {
         let mut found_event: Option<Event> = None;
 
-        if !String::from(event_type)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: event_type contains an invalid character"),
-            ));
-        }
-
-        if String::from(event_type.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: event_type does not contain enough characters"),
-            ));
-        } else if String::from(event_type.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: event_type contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "event", "event_type", event_type) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for event in all_events.iter_mut() {
             if event.id == *id {
                 found_event = Some(event.clone());
-                event.event_type = event_type.trim().to_string();
+                event.event_type = final_value;
                 break;
             }
         }
@@ -172,32 +162,20 @@ impl Event {
     ) -> Result<(), (usize, String)> {
         let mut found_event: Option<Event> = None;
 
-        if !String::from(description)
-            .chars()
-            .all(|c| c != ';' && c != '\n')
-        {
-            return Err((
-                400,
-                String::from("Error: description contains an invalid character"),
-            ));
-        }
-
-        if String::from(description.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: description does not contain enough characters"),
-            ));
-        } else if String::from(description.trim()).len() > 1000 {
-            return Err((
-                400,
-                String::from("Error: description contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "event", "description", description) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for event in all_events.iter_mut() {
             if event.id == *id {
                 found_event = Some(event.clone());
-                event.description = description.trim().to_string();
+                event.description = final_value;
                 break;
             }
         }
@@ -216,17 +194,10 @@ impl Event {
         let mut found_event: Option<Event> = None;
         let timestamp = Utc::now().to_string();
 
-        if !timestamp.chars().all(|c| c != ';') {
-            return Err((
-                400,
-                String::from("Error: timestamp contains an invalid character"),
-            ));
-        }
-
         for event in all_events.iter_mut() {
             if event.id == *id {
                 found_event = Some(event.clone());
-                event.timestamp = timestamp.trim().to_string();
+                event.timestamp = timestamp;
                 break;
             }
         }
@@ -245,32 +216,20 @@ impl Event {
     ) -> Result<(), (usize, String)> {
         let mut found_event: Option<Event> = None;
 
-        if !String::from(redirect)
-            .chars()
-            .all(|c| c != ';' && c != '\n')
-        {
-            return Err((
-                400,
-                String::from("Error: redirect contains an invalid character"),
-            ));
-        }
-
-        if String::from(redirect.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: redirect does not contain enough characters"),
-            ));
-        } else if String::from(redirect.trim()).len() > 200 {
-            return Err((
-                400,
-                String::from("Error: redirect contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "event", "redirect", redirect) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for event in all_events.iter_mut() {
             if event.id == *id {
                 found_event = Some(event.clone());
-                event.redirect = redirect.trim().to_string();
+                event.redirect = final_value;
                 break;
             }
         }
@@ -316,7 +275,7 @@ impl Event {
     pub fn to_string(event: Event) -> String {
         format!(
             "{};{};{};{};{}",
-            event.id, event.event_type, event.description, event.timestamp, event.redirect
+            event.id, event.event_type, event.description.split("\n").collect::<Vec<&str>>().join("_newline_"), event.timestamp, event.redirect
         )
     }
 
@@ -326,7 +285,7 @@ impl Event {
         Event::create_no_check(
             current_event[0],
             current_event[1],
-            current_event[2],
+            &current_event[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
             current_event[3],
             current_event[4],
         )

@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::routing::submodules::{sub_condition::Condition, sub_operation::Operation};
+use crate::{components::{routing::submodules::{sub_condition::Condition, sub_operation::Operation}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AssignmentBlock {
@@ -80,32 +80,20 @@ impl AssignmentBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<AssignmentBlock> = None;
 
-        if !String::from(local_name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: local_name contains an invalid character"),
-            ));
-        }
-
-        if String::from(local_name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: local_name does not contain enough characters"),
-            ));
-        } else if String::from(local_name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: local_name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "assignment_block", "local_name", local_name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.local_name = local_name.trim().to_string();
+                block.local_name = final_value;
                 break;
             }
         }

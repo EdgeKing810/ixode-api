@@ -1,5 +1,7 @@
-use crate::components::io::{fetch_file, save_file};
+use crate::{components::io::{fetch_file, save_file}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct Config {
@@ -42,27 +44,15 @@ impl Config {
         name: &str,
         value: &str,
     ) -> Result<(), (usize, String)> {
-        if !String::from(name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-        {
-            return Err((
-                400,
-                String::from("Error: name contains an invalid character"),
-            ));
-        }
-
-        if String::from(name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: name does not contain enough characters"),
-            ));
-        } else if String::from(name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_name = match ConstraintProperty::validate(&all_constraints, "config", "name", name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for config in all_configs.iter_mut() {
             if config.name.to_lowercase() == name.to_string().to_lowercase() {
@@ -77,8 +67,8 @@ impl Config {
         }
 
         let new_config = Config {
-            name: name.trim().to_string(),
-            value: value.trim().to_string(),
+            name: final_name,
+            value: String::new(),
         };
         all_configs.push(new_config);
 
@@ -100,29 +90,20 @@ impl Config {
     ) -> Result<(), (usize, String)> {
         let mut found_config: Option<Config> = None;
 
-        if String::from(value).chars().any(|c| c == '|') {
-            return Err((
-                400,
-                String::from("Error: value contains an invalid character"),
-            ));
-        }
-
-        if String::from(value.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: value does not contain enough characters"),
-            ));
-        } else if String::from(value.trim()).len() > 200 {
-            return Err((
-                400,
-                String::from("Error: value contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "config", "value", value) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for config in all_configs.iter_mut() {
             if config.name == name.to_string() {
                 found_config = Some(config.clone());
-                config.value = value.trim().to_string();
+                config.value = final_value;
                 break;
             }
         }

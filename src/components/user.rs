@@ -1,10 +1,12 @@
-use crate::components::io::{fetch_file, save_file};
+use crate::{components::io::{fetch_file, save_file}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 
 use rocket::serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use argon2::{self, Config};
 use regex::Regex;
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Role {
@@ -274,32 +276,20 @@ impl User {
     ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
-        if !String::from(first_name)
-            .chars()
-            .all(|c| c.is_alphabetic() || c == ' ' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: first_name contains an invalid character"),
-            ));
-        }
-
-        if String::from(first_name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: first_name does not contain enough characters"),
-            ));
-        } else if String::from(first_name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: first_name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "first_name", first_name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
                 found_user = Some(user.clone());
-                user.first_name = first_name.trim().to_string();
+                user.first_name = final_value;
                 break;
             }
         }
@@ -318,32 +308,20 @@ impl User {
     ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
-        if !String::from(last_name)
-            .chars()
-            .all(|c| c.is_alphabetic() || c == ' ' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: last_name contains an invalid character"),
-            ));
-        }
-
-        if String::from(last_name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: last_name does not contain enough characters"),
-            ));
-        } else if String::from(last_name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: last_name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "last_name", last_name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
                 found_user = Some(user.clone());
-                user.last_name = last_name.trim().to_string();
+                user.last_name = final_value;
                 break;
             }
         }
@@ -383,32 +361,20 @@ impl User {
             }
         }
 
-        if !String::from(username)
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '_')
-        {
-            return Err((
-                400,
-                String::from("Error: username contains an invalid character"),
-            ));
-        }
-
-        if String::from(username.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: username does not contain enough characters"),
-            ));
-        } else if String::from(username.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: username contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "username", username) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
                 found_user = Some(user.clone());
-                user.username = username.trim().to_string();
+                user.username = final_value;
                 break;
             }
         }
@@ -442,29 +408,20 @@ impl User {
             return Err((400, String::from("Error: Invalid email address")));
         }
 
-        if !String::from(email).chars().all(|c| c != ';') {
-            return Err((
-                400,
-                String::from("Error: email contains an invalid character"),
-            ));
-        }
-
-        if String::from(email.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: email does not contain enough characters"),
-            ));
-        } else if String::from(email.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: email contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "email", email) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for user in all_users.iter_mut() {
             if user.id == id.to_string() {
                 found_user = Some(user.clone());
-                user.email = email.trim().to_string();
+                user.email = final_value;
                 break;
             }
         }
@@ -483,19 +440,17 @@ impl User {
     ) -> Result<(), (usize, String)> {
         let mut found_user: Option<User> = None;
 
-        if String::from(password.trim()).len() < 7 {
-            return Err((
-                400,
-                String::from("Error: password should be longer than 7 characters"),
-            ));
-        } else if String::from(password.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: password contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "user", "password", password) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
-        if !String::from(password)
+        if !final_value
             .trim()
             .chars()
             .any(|c| c.is_alphabetic() && c.is_uppercase())
@@ -506,7 +461,7 @@ impl User {
                     "Error: password should contain at least 1 uppercase alphabetic character",
                 ),
             ));
-        } else if !String::from(password)
+        } else if !final_value
             .trim()
             .chars()
             .any(|c| c.is_alphabetic() && c.is_lowercase())
@@ -517,7 +472,7 @@ impl User {
                     "Error: password should contain at least 1 lowercase alphabetic character",
                 ),
             ));
-        } else if !String::from(password)
+        } else if !final_value
             .trim()
             .chars()
             .any(|c| c.is_numeric())
@@ -525,11 +480,6 @@ impl User {
             return Err((
                 400,
                 String::from("Error: password should contain at least 1 number"),
-            ));
-        } else if password.contains(';') {
-            return Err((
-                400,
-                String::from("Error: password contains a forbidden character (;)"),
             ));
         }
 
@@ -539,7 +489,7 @@ impl User {
                 let config = Config::default();
 
                 found_user = Some(user.clone());
-                user.password = argon2::hash_encoded(password.as_bytes(), salt.as_bytes(), &config)
+                user.password = argon2::hash_encoded(final_value.as_bytes(), salt.as_bytes(), &config)
                     .unwrap()
                     .to_string();
                 break;

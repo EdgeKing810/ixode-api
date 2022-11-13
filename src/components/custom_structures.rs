@@ -1,5 +1,7 @@
-use crate::components::structures::{try_add_structure, Structure};
+use crate::{components::structures::{try_add_structure, Structure}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 // use crate::encryption::EncryptionKey;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -95,32 +97,20 @@ impl CustomStructure {
             }
         }
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: new_id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "custom_structure", "id", new_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for custom_structure in all_custom_structures.iter_mut() {
             if custom_structure.id == *id {
                 found_custom_structure = Some(custom_structure.clone());
-                custom_structure.id = new_id.trim().to_string();
+                custom_structure.id = final_value;
                 break;
             }
         }
@@ -139,32 +129,20 @@ impl CustomStructure {
     ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
-        if !String::from(name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
-        {
-            return Err((
-                400,
-                String::from("Error: name contains an invalid character"),
-            ));
-        }
-
-        if String::from(name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: name does not contain enough characters"),
-            ));
-        } else if String::from(name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "custom_structure", "name", name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for custom_structure in all_custom_structures.iter_mut() {
             if custom_structure.id == *id {
                 found_custom_structure = Some(custom_structure.clone());
-                custom_structure.name = name.trim().to_string();
+                custom_structure.name = final_value;
                 break;
             }
         }
@@ -183,27 +161,20 @@ impl CustomStructure {
     ) -> Result<(), (usize, String)> {
         let mut found_custom_structure: Option<CustomStructure> = None;
 
-        if !String::from(description)
-            .chars()
-            .all(|c| c != ';' && c != '>' && c != '#')
-        {
-            return Err((
-                400,
-                String::from("Error: description contains an invalid character"),
-            ));
-        }
-
-        if String::from(description.trim()).len() > 1000 {
-            return Err((
-                400,
-                String::from("Error: description contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "custom_structure", "description", description) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for custom_structure in all_custom_structures.iter_mut() {
             if custom_structure.id == *id {
                 found_custom_structure = Some(custom_structure.clone());
-                custom_structure.description = description.trim().to_string();
+                custom_structure.description = final_value;
                 break;
             }
         }
@@ -434,7 +405,7 @@ impl CustomStructure {
             &mut tmp_custom_structures,
             current_custom_structure[0],
             current_custom_structure[1],
-            current_custom_structure[2],
+            &current_custom_structure[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
         );
 
         if let Err(e) = create_custom_structure {
@@ -463,7 +434,7 @@ impl CustomStructure {
             "{}|{}|{}|{}",
             custom_structure.id,
             custom_structure.name,
-            custom_structure.description,
+            custom_structure.description.split("\n").collect::<Vec<&str>>().join("_newline_"),
             stringified_structures
         )
     }

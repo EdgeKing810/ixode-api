@@ -1,5 +1,7 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FailObj {
     pub status: u32,
@@ -31,36 +33,23 @@ impl FailObj {
     }
 
     pub fn update_message(fail_obj: &mut FailObj, message: &str) -> Result<(), (usize, String)> {
-        if message.trim().len() > 200 {
-            return Err((
-                400,
-                String::from("Error: message contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "fail_obj", "message", message) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
-        if !message.chars().all(|c| {
-            c.is_ascii_alphanumeric()
-                || c == '_'
-                || c == '-'
-                || c == ':'
-                || c == ';'
-                || c == ' '
-                || c == '.'
-                || c == '/'
-        }) {
-            return Err((
-                400,
-                String::from("Error: message contains an invalid character"),
-            ));
-        }
-
-        fail_obj.message = message.to_string();
+        fail_obj.message = final_value;
 
         Ok(())
     }
 
     pub fn to_string(fail_obj: FailObj) -> String {
-        format!("[{},{}]", fail_obj.status, fail_obj.message)
+        format!("[{},{}]", fail_obj.status, fail_obj.message.split("\n").collect::<Vec<&str>>().join("_newline_"))
     }
 
     pub fn from_string(fail_obj_str: &str) -> Result<FailObj, (usize, String)> {
@@ -89,7 +78,7 @@ impl FailObj {
             }
         };
 
-        match FailObj::create(status, current_fail_obj[1]) {
+        match FailObj::create(status, &current_fail_obj[1].split("_newline_").collect::<Vec<&str>>().join("\n")) {
             Ok(fail_obj) => Ok(fail_obj),
             Err(e) => {
                 return Err((

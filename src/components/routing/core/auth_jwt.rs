@@ -1,5 +1,7 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct AuthJWT {
     pub active: bool,
@@ -42,47 +44,33 @@ impl AuthJWT {
     }
 
     pub fn update_field(auth_obj: &mut AuthJWT, field: &str) -> Result<(), (usize, String)> {
-        if field.trim().len() > 100 {
-            return Err((
-                400,
-                String::from("Error: field contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "auth_jwt", "field", field) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
-        if !field
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: field contains an invalid character"),
-            ));
-        }
-
-        auth_obj.field = field.to_string();
+        auth_obj.field = final_value;
 
         Ok(())
     }
 
     pub fn update_ref_col(auth_obj: &mut AuthJWT, ref_col: &str) -> Result<(), (usize, String)> {
-        if ref_col.trim().len() > 100 {
-            return Err((
-                400,
-                String::from("Error: ref_col contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "auth_jwt", "ref_col", ref_col) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
-        if !ref_col
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: ref_col contains an invalid character"),
-            ));
-        }
-
-        auth_obj.ref_col = ref_col.to_string();
+        auth_obj.ref_col = final_value;
 
         Ok(())
     }

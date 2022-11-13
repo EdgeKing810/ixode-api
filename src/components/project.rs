@@ -1,8 +1,10 @@
 use crate::{
     components::io::{fetch_file, save_file},
-    utils::{io::auto_create_directory, io::auto_remove_directory, io::auto_rename_directory},
+    utils::{io::auto_create_directory, io::auto_remove_directory, io::auto_rename_directory, mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints},
 };
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Project {
@@ -149,29 +151,20 @@ impl Project {
             }
         }
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 100 {
-            return Err((400, String::from("Error: id contains too many characters")));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "id", new_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
                 found_project = Some(project.clone());
-                project.id = new_id.trim().to_string();
+                project.id = final_value.clone();
                 break;
             }
         }
@@ -181,7 +174,7 @@ impl Project {
         } else {
             auto_rename_directory(
                 &format!("/data/projects/{}", &id),
-                &format!("/data/projects/{}", new_id),
+                &format!("/data/projects/{}", final_value),
             );
         }
 
@@ -195,32 +188,20 @@ impl Project {
     ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
-        if !String::from(name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == ' ' || c == '-' || c == '_')
-        {
-            return Err((
-                400,
-                String::from("Error: name contains an invalid character"),
-            ));
-        }
-
-        if String::from(name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: name does not contain enough characters"),
-            ));
-        } else if String::from(name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "name", name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
                 found_project = Some(project.clone());
-                project.name = name.trim().to_string();
+                project.name = final_value;
                 break;
             }
         }
@@ -239,24 +220,20 @@ impl Project {
     ) -> Result<(), (usize, String)> {
         let mut found_project: Option<Project> = None;
 
-        if description.trim().len() > 0 && String::from(description).chars().any(|c| c == ';') {
-            return Err((
-                400,
-                String::from("Error: description contains an invalid character"),
-            ));
-        }
-
-        if String::from(description.trim()).len() > 400 {
-            return Err((
-                400,
-                String::from("Error: description contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "description", description) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
                 found_project = Some(project.clone());
-                project.description = description.trim().to_string();
+                project.description = final_value;
                 break;
             }
         }
@@ -281,41 +258,20 @@ impl Project {
             }
         }
 
-        if !String::from(api_path)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '/')
-        {
-            return Err((
-                400,
-                String::from("Error: api_path contains an invalid character"),
-            ));
-        }
-
-        if api_path.to_lowercase() != api_path {
-            return Err((
-                400,
-                String::from(
-                    "Error: api_path should not contain uppercase alphabetical character(s)",
-                ),
-            ));
-        }
-
-        if String::from(api_path.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: api_path does not contain enough characters"),
-            ));
-        } else if String::from(api_path.trim()).len() > 50 {
-            return Err((
-                400,
-                String::from("Error: api_path contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "api_path", &api_path.to_lowercase()) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
                 found_project = Some(project.clone());
-                project.api_path = api_path.trim().to_string();
+                project.api_path = final_value;
                 break;
             }
         }
@@ -361,27 +317,15 @@ impl Project {
         let mut found_project: Option<Project> = None;
         let mut all_members = Vec::<String>::new();
 
-        if !member
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: One or more Member IDs contain an invalid character"),
-            ));
-        }
-
-        if String::from(member.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: One or more Member IDs do not contain enough characters"),
-            ));
-        } else if String::from(member.trim()).len() > 50 {
-            return Err((
-                400,
-                String::from("Error: One or more Member IDs contain too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "project", "member", &member.to_lowercase()) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
@@ -406,7 +350,7 @@ impl Project {
             }
         }
 
-        all_members.push(member.trim().to_lowercase());
+        all_members.push(final_value);
 
         for project in all_projects.iter_mut() {
             if project.id == *id {
@@ -514,7 +458,7 @@ impl Project {
 
         format!(
             "{};{};{};{};{}",
-            project.id, project.name, project.description, project.api_path, members_string
+            project.id, project.name, project.description.split("\n").collect::<Vec<&str>>().join("_newline_"), project.api_path, members_string
         )
     }
 
@@ -530,7 +474,7 @@ impl Project {
         Project::create_no_check(
             current_project[0],
             current_project[1],
-            current_project[2],
+            &current_project[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
             current_project[3],
             final_members,
         )

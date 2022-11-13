@@ -1,5 +1,7 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+
 use super::sub_ref_data::RefData;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -53,32 +55,20 @@ impl ObjectPair {
     ) -> Result<(), (usize, String)> {
         let mut found_pair: Option<ObjectPair> = None;
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: new_id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "object_pair", "id", new_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == id {
                 found_pair = Some(pair.clone());
-                pair.id = new_id.trim().to_string();
+                pair.id = final_value;
                 break;
             }
         }

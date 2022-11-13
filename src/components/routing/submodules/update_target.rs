@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::routing::submodules::sub_condition_plain::ConditionPlain;
+use crate::{components::{routing::submodules::sub_condition_plain::ConditionPlain, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UpdateTarget {
@@ -62,32 +62,20 @@ impl UpdateTarget {
     ) -> Result<(), (usize, String)> {
         let mut found_target: Option<UpdateTarget> = None;
 
-        if !String::from(field)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: field contains an invalid character"),
-            ));
-        }
-
-        if String::from(field.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: field does not contain enough characters"),
-            ));
-        } else if String::from(field.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: field contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "update_target", "field", field) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for n in 0..all_targets.len() {
             if n as u32 == index {
                 found_target = Some(all_targets[index as usize].clone());
-                all_targets[index as usize].field = field.to_string();
+                all_targets[index as usize].field = final_value;
                 break;
             }
         }

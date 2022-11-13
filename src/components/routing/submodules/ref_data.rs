@@ -1,5 +1,7 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+
 use super::sub_body_data_type::BodyDataType;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -45,29 +47,17 @@ impl RefData {
     }
 
     pub fn update_data(ref_var_obj: &mut RefData, data: &str) -> Result<(), (usize, String)> {
-        if data.trim().len() > 200 {
-            return Err((
-                400,
-                String::from("Error: data contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "ref_data", "data", data) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
-        if !data.chars().all(|c| {
-            c.is_ascii_alphanumeric()
-                || c == '_'
-                || c == '-'
-                || c == ':'
-                || c == ';'
-                || c == ' '
-                || c == '.'
-        }) {
-            return Err((
-                400,
-                String::from("Error: data contains an invalid character"),
-            ));
-        }
-
-        ref_var_obj.data = data.to_string();
+        ref_var_obj.data = final_value;
 
         Ok(())
     }

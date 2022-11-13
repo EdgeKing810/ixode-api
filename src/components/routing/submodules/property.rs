@@ -1,3 +1,5 @@
+use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+
 use super::{sub_property_apply::PropertyApply, sub_ref_data::RefData};
 use rocket::serde::{Deserialize, Serialize};
 
@@ -24,34 +26,20 @@ impl Property {
         apply: &str,
         additional: &str,
     ) -> Result<Property, (usize, String)> {
-        if apply.trim().len() > 100 {
-            return Err((
-                400,
-                String::from("Error: apply contains too many characters"),
-            ));
-        }
-
-        if !additional
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '.')
-        {
-            return Err((
-                400,
-                String::from("Error: additional contains an invalid character"),
-            ));
-        }
-
-        if additional.trim().len() > 100 {
-            return Err((
-                400,
-                String::from("Error: additional contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_additional = match ConstraintProperty::validate(&all_constraints, "property", "additional", additional) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         Ok(Property {
             data: data,
             apply: PropertyApply::from(apply),
-            additional: additional.trim().to_string(),
+            additional: final_additional,
         })
     }
 

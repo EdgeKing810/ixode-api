@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::routing::submodules::{sub_condition::Condition, sub_ref_data::RefData};
+use crate::{components::{routing::submodules::{sub_condition::Condition, sub_ref_data::RefData}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TemplateBlock {
@@ -92,32 +92,20 @@ impl TemplateBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<TemplateBlock> = None;
 
-        if !String::from(local_name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: local_name contains an invalid character"),
-            ));
-        }
-
-        if String::from(local_name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: local_name does not contain enough characters"),
-            ));
-        } else if String::from(local_name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: local_name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "template_block", "local_name", local_name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.local_name = local_name.trim().to_string();
+                block.local_name = final_value;
                 break;
             }
         }
@@ -136,20 +124,17 @@ impl TemplateBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<TemplateBlock> = None;
 
-        if String::from(template.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: template does not contain enough characters"),
-            ));
-        } else if String::from(template.trim()).len() > 1000 {
-            return Err((
-                400,
-                String::from("Error: template contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "template_block", "template", template) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
-        let mut new_template = template.split("\n").collect::<Vec<&str>>().join(" ");
-        new_template = new_template
+        let new_template = final_value
             .split("template=")
             .collect::<Vec<&str>>()
             .join(" ");
@@ -480,9 +465,9 @@ impl TemplateBlock {
             return Err((500, String::from("at start of template declaration")));
         }
 
-        let template = current_block[1].trim();
+        let template = current_block[1].trim().split("_newline_").collect::<Vec<&str>>().join("\n");
 
-        match TemplateBlock::create(all_blocks, global_index, block_index, local_name, template) {
+        match TemplateBlock::create(all_blocks, global_index, block_index, local_name, &template) {
             Ok(f) => f,
             Err(e) => return Err((500, format!("while processing template -> {}", e.1))),
         };
@@ -522,7 +507,7 @@ impl TemplateBlock {
             block.local_name,
             stringified_data,
             conditions_str,
-            block.template
+            block.template.split("\n").collect::<Vec<&str>>().join("_newline_")
         )
     }
 }

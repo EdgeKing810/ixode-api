@@ -1,5 +1,7 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::{components::constraint_property::ConstraintProperty, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
+
 use super::core_body_data::BodyData;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -36,23 +38,17 @@ impl ParamData {
         param_data: &mut ParamData,
         delimiter: &str,
     ) -> Result<(), (usize, String)> {
-        if delimiter.trim().len() > 5 {
-            return Err((
-                400,
-                String::from("Error: delimiter contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "param_data", "delimiter", delimiter) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
-        if !delimiter.chars().all(|c| {
-            c.is_ascii_alphanumeric() || c == '&' || c == '!' || c == '#' || c == '-' || c == '_'
-        }) {
-            return Err((
-                400,
-                String::from("Error: delimiter contains an invalid character"),
-            ));
-        }
-
-        param_data.delimiter = delimiter.to_string();
+        param_data.delimiter = final_value;
 
         Ok(())
     }

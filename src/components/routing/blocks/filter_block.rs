@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::routing::submodules::sub_filter::Filter;
+use crate::{components::{routing::submodules::sub_filter::Filter, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FilterBlock {
@@ -103,32 +103,20 @@ impl FilterBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FilterBlock> = None;
 
-        if !String::from(local_name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: local_name contains an invalid character"),
-            ));
-        }
-
-        if String::from(local_name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: local_name does not contain enough characters"),
-            ));
-        } else if String::from(local_name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: local_name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "filter_block", "local_name", local_name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.local_name = local_name.trim().to_string();
+                block.local_name = final_value;
                 break;
             }
         }
@@ -147,32 +135,20 @@ impl FilterBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FilterBlock> = None;
 
-        if !String::from(ref_var)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: ref_var contains an invalid character"),
-            ));
-        }
-
-        if String::from(ref_var.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: ref_var does not contain enough characters"),
-            ));
-        } else if String::from(ref_var.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: ref_var contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "filter_block", "ref_var", ref_var) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.ref_var = ref_var.trim().to_string();
+                block.ref_var = final_value;
                 break;
             }
         }
@@ -191,27 +167,20 @@ impl FilterBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FilterBlock> = None;
 
-        if !String::from(ref_property)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
-        {
-            return Err((
-                400,
-                String::from("Error: ref_property contains an invalid character"),
-            ));
-        }
-
-        if String::from(ref_property.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: ref_property contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "filter_block", "ref_property", ref_property) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.ref_property = ref_property.trim().to_string();
+                block.ref_property = final_value;
                 break;
             }
         }

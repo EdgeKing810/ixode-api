@@ -1,6 +1,6 @@
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::components::io::{fetch_file, save_file};
+use crate::{components::{io::{fetch_file, save_file}, constraint_property::ConstraintProperty}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 
 use super::{
     blocks::{create_block::CreateBlock, fetch_block::FetchBlock, update_block::UpdateBlock},
@@ -123,32 +123,20 @@ impl RouteComponent {
             }
         }
 
-        if !String::from(new_route_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_route_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_route_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: new_route_id does not contain enough characters"),
-            ));
-        } else if String::from(new_route_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_route_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "route_component", "route_id", new_route_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for route in all_routes.iter_mut() {
             if route.route_id == *route_id {
                 found_route = Some(route.clone());
-                route.route_id = new_route_id.trim().to_string();
+                route.route_id = final_value;
                 break;
             }
         }
@@ -173,32 +161,20 @@ impl RouteComponent {
             }
         }
 
-        if !String::from(route_path)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '/')
-        {
-            return Err((
-                400,
-                String::from("Error: route_path contains an invalid character"),
-            ));
-        }
-
-        if String::from(route_path.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: route_path does not contain enough characters"),
-            ));
-        } else if String::from(route_path.trim()).len() > 200 {
-            return Err((
-                400,
-                String::from("Error: route_path contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "route_component", "route_path", route_path) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for route in all_routes.iter_mut() {
             if route.route_id == *route_id {
                 found_route = Some(route.clone());
-                route.route_path = route_path.trim().to_string();
+                route.route_path = final_value;
                 break;
             }
         }
@@ -217,32 +193,20 @@ impl RouteComponent {
     ) -> Result<(), (usize, String)> {
         let mut found_route: Option<RouteComponent> = None;
 
-        if !String::from(project_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: project_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(project_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: project_id does not contain enough characters"),
-            ));
-        } else if String::from(project_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: project_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "route_component", "project_id", project_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for route in all_routes.iter_mut() {
             if route.route_id == *route_id {
                 found_route = Some(route.clone());
-                route.project_id = project_id.trim().to_string();
+                route.project_id = final_value;
                 break;
             }
         }

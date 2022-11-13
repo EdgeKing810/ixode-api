@@ -1,5 +1,9 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints};
+
+use super::constraint_property::ConstraintProperty;
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct DataPair {
     pub id: String,
@@ -116,32 +120,20 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-        if !final_id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if final_id.trim().len() < 1 {
-            return Err((
-                400,
-                String::from("Error: id does not contain enough characters"),
-            ));
-        } else if final_id.trim().len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_id contains too many characters"),
-            ));
-        }
+            let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "id", &final_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.id = final_id.trim().to_string();
+                pair.id = final_value;
                 break;
             }
         }
@@ -165,32 +157,20 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-        if !final_structure_id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: structure_id contains an invalid character"),
-            ));
-        }
-
-        if final_structure_id.trim().len() < 1 {
-            return Err((
-                400,
-                String::from("Error: structure_id does not contain enough characters"),
-            ));
-        } else if final_structure_id.trim().len() > 200 {
-            return Err((
-                400,
-                String::from("Error: structure_id contains too many characters"),
-            ));
-        }
+            let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "structure_id", &final_structure_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.structure_id = final_structure_id.trim().to_string();
+                pair.structure_id = final_value;
                 break;
             }
         }
@@ -214,27 +194,20 @@ impl DataPair {
             .collect::<Vec<&str>>()
             .join("---");
 
-        if !final_custom_structure_id
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: custom_structure_id contains an invalid character"),
-            ));
-        }
-
-        if final_custom_structure_id.trim().len() > 200 {
-            return Err((
-                400,
-                String::from("Error: custom_structure_id contains too many characters"),
-            ));
-        }
+            let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "custom_structure_id", &final_custom_structure_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.custom_structure_id = final_custom_structure_id.trim().to_string();
+                pair.custom_structure_id = final_value;
                 break;
             }
         }
@@ -253,19 +226,22 @@ impl DataPair {
     ) -> Result<(), (usize, String)> {
         let mut found_pair: Option<DataPair> = None;
 
-        let final_value = value.split("§").collect::<Vec<&str>>().join("_");
+        let mut final_value = value.split("§").collect::<Vec<&str>>().join("_");
 
-        if String::from(final_value.trim()).len() > 500000 {
-            return Err((
-                400,
-                String::from("Error: value contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "value", &final_value) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.value = final_value.trim().to_string();
+                pair.value = final_value;
                 break;
             }
         }
@@ -286,32 +262,20 @@ impl DataPair {
 
         let final_dtype = dtype.split("----------").collect::<Vec<&str>>().join("---");
 
-        if !final_dtype
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: dtype contains an invalid character"),
-            ));
-        }
-
-        if final_dtype.trim().len() < 1 {
-            return Err((
-                400,
-                String::from("Error: dtype does not contain enough characters"),
-            ));
-        } else if final_dtype.trim().len() > 100 {
-            return Err((
-                400,
-                String::from("Error: dtype contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "datapair", "dtype", &final_dtype) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.dtype = final_dtype.trim().to_string();
+                pair.dtype = final_value;
                 break;
             }
         }
@@ -446,7 +410,7 @@ impl DataPair {
     pub fn stringify(pair: DataPair) -> String {
         format!(
             "{}={}={}={}={}",
-            pair.id, pair.structure_id, pair.custom_structure_id, pair.dtype, pair.value,
+            pair.id, pair.structure_id, pair.custom_structure_id, pair.dtype, pair.value.split("\n").collect::<Vec<&str>>().join("_newline_"),
         )
     }
 
@@ -478,7 +442,9 @@ impl DataPair {
             let pair_structure_id = current_pair[1];
             let pair_custom_structure_id = current_pair[2];
             let pair_dtype = current_pair[3];
-            let pair_value = current_pair[4..].join("=");
+            let mut pair_value = current_pair[4..].join("=");
+
+            pair_value = pair_value.split("_newline_").collect::<Vec<&str>>().join("\n");
 
             if let Err(e) = DataPair::create(
                 all_pairs,

@@ -1,10 +1,14 @@
 use crate::components::custom_structures::CustomStructure;
 use crate::components::io::{fetch_file, save_file};
 use crate::components::structures::{try_add_structure, Structure};
+use crate::utils::constraint::auto_fetch_all_constraints;
+use crate::utils::mapping::auto_fetch_all_mappings;
 use crate::utils::{
     io::auto_create_directory, io::auto_remove_directory, io::auto_rename_directory,
 };
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Collection {
@@ -141,32 +145,20 @@ impl Collection {
             }
         }
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "id", new_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
                 found_collection = Some(collection.clone());
-                collection.id = new_id.trim().to_string();
+                collection.id = final_value.clone();
                 break;
             }
         }
@@ -174,7 +166,7 @@ impl Collection {
         if let Some(col) = found_collection {
             auto_rename_directory(
                 &format!("/data/projects/{}/{}", col.project_id, &id),
-                &format!("/data/projects/{}/{}", col.project_id, &new_id),
+                &format!("/data/projects/{}/{}", col.project_id, &final_value),
             );
         } else {
             return Err((404, String::from("Error: Collection not found")));
@@ -190,37 +182,30 @@ impl Collection {
     ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
-        if !String::from(project_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: project_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(project_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: project_id does not contain enough characters"),
-            ));
-        } else if String::from(project_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: project_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "project_id", project_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
                 found_collection = Some(collection.clone());
-                collection.project_id = project_id.trim().to_string();
+                collection.project_id = final_value.clone();
                 break;
             }
         }
 
-        if let None = found_collection {
+        if let Some(col) = found_collection {
+            auto_rename_directory(
+                &format!("/data/projects/{}/{}", col.project_id, &col.id),
+                &format!("/data/projects/{}/{}", final_value, &col.id),
+            );
+        } else {
             return Err((404, String::from("Error: Collection not found")));
         }
 
@@ -234,32 +219,20 @@ impl Collection {
     ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
-        if !String::from(name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
-        {
-            return Err((
-                400,
-                String::from("Error: name contains an invalid character"),
-            ));
-        }
-
-        if String::from(name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: name does not contain enough characters"),
-            ));
-        } else if String::from(name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "name", name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
                 found_collection = Some(collection.clone());
-                collection.name = name.trim().to_string();
+                collection.name = final_value;
                 break;
             }
         }
@@ -278,32 +251,20 @@ impl Collection {
     ) -> Result<(), (usize, String)> {
         let mut found_collection: Option<Collection> = None;
 
-        if !String::from(description)
-            .chars()
-            .all(|c| c != ';' && c != '>' && c != '#')
-        {
-            return Err((
-                400,
-                String::from("Error: description contains an invalid character"),
-            ));
-        }
-
-        if String::from(description.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: description does not contain enough characters"),
-            ));
-        } else if String::from(description.trim()).len() > 400 {
-            return Err((
-                400,
-                String::from("Error: description contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "collection", "description", description) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for collection in all_collections.iter_mut() {
             if collection.id == *id {
                 found_collection = Some(collection.clone());
-                collection.description = description.trim().to_string();
+                collection.description = final_value;
                 break;
             }
         }

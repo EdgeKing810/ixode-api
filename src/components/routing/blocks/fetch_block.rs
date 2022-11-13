@@ -1,5 +1,7 @@
 use rocket::serde::{Deserialize, Serialize};
 
+use crate::{utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}, components::constraint_property::ConstraintProperty};
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct FetchBlock {
     pub global_index: u32,
@@ -86,32 +88,20 @@ impl FetchBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FetchBlock> = None;
 
-        if !String::from(local_name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: local_name contains an invalid character"),
-            ));
-        }
-
-        if String::from(local_name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: local_name does not contain enough characters"),
-            ));
-        } else if String::from(local_name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: local_name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "fetch_block", "local_name", local_name) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.local_name = local_name.trim().to_string();
+                block.local_name = final_value;
                 break;
             }
         }
@@ -130,32 +120,20 @@ impl FetchBlock {
     ) -> Result<(), (usize, String)> {
         let mut found_block: Option<FetchBlock> = None;
 
-        if !String::from(ref_col)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: ref_col contains an invalid character"),
-            ));
-        }
-
-        if String::from(ref_col.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: ref_col does not contain enough characters"),
-            ));
-        } else if String::from(ref_col.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: ref_col contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "fetch_block", "ref_col", ref_col) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for block in all_blocks.iter_mut() {
             if block.global_index == global_index {
                 found_block = Some(block.clone());
-                block.ref_col = ref_col.trim().to_string();
+                block.ref_col = final_value;
                 break;
             }
         }

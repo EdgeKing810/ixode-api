@@ -1,5 +1,7 @@
-use crate::components::io::{fetch_file, save_file};
+use crate::{components::io::{fetch_file, save_file}, utils::{mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints}};
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Media {
@@ -96,29 +98,20 @@ impl Media {
             }
         }
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 500 {
-            return Err((400, String::from("Error: id contains too many characters")));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "media", "id", new_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for media in all_medias.iter_mut() {
             if media.id == *id {
                 found_media = Some(media.clone());
-                media.id = new_id.trim().to_string();
+                media.id = final_value;
                 break;
             }
         }
@@ -137,29 +130,20 @@ impl Media {
     ) -> Result<(), (usize, String)> {
         let mut found_media: Option<Media> = None;
 
-        if !String::from(name).chars().all(|c| c != '^') {
-            return Err((
-                400,
-                String::from("Error: name contains an invalid character"),
-            ));
-        }
-
-        if String::from(name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: name does not contain enough characters"),
-            ));
-        } else if String::from(name.trim()).len() > 500 {
-            return Err((
-                400,
-                String::from("Error: name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "media", "name", name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for media in all_medias.iter_mut() {
             if media.id == *id {
                 found_media = Some(media.clone());
-                media.name = name.trim().to_string();
+                media.name = final_value;
                 break;
             }
         }

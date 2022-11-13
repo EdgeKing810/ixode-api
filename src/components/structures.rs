@@ -3,7 +3,9 @@ use std::fmt;
 use regex::Regex;
 use rocket::serde::{Deserialize, Serialize};
 
-use crate::utils::validate_stype::validate_stype;
+use crate::utils::{validate_stype::validate_stype, mapping::auto_fetch_all_mappings, constraint::auto_fetch_all_constraints};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Type {
@@ -250,32 +252,20 @@ impl Structure {
             }
         }
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: new_id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "id", new_id) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
-                structure.id = new_id.trim().to_string();
+                structure.id = final_value;
                 break;
             }
         }
@@ -294,32 +284,20 @@ impl Structure {
     ) -> Result<(), (usize, String)> {
         let mut found_structure: Option<Structure> = None;
 
-        if !String::from(name)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == ' ')
-        {
-            return Err((
-                400,
-                String::from("Error: name contains an invalid character"),
-            ));
-        }
-
-        if String::from(name.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: name does not contain enough characters"),
-            ));
-        } else if String::from(name.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: name contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "name", name) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
-                structure.name = name.trim().to_string();
+                structure.name = final_value;
                 break;
             }
         }
@@ -338,27 +316,20 @@ impl Structure {
     ) -> Result<(), (usize, String)> {
         let mut found_structure: Option<Structure> = None;
 
-        if !String::from(description)
-            .chars()
-            .all(|c| c != ';' && c != '>' && c != '#')
-        {
-            return Err((
-                400,
-                String::from("Error: description contains an invalid character"),
-            ));
-        }
-
-        if String::from(description.trim()).len() > 1000 {
-            return Err((
-                400,
-                String::from("Error: description contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "description", description) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
-                structure.description = description.trim().to_string();
+                structure.description = final_value;
                 break;
             }
         }
@@ -377,17 +348,17 @@ impl Structure {
     ) -> Result<(), (usize, String)> {
         let mut found_structure: Option<Structure> = None;
 
-        if !String::from(stype_txt)
-            .chars()
-            .all(|c| c != ';' && c != '@' && c != '>' && c != '#')
-        {
-            return Err((
-                400,
-                String::from("Error: stype_txt contains an invalid character"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "stype", stype_txt) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
-        let stype = Structure::to_stype(stype_txt);
+        let stype = Structure::to_stype(&final_value);
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
@@ -411,15 +382,15 @@ impl Structure {
     ) -> Result<(), (usize, String)> {
         let mut found_structure: Option<Structure> = None;
 
-        if !String::from(default_val)
-            .chars()
-            .all(|c| c != ';' && c != '>' && c != '#')
-        {
-            return Err((
-                400,
-                String::from("Error: default_val contains an invalid character"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "default_val", default_val) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
@@ -429,15 +400,15 @@ impl Structure {
         }
 
         if let Some(found) = found_structure {
-            if default_val.trim().len() <= 0 {
+            if final_value.len() <= 0 {
                 return Ok(());
             }
 
             let mut actual_data = Vec::<String>::new();
 
-            let mut broken_data: Vec<&str> = vec![&default_val];
+            let mut broken_data: Vec<&str> = vec![&final_value];
             if found.array {
-                broken_data = default_val.split(",").collect::<Vec<&str>>();
+                broken_data = final_value.split(",").collect::<Vec<&str>>();
             }
 
             for d in broken_data {
@@ -480,7 +451,7 @@ impl Structure {
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
-                structure.default_val = String::from(default_val.trim());
+                structure.default_val = final_value;
                 break;
             }
         }
@@ -588,20 +559,20 @@ impl Structure {
     ) -> Result<(), (usize, String)> {
         let mut found_structure: Option<Structure> = None;
 
-        if !String::from(regex_pattern)
-            .chars()
-            .all(|c| c != ';' && c != '>' && c != '#')
-        {
-            return Err((
-                400,
-                String::from("Error: regex_pattern contains an invalid character"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+            let all_constraints = match auto_fetch_all_constraints(&mappings) {
+                Ok(c) => c,
+                Err(e) => return Err((500, e)),
+            };
+            let final_value = match ConstraintProperty::validate(&all_constraints, "structure", "regex_pattern", regex_pattern) {
+                Ok(v) => v,
+                Err(e) => return Err(e),
+            };
 
         for structure in all_structures.iter_mut() {
             if structure.id == *id {
                 found_structure = Some(structure.clone());
-                structure.regex_pattern = regex_pattern.trim().to_string();
+                structure.regex_pattern = final_value.clone();
                 break;
             }
         }
@@ -610,7 +581,7 @@ impl Structure {
             return Err((404, String::from("Error: Structure not found")));
         }
 
-        if let Err(e) = Regex::new(&format!(r"{}", regex_pattern)) {
+        if let Err(e) = Regex::new(&format!(r"{}", final_value)) {
             print!("{}", e);
             return Err((400, String::from("Error: regex_pattern is invalid")));
         }
@@ -777,7 +748,7 @@ impl Structure {
             "{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}",
             structure.id,
             structure.name,
-            structure.description,
+            structure.description.split("\n").collect::<Vec<&str>>().join("_newline_"),
             stype_txt,
             structure.default_val,
             structure.min,
@@ -832,7 +803,7 @@ pub fn try_add_structure(array: &Vec<&str>, final_structures: &mut Vec<Structure
         final_structures,
         array[0],
         array[1],
-        array[2],
+        &array[2].split("_newline_").collect::<Vec<&str>>().join("\n"),
         array[3],
         array[4],
         min.unwrap(),

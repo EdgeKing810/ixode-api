@@ -1,7 +1,11 @@
 use crate::components::datapair::DataPair;
 use crate::components::io::{fetch_file, save_file};
+use crate::utils::constraint::auto_fetch_all_constraints;
+use crate::utils::mapping::auto_fetch_all_mappings;
 // use crate::encryption::{EncryptionKey};
 use rocket::serde::{Deserialize, Serialize};
+
+use super::constraint_property::ConstraintProperty;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Data {
@@ -138,32 +142,20 @@ impl Data {
             }
         }
 
-        if !String::from(new_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: new_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(new_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: id does not contain enough characters"),
-            ));
-        } else if String::from(new_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: new_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "id", new_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for data in all_data.iter_mut() {
             if data.id == *id {
                 found_data = Some(data.clone());
-                data.id = new_id.trim().to_string();
+                data.id = final_value;
                 break;
             }
         }
@@ -182,32 +174,20 @@ impl Data {
     ) -> Result<(), (usize, String)> {
         let mut found_data: Option<Data> = None;
 
-        if !String::from(project_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: project_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(project_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: project_id does not contain enough characters"),
-            ));
-        } else if String::from(project_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: project_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "project_id", project_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for data in all_data.iter_mut() {
             if data.id == *id {
                 found_data = Some(data.clone());
-                data.project_id = project_id.trim().to_string();
+                data.project_id = final_value;
                 break;
             }
         }
@@ -226,32 +206,20 @@ impl Data {
     ) -> Result<(), (usize, String)> {
         let mut found_data: Option<Data> = None;
 
-        if !String::from(collection_id)
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
-        {
-            return Err((
-                400,
-                String::from("Error: collection_id contains an invalid character"),
-            ));
-        }
-
-        if String::from(collection_id.trim()).len() < 1 {
-            return Err((
-                400,
-                String::from("Error: collection_id does not contain enough characters"),
-            ));
-        } else if String::from(collection_id.trim()).len() > 100 {
-            return Err((
-                400,
-                String::from("Error: collection_id contains too many characters"),
-            ));
-        }
+        let mappings = auto_fetch_all_mappings();
+        let all_constraints = match auto_fetch_all_constraints(&mappings) {
+            Ok(c) => c,
+            Err(e) => return Err((500, e)),
+        };
+        let final_value = match ConstraintProperty::validate(&all_constraints, "data", "collection_id", collection_id) {
+            Ok(v) => v,
+            Err(e) => return Err(e),
+        };
 
         for data in all_data.iter_mut() {
             if data.id == *id {
                 found_data = Some(data.clone());
-                data.collection_id = collection_id.trim().to_string();
+                data.collection_id = final_value;
                 break;
             }
         }
