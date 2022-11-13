@@ -34,6 +34,9 @@ pub mod event;
 #[path = "route_routing/route_routing.rs"]
 pub mod routing;
 
+#[path = "route_constraint/route_constraint.rs"]
+pub mod constraint;
+
 #[path = "route_x/route_x.rs"]
 pub mod x;
 

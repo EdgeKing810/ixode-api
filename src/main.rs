@@ -205,6 +205,14 @@ fn rocket() -> _ {
                 routes::routing::delete::main,
             ],
         )
+        .mount(
+            fpath("/constraint"),
+            routes![
+                routes::constraint::fetch_all::main,
+                routes::constraint::fetch_one::main,
+                routes::constraint::update::main,
+            ],
+        )
         .mount(fpath("/x"), routes![routes::x::x::main])
         .mount(
             fpath("/misc"),

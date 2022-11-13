@@ -199,10 +199,13 @@ Routes:
    >> (main) PATCH /structure/update application/json
    >> (main) DELETE /structure/delete?<uid>&<project_id>&<collection_id>&<structure_id>&<custom_structure_id>
    >> (main) GET /collection/fetch?<uid>&<project_id>&<limit>&<offset>
+   >> (main) GET /constraint/fetch?<uid>&<limit>&<offset>
    >> (main) POST /collection/create application/json
    >> (main) PATCH /collection/update application/json
    >> (main) DELETE /collection/delete?<uid>&<project_id>&<collection_id>
+   >> (main) PATCH /constraint/update application/json
    >> (main) GET /collection/fetch/one?<uid>&<project_id>&<collection_id>
+   >> (main) GET /constraint/fetch/one?<uid>&<component_name>
    >> (main) POST /custom_structure/add application/json
    >> (main) PATCH /custom_structure/update application/json
    >> (main) DELETE /custom_structure/delete?<uid>&<project_id>&<collection_id>&<custom_structure_id>
@@ -213,13 +216,13 @@ Catchers:
    >> (malformed_request) 422
    >> (internal_server_error) 500
 Fairings:
-   >> CORS (ignite, request, response)
    >> Shield (liftoff, response, singleton)
    >> Templating (ignite, liftoff, request)
+   >> CORS (ignite, request, response)
 Shield:
-   >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
    >> X-Frame-Options: SAMEORIGIN
+   >> Permissions-Policy: interest-cohort=()
 Templating:
    >> directory: templates
    >> engines: ["tera"]
