@@ -1,4 +1,5 @@
 Welcome to Kinesis API! 🏭
+
 Redis Connection Successful!
 
 Constraints saved!
@@ -213,12 +214,12 @@ Catchers:
    >> (internal_server_error) 500
 Fairings:
    >> CORS (ignite, request, response)
-   >> Shield (liftoff, response, singleton)
    >> Templating (ignite, liftoff, request)
+   >> Shield (liftoff, response, singleton)
 Shield:
    >> X-Frame-Options: SAMEORIGIN
-   >> Permissions-Policy: interest-cohort=()
    >> X-Content-Type-Options: nosniff
+   >> Permissions-Policy: interest-cohort=()
 Templating:
    >> directory: templates
    >> engines: ["tera"]

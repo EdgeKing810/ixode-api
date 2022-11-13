@@ -1,0 +1,2 @@
+test;
+test3;test_prop;true;true;0;0;not_allowed=;allowed=§test_prop2;true;true;0;0;not_allowed=a;allowed=a

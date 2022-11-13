@@ -1,25 +1,25 @@
 #![allow(unused_assignments)]
 #[cfg(test)]
-#[path = "test_mappings.rs"]
-mod test_mappings;
+#[path = "test_mapping.rs"]
+mod test_mapping;
 
-#[path = "test_users.rs"]
-mod test_users;
+#[path = "test_user.rs"]
+mod test_user;
 
-#[path = "test_projects.rs"]
-mod test_projects;
+#[path = "test_project.rs"]
+mod test_project;
 
-#[path = "test_configs.rs"]
-mod test_configs;
+#[path = "test_config.rs"]
+mod test_config;
 
 #[path = "test_encryption.rs"]
 mod test_encryption;
 
-#[path = "test_collections.rs"]
-mod test_collections;
+#[path = "test_collection.rs"]
+mod test_collection;
 
-#[path = "test_medias.rs"]
-mod test_medias;
+#[path = "test_media.rs"]
+mod test_media;
 
 #[path = "test_data.rs"]
 mod test_data;
@@ -29,6 +29,9 @@ mod test_event;
 
 #[path = "test_datapair.rs"]
 mod test_datapair;
+
+#[path = "test_constraint.rs"]
+mod test_constraint;
 
 #[path = "../components/routing/tests/tests.rs"]
 pub mod test_routing;

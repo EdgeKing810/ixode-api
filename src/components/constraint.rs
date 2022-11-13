@@ -44,6 +44,16 @@ impl Constraint {
         let mut has_error: bool = false;
         let mut latest_error: (usize, String) = (500, String::new());
 
+        if Constraint::exist(all_constraints, component_name) {
+            return Err((
+                403,
+                format!(
+                    "Error: A constraint with that component_name already exists ({})",
+                    component_name
+                ),
+            ));
+        }
+
         let new_constraint = Constraint {
             component_name: tmp_name.clone(),
             properties: vec![],

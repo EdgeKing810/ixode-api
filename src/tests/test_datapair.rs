@@ -2,13 +2,13 @@
 use crate::components::{data::Data, datapair::DataPair};
 
 #[test]
-fn test_datapair() {
+fn main() {
     let mut all_pairs = Vec::<DataPair>::new();
 
-    let test_pair = DataPair::create(&mut all_pairs, "test", "", "", "test", "string");
+    let test_pair = DataPair::create(&mut all_pairs, "test", "_", "", "test", "string");
     assert_eq!(test_pair, Ok(()));
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test ", "", "", "test2", "test2");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test ", "_", "", "test2", "test2");
     assert_eq!(
         test_pair2,
         Err((
@@ -49,7 +49,7 @@ fn test_datapair() {
         ))
     );
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "", "", "test2", "test2.");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "_", "", "test2", "test2.");
     assert_eq!(
         test_pair2,
         Err((
@@ -58,13 +58,13 @@ fn test_datapair() {
         ))
     );
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test", "", "", "test2", "test2");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test", "_", "", "test2", "test2");
     assert_eq!(
         test_pair2,
         Err((403, String::from("Error: id is already in use")))
     );
 
-    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "", "test2", "test2", "test2");
+    let test_pair2 = DataPair::create(&mut all_pairs, "test2", "_", "test2", "test2", "test2");
     assert_eq!(test_pair2, Ok(()));
 
     let pair2_id = String::from("test2");

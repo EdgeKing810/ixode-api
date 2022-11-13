@@ -29,6 +29,16 @@ impl ConstraintProperty {
         let mut has_error: bool = false;
         let mut latest_error: (usize, String) = (500, String::new());
 
+        if ConstraintProperty::exist(all_properties, property_name) {
+            return Err((
+                403,
+                format!(
+                    "Error: A constraint property with that property_name already exists ({})",
+                    property_name
+                ),
+            ));
+        }
+
         let new_property = ConstraintProperty {
             property_name: tmp_name.clone(),
             is_alphabetic: false,
@@ -128,6 +138,16 @@ impl ConstraintProperty {
         }
 
         Err((404, String::from("Error: Constraint Property not found")))
+    }
+
+    pub fn exist(all_properties: &Vec<ConstraintProperty>, property_name: &str) -> bool {
+        for property in all_properties.iter() {
+            if property.property_name.to_lowercase() == property_name.to_lowercase() {
+                return true;
+            }
+        }
+
+        false
     }
 
     pub fn update_property_name(

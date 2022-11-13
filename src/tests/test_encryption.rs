@@ -5,7 +5,7 @@ use crate::components::{
 };
 
 #[test]
-fn test_encryption() {
+fn main() {
     let file_name: &str = "data/encryption_key_test.txt";
     remove_file(file_name.to_string());
 

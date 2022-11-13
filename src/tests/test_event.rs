@@ -5,7 +5,7 @@ use crate::components::{
 };
 
 #[test]
-fn test_events() {
+fn main() {
     let file_name: &str = "data/events_test.txt";
     remove_file(file_name.to_string());
 

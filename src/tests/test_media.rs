@@ -5,7 +5,7 @@ use crate::components::{
 };
 
 #[test]
-fn test_medias() {
+fn main() {
     let file_name: &str = "data/medias_test.txt";
     remove_file(file_name.to_string());
 

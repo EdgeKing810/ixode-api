@@ -5,7 +5,7 @@ use crate::components::{
 };
 
 #[test]
-fn test_projects() {
+fn main() {
     ensure_directory_exists(&String::from("/tmp/data"));
     ensure_directory_exists(&String::from("/tmp/data/projects"));
     ensure_directory_exists(&String::from("/tmp/data/projects/konnect"));

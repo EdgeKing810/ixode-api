@@ -7,7 +7,7 @@ use crate::components::{
 };
 
 #[test]
-fn test_correct_collection() {
+fn main_correct() {
     ensure_directory_exists(&String::from("/tmp/data"));
     ensure_directory_exists(&String::from("/tmp/data/projects"));
     ensure_directory_exists(&String::from("/tmp/data/projects/konnect"));
@@ -174,7 +174,7 @@ fn test_correct_collection() {
 }
 
 #[test]
-fn test_incorrect_collection() {
+fn main_incorrect() {
     ensure_directory_exists(&String::from("/tmp/data"));
     ensure_directory_exists(&String::from("/tmp/data/projects"));
     ensure_directory_exists(&String::from("/tmp/data/projects/konnect"));
