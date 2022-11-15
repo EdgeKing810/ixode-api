@@ -41,7 +41,7 @@ pub async fn main(data: Json<UpdateConstraintInput>, token: Token) -> Value {
 
     let mappings = auto_fetch_all_mappings();
 
-    let all_constraints = match auto_fetch_all_constraints(&mappings) {
+    let mut all_constraints = match auto_fetch_all_constraints(&mappings) {
         Ok(c) => c,
         Err(_) => return json!({"status": 500, "message": "Error: Failed fetching constraints"}),
     };
@@ -71,6 +71,12 @@ pub async fn main(data: Json<UpdateConstraintInput>, token: Token) -> Value {
     } {
         Err(e) => return json!({"status": e.0, "message": e.1}),
         _ => {}
+    }
+
+    if let Err(e) =
+        Constraint::set_properties(&mut all_constraints, &component_name, all_properties)
+    {
+        return json!({"status": e.0, "message": e.1});
     }
 
     if change.clone() == &UpdateType::MIN {
