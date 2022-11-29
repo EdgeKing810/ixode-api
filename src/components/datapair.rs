@@ -254,7 +254,10 @@ impl DataPair {
         for pair in all_pairs.iter_mut() {
             if pair.id == *id {
                 found_pair = Some(pair.clone());
-                pair.value = final_value;
+                pair.value = final_value
+                    .split("_newline_")
+                    .collect::<Vec<&str>>()
+                    .join("\n");
                 break;
             }
         }

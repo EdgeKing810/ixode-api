@@ -14,6 +14,7 @@ RUN mkdir -p /db/data
 
 RUN cargo fetch
 RUN cargo build --release
+RUN rm -rf /app/src/*
 
 EXPOSE 8080
 CMD ["cargo", "run", "--release"]

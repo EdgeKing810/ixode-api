@@ -71,6 +71,7 @@ pub fn fetch_file(path: String, encryption_key: &String) -> String {
 }
 
 pub fn ensure_file_exists(path: &String) {
+    // println!("running ensure_file_exists: {}", path);
     let file = File::open(&path);
 
     match file {
@@ -85,6 +86,7 @@ pub fn ensure_file_exists(path: &String) {
 }
 
 pub fn save_file(path: String, data: String, encryption_key: &String) {
+    println!("running save_file: {}", path);
     ensure_file_exists(&path);
     let file = File::create(&path);
 
@@ -110,6 +112,7 @@ pub fn save_file(path: String, data: String, encryption_key: &String) {
 }
 
 pub fn remove_file(path: String) {
+    println!("running remove_file: {}", path);
     ensure_file_exists(&path);
     let remove_file_result = fs::remove_file(&path);
     if let Err(e) = remove_file_result {
@@ -118,6 +121,7 @@ pub fn remove_file(path: String) {
 }
 
 pub fn ensure_directory_exists(path: &String) {
+    println!("running ensure_directory_exists: {}", path);
     let directory = read_dir(&path);
 
     match directory {
@@ -132,6 +136,7 @@ pub fn ensure_directory_exists(path: &String) {
 }
 
 pub fn remove_directory(path: &String) {
+    println!("running remove_directory: {}", path);
     let root_dir = get_root_data_dir();
     if !path.contains(&root_dir) {
         print!("Unallowed attempt to remove: {}", path);
@@ -176,6 +181,11 @@ pub fn remove_directory(path: &String) {
 }
 
 pub fn rename_directory(old_path: &String, path: &String) {
+    println!("running rename_directory: {} -> {}", old_path, path);
+    if old_path == path {
+        return;
+    }
+
     ensure_directory_exists(&path);
     ensure_directory_exists(&old_path);
 
