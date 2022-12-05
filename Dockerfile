@@ -17,4 +17,4 @@ RUN cargo build --release
 RUN rm -rf /app/src/*
 
 EXPOSE 8080
-CMD ["cargo", "run", "--release"]
+CMD ["/app/target/release/kinesis-db"]

@@ -1,5 +1,4 @@
 =============== DEFINE ROUTE ===============
-
 INIT ROUTE [konnect,profile_follow,/profile/follow]
 
 ADD BODY pair [uid,STRING]
@@ -75,7 +74,6 @@ CREATE (47,9) [notifications,newNotification,true] ([ref,BOOLEAN,status]|EQUAL_T
 
 RETURN (50,10) (error=[,INTEGER,0])>(message=[ref,STRING,responseMessage]) conditions=
 =============== DEFINE ROUTE ===============
-
 INIT ROUTE [konnect,fetch_users_loop,/users/fetch/loop]
 
 ADD BODY pair [uid,STRING]
@@ -114,7 +112,39 @@ LOOP (6,0) [y] ([ref,INTEGER,counter2]|[,INTEGER,10])
 
 
 =============== DEFINE ROUTE ===============
+INIT ROUTE [konnect,test_update,/test/update]
 
+ADD BODY pair [match_uid,STRING]
+ADD BODY pair [set_uid,STRING]
+
+DEFINE PARAMS delimiter 
+
+START FLOW
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+UPDATE (0,0) [users,uid,true] {uid|([ref,STRING,match_uid]|EQUAL_TO|not=false|next=NONE)} (add=) (set=[ref,STRING,set_uid]) {filter=} conditions=([ref,STRING,match_uid]|GREATER_THAN_OR_EQUAL_TO|[,INTEGER,1]|not=false|next=NONE)>([ref,STRING,set_uid]|GREATER_THAN_OR_EQUAL_TO|[,INTEGER,1]|not=false|next=NONE)
+
+
+
+RETURN (1,0) (update_obj=[ref,ARRAY,update_users_0]) conditions=
+=============== DEFINE ROUTE ===============
 INIT ROUTE [konnect,fetch_users,/users/fetch/all]
 
 ADD BODY pair [uid,STRING]
@@ -148,37 +178,3 @@ UPDATE (10,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|EQUAL_TO|not=true|n
 CREATE (11,2) [testing,woop_woop,true] ([ref,INTEGER,456]|NOT_EQUAL_TO|[,BOOLEAN,false]|not=true|next=NONE)
 
 RETURN (12,2) (success=[ref,BOOLEAN,true])>(data=[ref,OTHER,data]) conditions=([ref,BOOLEAN,finished]|EQUAL_TO|[,STRING,true]|not=false|next=OR)
-=============== DEFINE ROUTE ===============
-
-INIT ROUTE [konnect,test_update,/test/update]
-
-ADD BODY pair [match_uid,STRING]
-ADD BODY pair [set_uid,STRING]
-
-DEFINE PARAMS delimiter 
-
-START FLOW
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-UPDATE (0,0) [users,uid,true] {uid|([ref,STRING,match_uid]|EQUAL_TO|not=false|next=NONE)} (add=) (set=[ref,STRING,set_uid]) {filter=} conditions=([ref,STRING,match_uid]|GREATER_THAN_OR_EQUAL_TO|[,INTEGER,1]|not=false|next=NONE)>([ref,STRING,set_uid]|GREATER_THAN_OR_EQUAL_TO|[,INTEGER,1]|not=false|next=NONE)
-
-
-
-RETURN (1,0) (update_obj=[ref,ARRAY,update_users_0]) conditions=
