@@ -1,79 +1,4 @@
 =============== DEFINE ROUTE ===============
-INIT ROUTE [konnect,profile_follow,/profile/follow]
-
-ADD BODY pair [uid,STRING]
-ADD BODY pair [profileID,STRING]
-ADD BODY pair [status,BOOLEAN]
-
-DEFINE PARAMS delimiter &
-
-START FLOW
-
-FETCH (2,1) [users,users]
-FETCH (3,1) [profiles,profiles]
-
-ASSIGN (14,4) [someBlocked] {([ref,OTHER,currentProfile_blocked]|INCLUDES|[ref,STRING,profileID]|not=false|next=OR)>([ref,OTHER,targetProfile_blocked]|INCLUDES|[ref,STRING,uid]|not=false|next=NONE)} 
-ASSIGN (18,5) [isFollowing] {([ref,OTHER,currentProfile_following]|INCLUDES|[ref,STRING,profileID]|not=false|next=NONE)} 
-ASSIGN (20,5) [hasSentFollowRequest] {([ref,OTHER,currentProfile_sent_follow_requests]|INCLUDES|[ref,STRING,profileID]|not=false|next=NONE)} 
-ASSIGN (37,9) [notificationContent] {([,STRING,uid.]|ADDITION|[ref,STRING,uid]|not=false|next=NONE)} 
-ASSIGN (38,9) [notificationContent] {([ref,STRING,notificationContent]|ADDITION|[,STRING, is now following you]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-ASSIGN (39,9) [notificationContent] {([ref,STRING,notificationContent]|ADDITION|[,STRING, has requested to follow you]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-ASSIGN (43,9) [notificationRedirect] {([,STRING,/profile/]|ADDITION|[ref,STRING,currentUser_username]|not=false|next=NONE)} 
-ASSIGN (48,10) [responseMessage] {([,STRING,User followed successfully!]|ADDITION|[,STRING,]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-ASSIGN (49,10) [responseMessage] {([,STRING,User has been sent a follow request!]|ADDITION|[,STRING,]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-
-TEMPLATE (52,400) [message] (data=[ref,STRING,uid]>[ref,STRING,timestamp]) {conditions=([ref,BOOLEAN,success]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)} template=This is a test message that has been created by {} on {}
-
-CONDITION (0,0) [FAIL] [403,Error: You cannot follow yourself] ([ref,STRING,uid]|EQUAL_TO|[ref,STRING,profileID]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
-CONDITION (1,0) [FAIL] [403,Error: You cannot unfollow yourself] ([ref,STRING,uid]|EQUAL_TO|[ref,STRING,profileID]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
-CONDITION (6,2) [FAIL] [404,Error: User not found] ([ref,OTHER,currentProfilesLength]|LESS_THAN_OR_EQUAL_TO|[,INTEGER,0]|not=false|next=NONE)
-CONDITION (10,3) [FAIL] [404,Error: Target user not found] ([ref,OTHER,targetProfilesLength]|LESS_THAN_OR_EQUAL_TO|[,INTEGER,0]|not=false|next=NONE)
-CONDITION (15,4) [FAIL] [404,Error: Cannot follow this user] ([ref,BOOLEAN,someBlocked]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
-CONDITION (16,4) [FAIL] [404,Error: Cannot unfollow this user] ([ref,BOOLEAN,someBlocked]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
-CONDITION (21,5) [FAIL] [403,Error: Already following this user] ([ref,BOOLEAN,isFollowing]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
-CONDITION (22,5) [FAIL] [403,Error: Already sent a follow request to this user] ([ref,BOOLEAN,hasSentFollowRequest]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
-CONDITION (23,5) [FAIL] [403,Error: Already not following/trying to follow this user] ([ref,BOOLEAN,hasSentFollowRequest]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,BOOLEAN,isFollowing]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
-CONDITION (26,6) [FAIL] [403,Error: Not authorized to follow this user] ([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,ghost]|not=false|next=AND)>([ref,STRING,targetProfile_following]|INCLUDES|[ref,STRING,uid]|not=true|next=NONE)
-
-LOOP (51,200) [x] ([,INTEGER,0]|[ref,INTEGER,currentProfilesLength])
-
-FILTER (4,2) [currentProfiles,profiles,uid] ([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)
-FILTER (8,3) [targetProfiles,profiles,uid] ([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)
-FILTER (40,9) [currentUsers,users,uid] ([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)
-
-PROPERTY (5,2) [currentProfilesLength] ([ref,OTHER,currentProfiles]|apply=LENGTH>)
-PROPERTY (7,2) [currentProfile] ([ref,OTHER,currentProfiles]|apply=GET_FIRST>)
-PROPERTY (9,3) [targetProfilesLength] ([ref,OTHER,targetProfiles]|apply=LENGTH>)
-PROPERTY (11,3) [targetProfile] ([ref,OTHER,targetProfiles]|apply=GET_FIRST>)
-PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>blocked)
-PROPERTY (13,4) [targetProfile_blocked] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>blocked)
-PROPERTY (17,5) [currentProfile_following] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>following)
-PROPERTY (19,5) [currentProfile_sent_follow_requests] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>sent_follow_requests)
-PROPERTY (24,6) [targetProfile_account_type] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>account_type)
-PROPERTY (25,6) [targetProfile_following] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>following)
-PROPERTY (29,7) [targetProfile_followers] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>followers)
-PROPERTY (34,8) [targetProfile_received_follow_requests] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>received_follow_requests)
-PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST>)
-PROPERTY (42,9) [currentUser_username] ([ref,OTHER,currentUser]|apply=GET_PROPERTY>username)
-
-FUNCTION (44,9) [notificationID] {V4=}
-FUNCTION (45,9) [generatedOn] {GENERATE_TIMESTAMP=}
-
-OBJECT (46,9) [newNotification] (uid=[ref,STRING,profileID])>(notificationID=[ref,STRING,notificationID])>(content=[ref,STRING,notificationContent])>(profileID=[ref,STRING,uid])>(rtype=[,STRING,follow_send])>(created_on=[ref,STRING,generatedOn])>(read=[,BOOLEAN,false])>(redirect=[ref,STRING,notificationRedirect])
-
-UPDATE (27,7) [profiles,following,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,profileID]) (set=[ref,OTHER,currentProfile_following]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-UPDATE (28,7) [profiles,following,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,currentProfile_following]) {filter=([ref,STRING,profileID]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
-UPDATE (30,7) [profiles,followers,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,uid]) (set=[ref,OTHER,targetProfile_followers]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-UPDATE (31,7) [profiles,followers,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,targetProfile_followers]) {filter=([ref,STRING,uid]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
-UPDATE (32,8) [profiles,sent_follow_requests,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,profileID]) (set=[ref,OTHER,currentProfile_sent_follow_requests]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-UPDATE (33,8) [profiles,sent_follow_requests,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,currentProfile_sent_follow_requests]) {filter=([ref,STRING,profileID]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-UPDATE (35,8) [profiles,received_follow_requests,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,uid]) (set=[ref,OTHER,targetProfile_received_follow_requests]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-UPDATE (36,8) [profiles,received_follow_requests,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,targetProfile_received_follow_requests]) {filter=([ref,STRING,uid]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
-
-CREATE (47,9) [notifications,newNotification,true] ([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
-
-RETURN (50,10) (error=[,INTEGER,0])>(message=[ref,STRING,responseMessage]) conditions=
-=============== DEFINE ROUTE ===============
 INIT ROUTE [konnect,fetch_users_loop,/users/fetch/loop]
 
 ADD BODY pair [uid,STRING]
@@ -178,3 +103,78 @@ UPDATE (10,2) [abcd,efgh,true] {abcd|([ref,BOOLEAN,fakeBool]|EQUAL_TO|not=true|n
 CREATE (11,2) [testing,woop_woop,true] ([ref,INTEGER,456]|NOT_EQUAL_TO|[,BOOLEAN,false]|not=true|next=NONE)
 
 RETURN (12,2) (success=[ref,BOOLEAN,true])>(data=[ref,OTHER,data]) conditions=([ref,BOOLEAN,finished]|EQUAL_TO|[,STRING,true]|not=false|next=OR)
+=============== DEFINE ROUTE ===============
+INIT ROUTE [konnect,profile_follow,/profile/follow]
+
+ADD BODY pair [uid,STRING]
+ADD BODY pair [profileID,STRING]
+ADD BODY pair [status,BOOLEAN]
+
+DEFINE PARAMS delimiter &
+
+START FLOW
+
+FETCH (2,1) [users,users]
+FETCH (3,1) [profiles,profiles]
+
+ASSIGN (14,4) [someBlocked] {([ref,OTHER,currentProfile_blocked]|INCLUDES|[ref,STRING,profileID]|not=false|next=OR)>([ref,OTHER,targetProfile_blocked]|INCLUDES|[ref,STRING,uid]|not=false|next=NONE)} 
+ASSIGN (18,5) [isFollowing] {([ref,OTHER,currentProfile_following]|INCLUDES|[ref,STRING,profileID]|not=false|next=NONE)} 
+ASSIGN (20,5) [hasSentFollowRequest] {([ref,OTHER,currentProfile_sent_follow_requests]|INCLUDES|[ref,STRING,profileID]|not=false|next=NONE)} 
+ASSIGN (37,9) [notificationContent] {([,STRING,uid.]|ADDITION|[ref,STRING,uid]|not=false|next=NONE)} 
+ASSIGN (38,9) [notificationContent] {([ref,STRING,notificationContent]|ADDITION|[,STRING, is now following you]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+ASSIGN (39,9) [notificationContent] {([ref,STRING,notificationContent]|ADDITION|[,STRING, has requested to follow you]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+ASSIGN (43,9) [notificationRedirect] {([,STRING,/profile/]|ADDITION|[ref,STRING,currentUser_username]|not=false|next=NONE)} 
+ASSIGN (48,10) [responseMessage] {([,STRING,User followed successfully!]|ADDITION|[,STRING,]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+ASSIGN (49,10) [responseMessage] {([,STRING,User has been sent a follow request!]|ADDITION|[,STRING,]|not=false|next=NONE)} ([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+
+TEMPLATE (52,400) [message] (data=[ref,STRING,uid]>[ref,STRING,timestamp]) {conditions=([ref,BOOLEAN,success]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)} template=This is a test message that has been created by {} on {}
+
+CONDITION (0,0) [FAIL] [403,Error: You cannot follow yourself] ([ref,STRING,uid]|EQUAL_TO|[ref,STRING,profileID]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
+CONDITION (1,0) [FAIL] [403,Error: You cannot unfollow yourself] ([ref,STRING,uid]|EQUAL_TO|[ref,STRING,profileID]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
+CONDITION (6,2) [FAIL] [404,Error: User not found] ([ref,OTHER,currentProfilesLength]|LESS_THAN_OR_EQUAL_TO|[,INTEGER,0]|not=false|next=NONE)
+CONDITION (10,3) [FAIL] [404,Error: Target user not found] ([ref,OTHER,targetProfilesLength]|LESS_THAN_OR_EQUAL_TO|[,INTEGER,0]|not=false|next=NONE)
+CONDITION (15,4) [FAIL] [404,Error: Cannot follow this user] ([ref,BOOLEAN,someBlocked]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
+CONDITION (16,4) [FAIL] [404,Error: Cannot unfollow this user] ([ref,BOOLEAN,someBlocked]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
+CONDITION (21,5) [FAIL] [403,Error: Already following this user] ([ref,BOOLEAN,isFollowing]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
+CONDITION (22,5) [FAIL] [403,Error: Already sent a follow request to this user] ([ref,BOOLEAN,hasSentFollowRequest]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
+CONDITION (23,5) [FAIL] [403,Error: Already not following/trying to follow this user] ([ref,BOOLEAN,hasSentFollowRequest]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,BOOLEAN,isFollowing]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
+CONDITION (26,6) [FAIL] [403,Error: Not authorized to follow this user] ([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,ghost]|not=false|next=AND)>([ref,STRING,targetProfile_following]|INCLUDES|[ref,STRING,uid]|not=true|next=NONE)
+
+LOOP (51,200) [x] ([,INTEGER,0]|[ref,INTEGER,currentProfilesLength])
+
+FILTER (4,2) [currentProfiles,profiles,uid] ([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)
+FILTER (8,3) [targetProfiles,profiles,uid] ([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)
+FILTER (40,9) [currentUsers,users,uid] ([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)
+
+PROPERTY (5,2) [currentProfilesLength] ([ref,OTHER,currentProfiles]|apply=LENGTH>)
+PROPERTY (7,2) [currentProfile] ([ref,OTHER,currentProfiles]|apply=GET_FIRST>)
+PROPERTY (9,3) [targetProfilesLength] ([ref,OTHER,targetProfiles]|apply=LENGTH>)
+PROPERTY (11,3) [targetProfile] ([ref,OTHER,targetProfiles]|apply=GET_FIRST>)
+PROPERTY (12,4) [currentProfile_blocked] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>blocked)
+PROPERTY (13,4) [targetProfile_blocked] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>blocked)
+PROPERTY (17,5) [currentProfile_following] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>following)
+PROPERTY (19,5) [currentProfile_sent_follow_requests] ([ref,OTHER,currentProfile]|apply=GET_PROPERTY>sent_follow_requests)
+PROPERTY (24,6) [targetProfile_account_type] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>account_type)
+PROPERTY (25,6) [targetProfile_following] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>following)
+PROPERTY (29,7) [targetProfile_followers] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>followers)
+PROPERTY (34,8) [targetProfile_received_follow_requests] ([ref,OTHER,targetProfile]|apply=GET_PROPERTY>received_follow_requests)
+PROPERTY (41,9) [currentUser] ([ref,OTHER,currentUsers]|apply=GET_FIRST>)
+PROPERTY (42,9) [currentUser_username] ([ref,OTHER,currentUser]|apply=GET_PROPERTY>username)
+
+FUNCTION (44,9) [notificationID] {V4=}
+FUNCTION (45,9) [generatedOn] {GENERATE_TIMESTAMP=}
+
+OBJECT (46,9) [newNotification] (uid=[ref,STRING,profileID])>(notificationID=[ref,STRING,notificationID])>(content=[ref,STRING,notificationContent])>(profileID=[ref,STRING,uid])>(rtype=[,STRING,follow_send])>(created_on=[ref,STRING,generatedOn])>(read=[,BOOLEAN,false])>(redirect=[ref,STRING,notificationRedirect])
+
+UPDATE (27,7) [profiles,following,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,profileID]) (set=[ref,OTHER,currentProfile_following]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+UPDATE (28,7) [profiles,following,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,currentProfile_following]) {filter=([ref,STRING,profileID]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
+UPDATE (30,7) [profiles,followers,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,uid]) (set=[ref,OTHER,targetProfile_followers]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+UPDATE (31,7) [profiles,followers,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,targetProfile_followers]) {filter=([ref,STRING,uid]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=NONE)
+UPDATE (32,8) [profiles,sent_follow_requests,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,profileID]) (set=[ref,OTHER,currentProfile_sent_follow_requests]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+UPDATE (33,8) [profiles,sent_follow_requests,false] {uid|([ref,STRING,uid]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,currentProfile_sent_follow_requests]) {filter=([ref,STRING,profileID]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+UPDATE (35,8) [profiles,received_follow_requests,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[ref,STRING,uid]) (set=[ref,OTHER,targetProfile_received_follow_requests]) {filter=([,STRING,]|NONE|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+UPDATE (36,8) [profiles,received_follow_requests,true] {uid|([ref,STRING,profileID]|EQUAL_TO|not=false|next=NONE)} (add=[,STRING,]) (set=[ref,OTHER,targetProfile_received_follow_requests]) {filter=([ref,STRING,uid]|NOT_EQUAL_TO|not=false|next=NONE)} conditions=([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,false]|not=false|next=AND)>([ref,STRING,targetProfile_account_type]|NOT_EQUAL_TO|[,STRING,public]|not=false|next=NONE)
+
+CREATE (47,9) [notifications,newNotification,true] ([ref,BOOLEAN,status]|EQUAL_TO|[,BOOLEAN,true]|not=false|next=NONE)
+
+RETURN (50,10) (error=[,INTEGER,0])>(message=[ref,STRING,responseMessage]) conditions=

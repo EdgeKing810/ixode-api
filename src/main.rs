@@ -31,11 +31,14 @@ mod init;
 #[path = "catchers/catchers.rs"]
 mod catchers;
 
-use components::constraint::stringify_constraints_debug;
+// use components::constraint::stringify_constraints_debug;
 use init::constraint::initialize_constraints;
 use rocket_cors::{AllowedHeaders, AllowedOrigins};
 use std::collections::HashMap;
-use utils::{config::get_config_value, mapping::auto_fetch_all_mappings, redis::init_redis};
+use utils::{
+    config::get_config_value, io::auto_reset_locks, mapping::auto_fetch_all_mappings,
+    redis::init_redis,
+};
 
 use rocket::{
     catchers,
@@ -65,8 +68,11 @@ fn rocket() -> _ {
 
     println!("{}\n", init_redis());
 
-    let constraints = initialize_constraints(&auto_fetch_all_mappings());
-    println!("\n{}", stringify_constraints_debug(&constraints));
+    let _constraints = initialize_constraints(&auto_fetch_all_mappings());
+    // println!("\n{}", stringify_constraints_debug(&constraints));
+
+    println!("\nResetting RW locks");
+    auto_reset_locks();
 
     // let allowed_origins = AllowedOrigins::some_exact(&["https://www.acme.com"]);
     let allowed_origins = AllowedOrigins::all();

@@ -1,4 +1,9 @@
-use crate::{components::encryption::EncryptionKey, utils::io::get_root_data_dir};
+use crate::{
+    components::encryption::EncryptionKey,
+    utils::io::{
+        auto_check_lock, auto_create_lock, auto_release_lock, get_root_data_dir, obtain_lock_name,
+    },
+};
 use std::{
     fs,
     fs::{copy, create_dir, read_dir, remove_dir_all, File},
@@ -7,6 +12,12 @@ use std::{
 };
 
 pub fn fetch_file(path: String, encryption_key: &String) -> String {
+    // let lock_name = obtain_lock_name(&path);
+    // while auto_check_lock(&lock_name) {
+    //     std::thread::sleep(std::time::Duration::from_millis(200));
+    // }
+    // auto_create_lock(&lock_name);
+
     let file = File::open(&path);
     let mut content = String::new();
     let mut final_content = String::new();
@@ -67,6 +78,7 @@ pub fn fetch_file(path: String, encryption_key: &String) -> String {
         _ => {}
     }
 
+    // auto_release_lock(&lock_name);
     final_content
 }
 
@@ -87,6 +99,16 @@ pub fn ensure_file_exists(path: &String) {
 
 pub fn save_file(path: String, data: String, encryption_key: &String) {
     println!("running save_file: {}", path);
+
+    let mut lock_name = String::new();
+    if !path.contains("lock") {
+        lock_name = obtain_lock_name(&path);
+        while auto_check_lock(&lock_name) {
+            std::thread::sleep(std::time::Duration::from_millis(1000));
+        }
+        auto_create_lock(&lock_name);
+    }
+
     ensure_file_exists(&path);
     let file = File::create(&path);
 
@@ -109,15 +131,26 @@ pub fn save_file(path: String, data: String, encryption_key: &String) {
             println!("Error occured while writing file at {}: {}", &path, e);
         }
     }
+
+    auto_release_lock(&lock_name);
 }
 
 pub fn remove_file(path: String) {
     println!("running remove_file: {}", path);
+
+    // let lock_name = obtain_lock_name(&path);
+    // while auto_check_lock(&lock_name) {
+    //     std::thread::sleep(std::time::Duration::from_millis(200));
+    // }
+    // auto_create_lock(&lock_name);
+
     ensure_file_exists(&path);
     let remove_file_result = fs::remove_file(&path);
     if let Err(e) = remove_file_result {
         println!("Error while removing file: {} ({})", e, path);
     }
+
+    // auto_release_lock(&lock_name);
 }
 
 pub fn ensure_directory_exists(path: &String) {
@@ -159,7 +192,17 @@ pub fn remove_directory(path: &String) {
                                 if ift.is_dir() {
                                     remove_directory(&int_entry_path.to_str().unwrap().to_string());
                                 } else {
+                                    let lock_name = obtain_lock_name(
+                                        &int_entry_path.clone().to_str().unwrap().to_string(),
+                                    );
+                                    while auto_check_lock(&lock_name) {
+                                        std::thread::sleep(std::time::Duration::from_millis(200));
+                                    }
+                                    auto_create_lock(&lock_name);
+
                                     remove_file(int_entry_path.to_str().unwrap().to_string());
+
+                                    auto_release_lock(&lock_name);
                                 }
                             }
                         }
@@ -169,7 +212,16 @@ pub fn remove_directory(path: &String) {
                         println!("Error while removing directory: {} ({:?})", e, entry_path);
                     }
                 } else {
+                    let lock_name =
+                        obtain_lock_name(&entry_path.clone().to_str().unwrap().to_string());
+                    while auto_check_lock(&lock_name) {
+                        std::thread::sleep(std::time::Duration::from_millis(200));
+                    }
+                    auto_create_lock(&lock_name);
+
                     remove_file(entry_path.to_str().unwrap().to_string());
+
+                    auto_release_lock(&lock_name);
                 }
             }
         }
@@ -207,6 +259,14 @@ pub fn rename_directory(old_path: &String, path: &String) {
 
                             if let Ok(ift) = int_entry.file_type() {
                                 if !ift.is_dir() {
+                                    let lock_name = obtain_lock_name(
+                                        &int_entry_path.clone().to_str().unwrap().to_string(),
+                                    );
+                                    while auto_check_lock(&lock_name) {
+                                        std::thread::sleep(std::time::Duration::from_millis(200));
+                                    }
+                                    auto_create_lock(&lock_name);
+
                                     if let Err(e) =
                                         copy(int_entry_path.clone(), int_file_dest.clone())
                                     {
@@ -217,12 +277,20 @@ pub fn rename_directory(old_path: &String, path: &String) {
                                     } else {
                                         remove_file(int_entry_path.to_str().unwrap().to_string());
                                     }
+                                    auto_release_lock(&lock_name);
                                 }
                             }
                         }
                     }
                     remove_directory(&entry_path.to_str().unwrap().to_string())
                 } else {
+                    let lock_name =
+                        obtain_lock_name(&entry_path.clone().to_str().unwrap().to_string());
+                    while auto_check_lock(&lock_name) {
+                        std::thread::sleep(std::time::Duration::from_millis(200));
+                    }
+                    auto_create_lock(&lock_name);
+
                     if let Err(e) = copy(entry_path.clone(), dest.clone()) {
                         println!(
                             "Error while copying file: {} ({:?} => {})",
@@ -231,6 +299,7 @@ pub fn rename_directory(old_path: &String, path: &String) {
                     } else {
                         remove_file(entry_path.to_str().unwrap().to_string());
                     }
+                    auto_release_lock(&lock_name);
                 }
             }
         }
