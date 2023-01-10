@@ -43,5 +43,8 @@ pub mod reset;
 #[path = "utils_constraint.rs"]
 pub mod constraint;
 
+#[path = "utils_repl.rs"]
+pub mod repl;
+
 #[path = "utils_x/utils_x.rs"]
 pub mod x;

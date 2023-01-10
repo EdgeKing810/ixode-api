@@ -4,7 +4,7 @@ use crate::components::io::{fetch_file, save_file};
 
 #[derive(Default, Debug, Clone)]
 pub struct Mapping {
-    id: String,
+    pub id: String,
     file_name: String,
 }
 

@@ -219,6 +219,7 @@ fn rocket() -> _ {
                 routes::constraint::update::main,
             ],
         )
+        .mount(fpath("/repl"), routes![routes::repl::repl_process::main,])
         .mount(fpath("/x"), routes![routes::x::x::main])
         .mount(
             fpath("/misc"),

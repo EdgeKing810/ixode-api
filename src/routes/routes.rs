@@ -42,3 +42,6 @@ pub mod x;
 
 #[path = "route_upload/route_upload.rs"]
 pub mod upload;
+
+#[path = "route_repl/route_repl.rs"]
+pub mod repl;
