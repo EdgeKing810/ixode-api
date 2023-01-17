@@ -591,6 +591,10 @@ impl User {
         *all_users = updated_users;
     }
 
+    pub fn obtain_properties() -> String {
+        String::from("id;first_name;last_name;username;email;password;role")
+    }
+
     pub fn to_string(user: User) -> String {
         let number_role: u32 = match user.role {
             Role::ROOT => 0,

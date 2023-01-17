@@ -148,6 +148,10 @@ impl Config {
         Ok(())
     }
 
+    pub fn obtain_properties() -> String {
+        String::from("name|value")
+    }
+
     pub fn to_string(config: Config) -> String {
         format!("{}|{}", config.name, config.value)
     }
@@ -159,24 +163,7 @@ impl Config {
     }
 }
 
-pub fn fetch_all_configs(path: String, encryption_key: &String) -> Vec<Config> {
-    let all_configs_raw = fetch_file(path.clone(), encryption_key);
-
-    let individual_configs = all_configs_raw
-        .split("\n")
-        .filter(|line| line.chars().count() >= 3);
-
-    let mut final_configs: Vec<Config> = Vec::<Config>::new();
-
-    for config in individual_configs {
-        let tmp_config = Config::from_string(config);
-        final_configs.push(tmp_config);
-    }
-
-    final_configs
-}
-
-pub fn save_all_configs(configs: &Vec<Config>, path: String, encryption_key: &String) {
+pub fn stringify_configs(configs: &Vec<Config>) -> String {
     let mut stringified_configs = String::new();
 
     for config in configs {
@@ -192,6 +179,32 @@ pub fn save_all_configs(configs: &Vec<Config>, path: String, encryption_key: &St
         );
     }
 
+    stringified_configs
+}
+
+pub fn unwrap_configs(all_configs_raw: String) -> Vec<Config> {
+    let individual_configs = all_configs_raw
+        .split("\n")
+        .filter(|line| line.chars().count() >= 3);
+
+    let mut final_configs: Vec<Config> = Vec::<Config>::new();
+
+    for config in individual_configs {
+        let tmp_config = Config::from_string(config);
+        final_configs.push(tmp_config);
+    }
+
+    final_configs
+}
+
+pub fn fetch_all_configs(path: String, encryption_key: &String) -> Vec<Config> {
+    let all_configs_raw = fetch_file(path.clone(), encryption_key);
+    let final_configs = unwrap_configs(all_configs_raw);
+    final_configs
+}
+
+pub fn save_all_configs(configs: &Vec<Config>, path: String, encryption_key: &String) {
+    let stringified_configs = stringify_configs(configs);
     save_file(path, stringified_configs, encryption_key);
     println!("Configs saved!");
 }

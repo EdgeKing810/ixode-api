@@ -283,6 +283,10 @@ impl Event {
         Ok(())
     }
 
+    pub fn obtain_properties() -> String {
+        String::from("id;event_type;description;timestamp;redirect")
+    }
+
     pub fn to_string(event: Event) -> String {
         format!(
             "{};{};{};{};{}",
