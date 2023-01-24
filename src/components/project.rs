@@ -470,6 +470,10 @@ impl Project {
         Ok(())
     }
 
+    pub fn obtain_properties() -> String {
+        String::from("id;name;description;api_path;members")
+    }
+
     pub fn to_string(project: Project) -> String {
         let mut members_string = String::new();
         for member in project.members {

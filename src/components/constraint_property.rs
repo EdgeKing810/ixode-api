@@ -582,6 +582,12 @@ impl ConstraintProperty {
         stringified_properties
     }
 
+    pub fn obtain_properties() -> String {
+        String::from(
+            "property_name;is_alphabetic;is_numeric;min;max;not_allowed;additional_allowed",
+        )
+    }
+
     pub fn to_string(property: ConstraintProperty) -> String {
         format!(
             "{};{};{};{};{};not_allowed={};allowed={}",

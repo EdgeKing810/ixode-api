@@ -2,13 +2,19 @@ use std::str::Split;
 
 use crate::components::{
     config::{stringify_configs, Config},
+    constraint::Constraint,
+    constraint_property::ConstraintProperty,
     event::{stringify_events, Event},
+    mapping::{stringify_mappings, Mapping},
+    media::{stringify_medias, Media},
+    project::{stringify_projects, Project},
     user::{stringify_users, Role, User},
 };
 
 use super::{
-    config::auto_fetch_all_configs, event::auto_fetch_all_events, mapping::auto_fetch_all_mappings,
-    user::auto_fetch_all_users,
+    config::auto_fetch_all_configs, constraint::auto_fetch_all_constraints,
+    event::auto_fetch_all_events, mapping::auto_fetch_all_mappings, media::auto_fetch_all_medias,
+    project::auto_fetch_all_projects, user::auto_fetch_all_users,
 };
 
 pub fn process_repl_query(
@@ -31,7 +37,7 @@ pub fn process_repl_query(
     }
 
     let all_mappings = auto_fetch_all_mappings();
-    let mut mapping_keys = Vec::<String>::new();
+    let mut mapping_keys: Vec<String> = vec![String::from("mappings")];
     for m in all_mappings.clone() {
         mapping_keys.push(m.id.clone());
     }
@@ -71,7 +77,7 @@ pub fn process_repl_query(
             let mut or_arguments = Vec::<(&str, &str, &str)>::new();
             if lower_query.contains("where") {
                 let where_arguments_tmp = lower_query.split("where").collect::<Vec<&str>>()[0];
-                let where_arguments = &q.trim()[where_arguments_tmp.len() + 6..];
+                let where_arguments = &q.trim()[where_arguments_tmp.len() + 5..];
 
                 let and_arguments_raw = where_arguments.split("AND").collect::<Vec<&str>>();
                 for aar in and_arguments_raw {
@@ -227,11 +233,225 @@ pub fn process_repl_query(
                 );
 
                 processed_queries.push(events_vec);
+            } else if source == "mappings" {
+                let properties = Mapping::obtain_properties();
+                let mut mappings_vec: Vec<String> = vec![];
+
+                obtain_indexes(
+                    keys,
+                    &mut final_key_indexes,
+                    "=",
+                    target_all,
+                    &properties,
+                    &mut mappings_vec,
+                );
+
+                let all_mappings_str = stringify_mappings(&all_mappings);
+                perform_selection(
+                    all_mappings_str,
+                    target_all,
+                    final_key_indexes,
+                    "=",
+                    &mut mappings_vec,
+                    &properties,
+                    &and_arguments,
+                    &or_arguments,
+                );
+
+                processed_queries.push(mappings_vec);
+            } else if source == "medias" {
+                let all_medias = match auto_fetch_all_medias(&all_mappings) {
+                    Ok(medias) => medias,
+                    Err(e) => {
+                        return (500, format!("Error while fetching medias: {}", e), vec![]);
+                    }
+                };
+
+                let properties = Media::obtain_properties();
+                let mut medias_vec: Vec<String> = vec![];
+
+                obtain_indexes(
+                    keys,
+                    &mut final_key_indexes,
+                    "^",
+                    target_all,
+                    &properties,
+                    &mut medias_vec,
+                );
+
+                let all_medias_str = stringify_medias(&all_medias);
+                perform_selection(
+                    all_medias_str,
+                    target_all,
+                    final_key_indexes,
+                    "^",
+                    &mut medias_vec,
+                    &properties,
+                    &and_arguments,
+                    &or_arguments,
+                );
+
+                processed_queries.push(medias_vec);
+            } else if source == "projects" {
+                let all_projects = match auto_fetch_all_projects(&all_mappings) {
+                    Ok(medias) => medias,
+                    Err(e) => {
+                        return (500, format!("Error while fetching projects: {}", e), vec![]);
+                    }
+                };
+
+                let properties = Project::obtain_properties();
+                let mut projects_vec: Vec<String> = vec![];
+
+                obtain_indexes(
+                    keys,
+                    &mut final_key_indexes,
+                    ";",
+                    target_all,
+                    &properties,
+                    &mut projects_vec,
+                );
+
+                let all_projects_str = stringify_projects(&all_projects);
+                perform_selection(
+                    all_projects_str,
+                    target_all,
+                    final_key_indexes,
+                    ";",
+                    &mut projects_vec,
+                    &properties,
+                    &and_arguments,
+                    &or_arguments,
+                );
+
+                processed_queries.push(projects_vec);
+            } else if source == "constraints" {
+                let all_constraints = match auto_fetch_all_constraints(&all_mappings) {
+                    Ok(constraints) => constraints,
+                    Err(e) => {
+                        return (
+                            500,
+                            format!("Error while fetching constraints: {}", e),
+                            vec![],
+                        );
+                    }
+                };
+
+                let mut properties = Constraint::obtain_properties();
+                properties = properties.replace(";", "§");
+                let mut constraints_vec: Vec<String> = vec![];
+
+                obtain_indexes(
+                    keys,
+                    &mut final_key_indexes,
+                    "§",
+                    target_all,
+                    &properties,
+                    &mut constraints_vec,
+                );
+
+                let mut all_constraints_str = String::new();
+                for constraint in all_constraints {
+                    if constraint.properties.len() == 0 {
+                        all_constraints_str = format!(
+                            "{}{}{}§§§§§§§",
+                            all_constraints_str,
+                            if all_constraints_str.chars().count() > 1 {
+                                "\n"
+                            } else {
+                                ""
+                            },
+                            constraint.component_name
+                        );
+                    }
+
+                    for constraint_property in constraint.properties {
+                        let mut property_str = ConstraintProperty::to_string(constraint_property);
+                        property_str = property_str.replacen(";", "§", 4);
+                        property_str = property_str.replace(";not_allowed=", "§");
+                        property_str = property_str.replace(";allowed=", "§");
+                        all_constraints_str = format!(
+                            "{}{}{}§{}",
+                            all_constraints_str,
+                            if all_constraints_str.chars().count() > 1 {
+                                "\n"
+                            } else {
+                                ""
+                            },
+                            constraint.component_name,
+                            property_str
+                        );
+                    }
+                }
+
+                perform_selection(
+                    all_constraints_str,
+                    target_all,
+                    final_key_indexes,
+                    "§",
+                    &mut constraints_vec,
+                    &properties,
+                    &and_arguments,
+                    &or_arguments,
+                );
+
+                processed_queries.push(constraints_vec);
             }
-            // TODO: handle here
+        } else if current_query[0] == "list" {
+            if current_query[1] == "collections" {
+                let collections_list = vec![
+                    String::from("collections (UPCOMING)"),
+                    String::from("configs"),
+                    String::from("constraints"),
+                    String::from("data (UPCOMING)"),
+                    String::from("events"),
+                    String::from("mappings"),
+                    String::from("medias"),
+                    String::from("projects"),
+                    String::from("routes (UPCOMING)"),
+                    String::from("users"),
+                ];
+
+                return (200, format!("Successful Query!"), vec![collections_list]);
+            }
+            return (400, invalid_query_msg, vec![]);
+        } else if current_query[0] == "help" {
+            let mut help_list = vec![];
+            help_list.push(vec![String::from("Commands:")]);
+
+            help_list.push(vec![
+                    String::from("help"),
+                    String::from("Obtain help on possible commands that can be executed along with examples and explanations."),
+                ]);
+
+            help_list.push(vec![
+                String::from("LIST COLLECTIONS;"),
+                String::from("Obtain a list of all the possible collections on which queries can be executed."),
+            ]);
+
+            help_list.push(vec![
+                String::from("SELECT [KEYS | *] FROM COLLECTION_NAME [WHERE CONDITIONS [AND_ARGUMENTS] [OR_ARGUMENTS] ];"),
+                String::from("Obtain desired data from a valid collection that can be tweaked using conditions."),
+                String::from("KEYS correspond to the properties that should be returned from matching records in the specified collection. An asterisk (*) can be used to return all properties."),
+                String::from("The WHERE clause is optional and can be used to filter the records that are returned."),
+                String::from("AND_ARGUMENTS and/or OR_ARGUMENTS can be used to further filter the records that are returned. If both are used, a record matching **any** OR_ARGUMENT will be returned, else it will need to match **every** AND_ARGUMENT specified in order to get returned."),
+                String::from("Example 1: SELECT * FROM users;"),
+                String::from("Example 2: SELECT property_name, component_name, max FROM constraints WHERE is_alphabetic == \"false\";"),
+                String::from("Example 3: SELECT id, description FROM events WHERE event_type == \"project_update\" AND 2 > 1 OR redirect == event_type;"),
+            ]);
+
+            return (200, format!("Successful Query!"), help_list);
+        } else {
+            return (400, invalid_query_msg, vec![]);
         }
-        // TODO: handle here
     }
+
+    // collection
+    // custom_structure
+    // data
+    // datapair
+    // structure
+    // routes
 
     if processed_queries.len() <= 0 {
         return (400, invalid_query_msg, vec![]);

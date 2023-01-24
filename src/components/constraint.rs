@@ -358,6 +358,10 @@ impl Constraint {
         final_string
     }
 
+    pub fn obtain_properties() -> String {
+        format!("component_name;{}", ConstraintProperty::obtain_properties())
+    }
+
     pub fn to_string(constraint: Constraint) -> String {
         let stringified_properties = ConstraintProperty::stringify(&constraint.properties);
 

@@ -142,6 +142,10 @@ impl Mapping {
         Ok(())
     }
 
+    pub fn obtain_properties() -> String {
+        String::from("id=file_name")
+    }
+
     pub fn get_file_name(self: &Self) -> String {
         self.file_name.clone()
     }
@@ -157,9 +161,26 @@ impl Mapping {
     }
 }
 
-pub fn fetch_all_mappings(path: &str, encryption_key: &String) -> Vec<Mapping> {
-    let all_mappings_raw = fetch_file(String::from(path), encryption_key);
+pub fn stringify_mappings(mappings: &Vec<Mapping>) -> String {
+    let mut stringified_mappings = String::new();
 
+    for mapping in mappings {
+        stringified_mappings = format!(
+            "{}{}{}",
+            stringified_mappings,
+            if stringified_mappings.chars().count() > 1 {
+                "\n"
+            } else {
+                ""
+            },
+            Mapping::to_string(mapping.clone()),
+        );
+    }
+
+    stringified_mappings
+}
+
+pub fn unwrap_mappings(all_mappings_raw: String) -> Vec<Mapping> {
     let individual_mappings = all_mappings_raw
         .split("\n")
         .filter(|line| line.chars().count() >= 3);
@@ -174,21 +195,14 @@ pub fn fetch_all_mappings(path: &str, encryption_key: &String) -> Vec<Mapping> {
     final_mappings
 }
 
-pub fn save_all_mappings(mappings: &Vec<Mapping>, path: &str, encryption_key: &String) {
-    let mut stringified_mappings = String::new();
-    for mapping in mappings {
-        stringified_mappings = format!(
-            "{}{}{}",
-            stringified_mappings,
-            if stringified_mappings.chars().count() > 1 {
-                "\n"
-            } else {
-                ""
-            },
-            Mapping::to_string(mapping.clone())
-        );
-    }
+pub fn fetch_all_mappings(path: &str, encryption_key: &String) -> Vec<Mapping> {
+    let all_mappings_raw = fetch_file(String::from(path), encryption_key);
+    let final_mappings = unwrap_mappings(all_mappings_raw);
+    final_mappings
+}
 
+pub fn save_all_mappings(mappings: &Vec<Mapping>, path: &str, encryption_key: &String) {
+    let stringified_mappings = stringify_mappings(mappings);
     save_file(String::from(path), stringified_mappings, encryption_key);
     println!("Mappings saved!");
 }

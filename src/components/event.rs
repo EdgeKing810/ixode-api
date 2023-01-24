@@ -354,37 +354,12 @@ pub fn unwrap_events(all_events_raw: String) -> Vec<Event> {
 
 pub fn fetch_all_events(path: String, encryption_key: &String) -> Vec<Event> {
     let all_events_raw = fetch_file(path.clone(), encryption_key);
-
-    let individual_events = all_events_raw
-        .split("\n")
-        .filter(|line| line.chars().count() >= 3);
-
-    let mut final_events: Vec<Event> = Vec::<Event>::new();
-
-    for event in individual_events {
-        let tmp_event = Event::from_string(event);
-        final_events.push(tmp_event);
-    }
-
+    let final_events = unwrap_events(all_events_raw);
     final_events
 }
 
 pub fn save_all_events(events: &Vec<Event>, path: String, encryption_key: &String) {
-    let mut stringified_events = String::new();
-
-    for event in events {
-        stringified_events = format!(
-            "{}{}{}",
-            stringified_events,
-            if stringified_events.chars().count() > 1 {
-                "\n"
-            } else {
-                ""
-            },
-            Event::to_string(event.clone()),
-        );
-    }
-
+    let stringified_events = stringify_events(events);
     save_file(path, stringified_events, encryption_key);
     println!("Events saved!");
 }

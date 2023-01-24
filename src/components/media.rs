@@ -188,6 +188,10 @@ impl Media {
         Ok(())
     }
 
+    pub fn obtain_properties() -> String {
+        String::from("id^name")
+    }
+
     pub fn to_string(media: Media) -> String {
         format!("{}^{}", media.id, media.name)
     }
