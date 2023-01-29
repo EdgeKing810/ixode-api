@@ -16,15 +16,6 @@ To run the project as a normal bin project, just do a
 cargo run --bin kinesis-db
 ```
 
-To run this project with Kinesis API, ensure the API project is cloned in the root directory and accessible in the
-`api/` directory. Then just execute the bash script found in the root directory of this project itself to package
-Kinesis DB as a JS package glued with WASM.
-
-```
-chmod +x build-wasm.sh
-./build-wasm.sh
-```
-
 ### Contributing
 
 - Some improvements can be made here and there to enforce borrowing wherever it can be made to
